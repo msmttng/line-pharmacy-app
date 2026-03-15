@@ -339,7 +339,9 @@
                 nextBtn.classList.remove('hidden');
                 submitBtn.classList.add('hidden');
             }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+            }, 10);
         }
 
         function handleNext() {
