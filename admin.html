@@ -28,7 +28,7 @@
 
   <script>
     let listData = [];
-    const API_URL = "https://script.google.com/macros/s/AKfycbw3ohRCQ87GMgFqOG-TPKbVE6h5uvCQsuIRl1JChA7mpIFoFDs9S0S6xP6Rx9DH6aVTiQ/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbw3ohRCQ87GMgFqOG-TPKbVE6h5uvCQsuIRl1JChA7mpIFoFDs9S0S6xP6Rx9DH6aVTiQ/exec?action=get";
 
     window.onload = function() {
       fetch(API_URL)
@@ -49,15 +49,16 @@
     };
 
     function render() {
-      const container = document.getElementById("container");
+      const container = document.getElementById('container');
       if (listData.length === 0) {
-        container.innerHTML = "<div id=\"msg\">データがありません。</div>";
+        container.innerHTML = '<div id="msg">データがありません。</div>';
         return;
       }
 
       const highlight = (val) => {
         if (!val) return 'なし';
         if (typeof val === 'string' && (val.includes('あり') || val.includes('毎日') || val.includes('時々') || val !== 'なし' && val !== 'なし/飲まない' && val !== '' && !val.includes('なし'))) {
+           // なし 以外の具体的な文字が入っている場合は強調（赤色・太字）にする
            return `<span style="color:#ff4d4f; font-weight:bold;">${val}</span>`;
         }
         return val;
