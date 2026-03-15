@@ -30,9 +30,11 @@
     let listData = [];
     const API_URL = "https://script.google.com/macros/s/AKfycbw3ohRCQ87GMgFqOG-TPKbVE6h5uvCQsuIRl1JChA7mpIFoFDs9S0S6xP6Rx9DH6aVTiQ/exec?action=get";
 
+    // 画面の描画を待たずに、スクリプトが読み込まれた瞬間にデータ取得を開始する（通信の前倒し）
+    const fetchPromise = fetch(API_URL).then(response => response.json());
+
     window.onload = function() {
-      fetch(API_URL)
-        .then(response => response.json())
+      fetchPromise
         .then(function(res) {
           const msg = document.getElementById("msg");
           if (res && res.success) {
