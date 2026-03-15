@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>問診回答管琁E/title>
+  <style>
+    :root { --line-green: #06C755; --bg-color: #f0f2f5; }
+    body { font-family: sans-serif; background: var(--bg-color); padding: 15px; margin: 0; color: #333; }
+    .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .header { font-weight: bold; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .name { font-size: 1.2rem; color: #1a1a1a; }
+    .btn { background: var(--line-green); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; }
+    .btn:active { opacity: 0.8; transform: scale(0.98); }
+    #msg { padding: 15px; text-align: center; color: #666; font-size: 0.9rem; }
+    .data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 0.85rem; }
+    .data-item { border-left: 3px solid #eee; padding-left: 8px; }
+    .label { font-size: 0.7rem; color: #888; display: block; }
+    .val { font-weight: 600; }
+    .alert { color: #ff4d4f; }
+  </style>
+</head>
+<body>
+  <div style="max-width: 900px; margin: 0 auto;">
+    <h2 style="padding: 10px 0;">問診回答一覧</h2>
+    <div id="msg">チE�Eタを読み込んでぁE��ぁE..  <script>
+    let listData = [];
+
+    window.onload = function() {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          const msg = document.getElementById('msg');
+          if (res && res.success) {
+            listData = res.list;
+            msg.innerText = res.list.length + ' 件の回答がありまぁE;
+            render();
+          } else {
+            msg.innerText = 'エラー: ' + (res ? res.error : '不�Eなエラー');
+          }
+        })
+        .withFailureHandler(function(err) {
+          document.getElementById('msg').innerText = '通信エラー: ' + err.message;
+        })
+        .getSubmissions();
+    };
+
+    function render() {
+      const container = document.getElementById('container');
+      if (listData.length === 0) {
+        container.innerHTML = '<div id="msg">チE�Eタがありません、E/div>';
+        return;
+      }
+
+      const highlight = (val) => {
+        if (!val) return 'なぁE;
+        if (typeof val === 'string' && (val.includes('あり') || val.includes('毎日') || val.includes('時、E) || val !== 'なぁE && val !== 'なぁE飲まなぁE && val !== '' && !val.includes('なぁE))) {
+           // なぁE以外�E具体的な斁E��が入ってぁE��場合�E強調�E�赤色・太字）にする
+           return `<span style="color:#ff4d4f; font-weight:bold;">${val}</span>`;
+        }
+        return val;
+      };
+
+      container.innerHTML = listData.map((item, i) => {
+        const hasWarning = (
+          item['薬アレルギー'] === 'あり' || 
+          item['食品アレルギー'] === 'あり' || 
+          (item['環墁E��レルギー'] && item['環墁E��レルギー'] !== 'なぁE && item['環墁E��レルギー'] !== '') ||
+          item['副作用'] === 'あり'
+        );
+        
+        return `
+          <div class="card" style="${hasWarning ? 'border-left: 6px solid #ff4d4f;' : ''}">
+            <div class="header">
+              <div class="name">
+                ${item['名前'] || '名前なぁE} 槁E                <span style="font-size:0.8rem; color:#666; font-weight:normal; margin-left:10px;">TEL: ${item['電話番号'] || '不�E'}</span>
+              </div>
+              <button class="btn" onclick="copy(${i}, this)">薬歴用にコピ�E</button>
+            </div>
+            <div style="font-size:0.75rem; color:#888; margin-bottom:15px;">受信: ${item['日晁E] || ''}</div>
+            
+            <div class="data-grid">
+              <div class="data-item">
+                <span class="label">後発品変更希望</span>
+                <span class="val" style="color:#06C755;">${item['ジェネリチE��'] || 'なぁE}</span>
+              </div>
+              <div class="data-item">
+                <span class="label">既往歴</span>
+                <span class="val">${highlight(item['既往歴'])}</span>
+                ${item['既往歴詳細'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(詳: ${item['既往歴詳細']})</div>` : ''}
+              </div>
+              <div class="data-item">
+                <span class="label">花粉症・アレルゲンにつぁE��</span>
+                <span class="val">${highlight(item['環墁E��レルギー'])}</span>
+              </div>
+              <div class="data-item">
+                <span class="label">副作用歴、薬物アレルギー</span>
+                <span class="val">副作用:${highlight(item['副作用'])}<br>薬物アレルギー:${highlight(item['薬アレルギー'])}</span>
+                ${item['副作用詳細'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(副作用詳細: ${item['副作用詳細']})</div>` : ''}
+                ${item['アレルギー詳細'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(薬アレルギー詳細: ${item['アレルギー詳細']})</div>` : ''}
+              </div>
+              <div class="data-item">
+                <span class="label">食物等アレルギー</span>
+                <span class="val">${highlight(item['食品アレルギー'])}</span>
+                ${item['食品詳細'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(食物詳細: ${item['食品詳細']})</div>` : ''}
+              </div>
+              <div class="data-item">
+                <span class="label">定期皁E��用薬・サプリメント�EOTC</span>
+                <span class="val">他院処方:${highlight(item['他院処方'])}<br>市販薬�E�サプリ:${highlight(item['市販薬'])}</span>
+                ${item['他院詳細'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(他院処方詳細: ${item['他院詳細']})</div>` : ''}
+                ${item['市販薬詳細'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(市販薬詳細: ${item['市販薬詳細']})</div>` : ''}
+              </div>
+              <div class="data-item">
+                <span class="label">飲食物の摂取状況筁E/span>
+                <span class="val">酁E${highlight(item['酁E])}</span>
+              </div>
+              <div class="data-item">
+                <span class="label">薬学皁E��琁E��忁E��な患老E�E生活僁E/span>
+                <span class="val">運転:${highlight(item['運転'])}<br>高所作業:${highlight(item['高所'])}<br>喫煁E${highlight(item['煙草'])}</span>
+              </div>
+            </div>
+            ${item['備老E] ? `
+            <div class="data-item" style="margin-top:10px; border-left: 3px solid #ffca28; background:#fffdf5; padding:8px;">
+              <span class="label">特記事頁E/span>
+              <span class="val">${item['備老E]}</span>
+            </div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function copy(idx, btn) {
+      const item = listData[idx];
+      let text = "【�E回問診引用】\n";
+
+      const formatVal = (val) => {
+        if (!val || val === 'なぁEしなぁE || val === 'なぁE飲まなぁE || val === 'false') return 'なぁE;
+        return val;
+      };
+      
+      const getDetail = (val, detail) => {
+        let v = formatVal(val);
+        if (v !== 'なぁE && detail) {
+            return `${v} (${detail})`;
+        }
+        return v;
+      };
+
+      text += `■後発品変更希望: ${formatVal(item['ジェネリチE��'])}\n`;
+      text += `■既往歴: ${getDetail(item['既往歴'], item['既往歴詳細'])}\n`;
+      text += `■花粉症・アレルゲンにつぁE��: ${formatVal(item['環墁E��レルギー'])}\n`;
+      text += `■副作用歴、薬物アレルギー: 副作用:${getDetail(item['副作用'], item['副作用詳細'])} / 薬物アレルギー:${getDetail(item['薬アレルギー'], item['アレルギー詳細'])}\n`;
+      text += `■食物等アレルギー: ${getDetail(item['食品アレルギー'], item['食品詳細'])}\n`;
+      text += `■定期皁E��用薬・サプリメント�EOTC: 他院処方:${getDetail(item['他院処方'], item['他院詳細'])} / 市販薬�E�サプリ:${getDetail(item['市販薬'], item['市販薬詳細'])}\n`;
+      text += `■飲食物の摂取状況筁E 酁E${formatVal(item['酁E])}\n`;
+      text += `■薬学皁E��琁E��忁E��な患老E�E生活僁E 運転:${formatVal(item['運転'])} / 高所作業:${formatVal(item['高所'])} / 喫煁E${formatVal(item['煙草'])}\n`;
+      if (item['備老E]) {
+        text += `■特記事頁E ${item['備老E]}\n`;
+      }
+
+      const el = document.createElement('textarea');
+      el.value = text; document.body.appendChild(el); el.select();
+      document.execCommand('copy'); document.body.removeChild(el);
+
+      const old = btn.innerText;
+      btn.innerText = 'コピ�E完亁E��E;
+      setTimeout(() => { btn.innerText = old; }, 1500);
+    }
+  </script>
+</body>
+</html>
