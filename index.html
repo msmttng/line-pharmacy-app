@@ -339,10 +339,12 @@
                 nextBtn.classList.remove('hidden');
                 submitBtn.classList.add('hidden');
             }
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
             setTimeout(() => {
-                document.querySelector('.app-header').scrollIntoView({ behavior: 'instant', block: 'start' });
                 window.scrollTo(0, 0);
-            }, 10);
+            }, 50);
         }
 
         function handleNext() {
