@@ -340,6 +340,7 @@
                 submitBtn.classList.add('hidden');
             }
             setTimeout(() => {
+                document.querySelector('.app-header').scrollIntoView({ behavior: 'instant', block: 'start' });
                 window.scrollTo(0, 0);
             }, 10);
         }
