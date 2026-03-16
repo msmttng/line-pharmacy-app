@@ -213,6 +213,9 @@ function generateConfirmation() {
             if (key === 'patient-condition') value = conditionLabels[value] || value;
             if (value === 'yes') value = 'あり/する';
             if (value === 'no') value = 'なし/しない';
+            if (value === 'prefer') value = 'ジェネリック希望';
+            if (value === 'avoid') value = '先発希望';
+            if (value === 'ag') value = '先発（AGなら希望）';
             
             if (value) {
                 html += `<div class="conf-item">
@@ -240,7 +243,9 @@ async function handleSubmit(e) {
 
     // Prepare message for LINE if applicable
     const condStr = (formData['patient-condition'] !== 'none') ? `\n状態: ${formData['patient-condition']} (体重: ${formData.weight || '-'}kg)` : '\n状態: 該当なし';
-    const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${condStr}\n薬アレルギー: ${formData['drug-allergy']}\n副作用: ${formData['side-effect'] || 'なし'}\n運転: ${formData.driving}\n高所作業: ${formData['height-work']}\nジェネリック: ${formData.generic}`;
+    const genericMap = { 'prefer': 'ジェネリック希望', 'avoid': '先発希望', 'ag': '先発（AGなら希望）' };
+    const genericStr = genericMap[formData.generic] || formData.generic || '未選択';
+    const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${condStr}\n薬アレルギー: ${formData['drug-allergy']}\n副作用: ${formData['side-effect'] || 'なし'}\n運転: ${formData.driving}\n高所作業: ${formData['height-work']}\nジェネリック: ${genericStr}`;
 
     try {
         if (typeof liff !== 'undefined' && liff.isInClient()) {
