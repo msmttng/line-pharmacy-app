@@ -237,6 +237,7 @@ input:focus, select:focus, textarea:focus {
     line-height: 1.5;
     word-break: normal;
     overflow-wrap: anywhere;
+    text-align: center;
 }
 
 .radio-label input:checked + span.text-left-card .card-title,
