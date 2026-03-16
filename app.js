@@ -1,6 +1,6 @@
 // --- Configuration ---
 const LIFF_ID = 'YOUR_LIFF_ID'; // Replace with your real LIFF ID
-const API_URL = 'https://script.google.com/macros/s/AKfycbw3ohRCQ87GMgFqOG-TPKbVE6h5uvCQsuIRl1JChA7mpIFoFDs9S0S6xP6Rx9DH6aVTiQ/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyRPl2M1CaCtCK9wgG6fPpZWNjTIzmQaNrRQikx8LXvekDPapdlDG84YRRMyAs6b5g-7g/exec';
 
 // --- State ---
 let currentStep = 1;
@@ -170,6 +170,14 @@ function generateConfirmation() {
         'dog-cat': '犬・猫', 'temp': '寒暖差', 'perennial': '通年性', 'testing': 'アレルギーの検査中', 'other': 'その他'
     };
     
+    const historyLabels = {
+        'hypertension': '高血圧', 'diabetes': '糖尿病', 'heart': '心臓病', 
+        'kidney': '腎臓病', 'liver': '肝臓病', 'asthma': '喘息', 
+        'epilepsy': 'てんかん', 'glaucoma': '緑内障', 'prostate': '前立腺肥大',
+        'other': 'その他'
+    };
+
+    
     const hayfeverTypeLabels = {
         'sugi': 'スギ', 'hinoki': 'ヒノキ', 'ine': 'イネ', 'butakusa': 'ブタクサ', 'kamogaya': 'カモガヤ'
     };
@@ -195,6 +203,8 @@ function generateConfirmation() {
                     value = allergies.join(', ');
                 } else if (key === 'food-drink') {
                     value = value.map(v => foodDrinkLabels[v] || v).join(', ');
+                } else if (key === 'history') {
+                    value = value.map(v => historyLabels[v] || v).join(', ');
                 } else {
                     value = value.join(', ');
                 }
