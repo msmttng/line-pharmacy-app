@@ -135,7 +135,7 @@
               </div>
               <div class="data-item">
                 <span class="label">薬学的管理に必要な患者の生活像</span>
-                <span class="val">妊娠・授乳・小児:${(() => { const s = item['状態']; if (!s || s === 'none') return '該当なし'; if (s === 'pregnant') return '<span style="color:#ff4d4f; font-weight:bold;">妊娠中(可能性あり)</span>'; if (s === 'breastfeeding') return '<span style="color:#ff4d4f; font-weight:bold;">授乳中</span>'; if (s === 'pediatric') return '<span style="color:#ff4d4f; font-weight:bold;">小児(15歳未満)</span>'; return highlight(s); })()}<br>運転:${highlight(item['運転'])}<br>高所作業:${highlight(item['高所'])}<br>コンタクト:${highlight(item['ソフトコンタクト'])}<br>喫煙:${highlight(item['煙草'])}</span>
+                <span class="val">妊娠・授乳・小児:${(() => { const s = item['状態']; if (!s || s === 'none' || s === 'なし/飲まない' || s === 'なし/しない' || s === 'なし') return '該当なし'; if (s === 'pregnant' || s === '妊娠中(可能性あり)' || s === '妊娠中') return '<span style="color:#ff4d4f; font-weight:bold;">妊娠中(可能性あり)</span>'; if (s === 'breastfeeding' || s === '授乳中') return '<span style="color:#ff4d4f; font-weight:bold;">授乳中</span>'; if (s === 'pediatric' || s === '小児(15歳未満)' || s === '小児') return '<span style="color:#ff4d4f; font-weight:bold;">小児(15歳未満)</span>'; return highlight(s); })()}<br>運転:${highlight(item['運転'])}<br>高所作業:${highlight(item['高所'])}<br>コンタクト:${highlight(item['ソフトコンタクト'])}<br>喫煙:${highlight(item['煙草'])}</span>
               </div>
             </div>
             ${item['備考'] ? `
