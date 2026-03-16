@@ -23,9 +23,10 @@ body {
     font-family: 'Inter', 'Noto Sans JP', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-main);
-    line-height: 1.6;
+    line-height: 1.7;
     overflow-x: hidden;
     font-weight: 600; /* Bumped base body font weight */
+    -webkit-font-smoothing: antialiased;
 }
 
 .app-container {
@@ -86,11 +87,12 @@ body {
 }
 
 .step-title {
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     margin-bottom: 20px;
     color: var(--line-green);
     border-left: 4px solid var(--line-green);
     padding-left: 12px;
+    font-weight: 800;
 }
 
 .input-group {
@@ -115,8 +117,9 @@ body {
     display: block;
     margin-bottom: 12px;
     font-weight: 700;
-    font-size: 0.95rem;
-    line-height: 1.5;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-main);
 }
 
 .input-group label span.required {
@@ -186,9 +189,9 @@ input:focus, select:focus, textarea:focus {
     background: #f8f9fa;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 700;
-    line-height: 1.35;
+    line-height: 1.4;
     transition: all 0.2s;
     word-break: keep-all;
     overflow-wrap: break-word;
@@ -366,20 +369,20 @@ input:focus, select:focus, textarea:focus {
         padding: 15px;
     }
     .input-group label {
-        font-size: 0.85rem;
+        font-size: 0.95rem;
     }
     .step-title {
-        font-size: 1.05rem;
+        font-size: 1.1rem;
         margin-bottom: 15px;
     }
     .radio-label span, .checkbox-label span {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
         min-height: 48px;
     }
 }
 @media (max-width: 380px) {
     .radio-label span, .checkbox-label span {
-        font-size: 0.75rem;
+        font-size: 0.85rem;
         min-height: 46px;
     }
 }

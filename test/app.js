@@ -150,7 +150,10 @@ function generateConfirmation() {
         'driving': '運転の有無',
         'height-work': '高所作業の有無',
         'soft-contact': 'ソフトコンタクト',
-        'generic': 'ジェネリック希望'
+        'alcohol': 'お酒',
+        'smoking': 'タバコ',
+        'generic': 'ジェネリック希望',
+        'memo': 'その他ご要望'
     };
 
     const genericMap = { 'prefer': 'ジェネリックで大丈夫', 'ag': 'オーソライズド・ジェネリックでなら希望', 'avoid': '先発医薬品を希望する' };
@@ -204,8 +207,30 @@ function generateConfirmation() {
             if (key === 'weight') value += ' kg';
             if (key === 'patient-condition') value = conditionLabels[value] || value;
             if (key === 'generic') value = genericMap[value] || value;
-            if (value === 'yes') value = 'あり/する';
-            if (value === 'no') value = 'なし/しない';
+            // Convert yes/no to context-aware Japanese labels
+            if (value === 'yes') {
+                if (key === 'drug-allergy' || key === 'food-allergy') value = 'あり';
+                else if (key === 'driving') value = 'する';
+                else if (key === 'height-work') value = 'ある';
+                else if (key === 'soft-contact') value = 'あり';
+                else if (key === 'current-presc') value = 'あり';
+                else if (key === 'smoking') value = '吸う';
+                else value = 'あり';
+            }
+            if (value === 'no') {
+                if (key === 'drug-allergy' || key === 'food-allergy') value = 'なし';
+                else if (key === 'driving') value = 'しない';
+                else if (key === 'height-work') value = 'ない';
+                else if (key === 'soft-contact') value = 'なし';
+                else if (key === 'current-presc') value = 'なし';
+                else if (key === 'smoking') value = '吸わない';
+                else value = 'なし';
+            }
+            // Convert alcohol values
+            if (key === 'alcohol') {
+                const alcoholLabels = { 'none': '飲まない', 'occasionally': '時々', 'daily': '毎日' };
+                value = alcoholLabels[value] || value;
+            }
             
             if (value) {
                 html += `<div class="conf-item">
@@ -316,7 +341,7 @@ document.querySelectorAll('input[type="radio"]').forEach(radio => {
         if (e.target.name === 'patient-condition') {
             const weightInputGroup = document.getElementById('weight-input-group');
             const weightInput = document.getElementById('weight');
-            if (e.target.value !== 'none') {
+            if (e.target.value === 'pediatric') {
                 weightInputGroup.classList.remove('hidden');
                 weightInput.setAttribute('required', 'true');
             } else {
