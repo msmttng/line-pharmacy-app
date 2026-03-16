@@ -183,6 +183,13 @@ function generateConfirmation() {
         'none': '該当なし', 'pregnant': '妊娠中(可能性あり)', 
         'breastfeeding': '授乳中', 'pediatric': '小児(15歳未満)'
     };
+    
+    const historyLabels = {
+        'hypertension': '高血圧', 'diabetes': '糖尿病', 'heart': '心臓病', 
+        'kidney': '腎臓病', 'liver': '肝臓病', 'asthma': '喘息', 
+        'epilepsy': 'てんかん', 'glaucoma': '緑内障', 'prostate': '前立腺肥大',
+        'other': 'その他'
+    };
 
     let html = '';
     for (let key in labels) {
@@ -200,6 +207,8 @@ function generateConfirmation() {
                     value = allergies.join(', ');
                 } else if (key === 'food-drink') {
                     value = value.map(v => foodDrinkLabels[v] || v).join(', ');
+                } else if (key === 'history') {
+                    value = value.map(v => historyLabels[v] || v).join(', ');
                 } else {
                     value = value.join(', ');
                 }
