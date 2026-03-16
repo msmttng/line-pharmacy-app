@@ -42,7 +42,7 @@
                         </div>
                     </div>
                     <div id="weight-input-group" class="input-group hidden">
-                        <label for="weight">体重をご記入ください<span class="required">必須</span></label>
+                        <label for="weight">お子様の体重をご記入ください<span class="required">必須</span></label>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <input type="number" id="weight" name="weight" placeholder="例: 50" min="0" step="0.1" style="width: 120px;">
                             <span>kg</span>
@@ -54,7 +54,7 @@
                 <section class="form-step" data-step="2">
                     <h2 class="step-title">アレルギー・副作用について</h2>
                     <div class="input-group">
-                        <label style="font-size: 0.85rem; letter-spacing: -0.5px; white-space: nowrap;">過去に薬でアレルギーや副作用がでたことはあります？<span class="required" style="margin-left: 4px; letter-spacing: normal;">必須</span></label>
+                        <label style="font-size: 0.85rem; letter-spacing: -0.5px; white-space: nowrap;">薬でアレルギーや副作用がでたことはありますか？<span class="required" style="margin-left: 4px; letter-spacing: normal;">必須</span></label>
                         <div class="radio-group">
                             <label class="radio-label"><input type="radio" name="drug-allergy" value="no" required><span>ない</span></label>
                             <label class="radio-label"><input type="radio" name="drug-allergy" value="yes"><span>ある</span></label>
@@ -147,7 +147,7 @@
                 <section class="form-step" data-step="4">
                     <h2 class="step-title">既往歴・現病歴</h2>
                     <div class="input-group">
-                        <label>現在治療中の病気や過去にかかった大きな病気はありますか？（複数選択可）</label>
+                        <label>現在治療中または過去に大きな病気はありますか？</label>
                         <div class="checkbox-grid">
                             <label class="checkbox-label"><input type="checkbox" name="history" value="hypertension"><span>高血圧</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="history" value="diabetes"><span>糖尿病</span></label>
@@ -211,8 +211,25 @@
                     <div class="input-group">
                         <label>ジェネリック医薬品を希望されますか？</label>
                         <div class="radio-group vertical">
-                            <label class="radio-label"><input type="radio" name="generic" value="prefer" checked><span>安価なジェネリックを希望する</span></label>
-                            <label class="radio-label"><input type="radio" name="generic" value="avoid"><span>先発医薬品を希望する</span></label>
+                            <label class="radio-label">
+                                <input type="radio" name="generic" value="prefer" checked>
+                                <span class="text-left-card">
+                                    <span class="card-title">ジェネリックで大丈夫</span>
+                                </span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="generic" value="ag">
+                                <span class="text-left-card">
+                                    <span class="card-title">オーソライズド・ジェネリックでなら希望</span>
+                                    <span class="card-desc">※先発医薬品と原薬・添加物・製造方法等が<br>同一のジェネリック医薬品です。</span>
+                                </span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="generic" value="avoid">
+                                <span class="text-left-card">
+                                    <span class="card-title">先発医薬品を希望する</span>
+                                </span>
+                            </label>
                         </div>
                     </div>
                     <div class="input-group">
@@ -239,7 +256,7 @@
                 <div class="form-nav">
                     <button type="button" id="prev-btn" class="btn btn-secondary hidden">戻る</button>
                     <button type="button" id="next-btn" class="btn btn-primary">次へ</button>
-                    <button type="submit" id="submit-btn" class="btn btn-primary hidden">送信する</button>
+                    <button type="button" id="submit-btn" class="btn btn-primary hidden">送信する</button>
                 </div>
             </form>
         </main>

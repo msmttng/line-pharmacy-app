@@ -1,6 +1,6 @@
 // --- Configuration ---
 const LIFF_ID = 'YOUR_LIFF_ID'; // Replace with your real LIFF ID
-const API_URL = 'https://script.google.com/macros/s/AKfycbyRPl2M1CaCtCK9wgG6fPpZWNjTIzmQaNrRQikx8LXvekDPapdlDG84YRRMyAs6b5g-7g/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbw3ohRCQ87GMgFqOG-TPKbVE6h5uvCQsuIRl1JChA7mpIFoFDs9S0S6xP6Rx9DH6aVTiQ/exec';
 
 // --- State ---
 let currentStep = 1;
@@ -150,8 +150,13 @@ function generateConfirmation() {
         'driving': '運転の有無',
         'height-work': '高所作業の有無',
         'soft-contact': 'ソフトコンタクト',
-        'generic': 'ジェネリック希望'
+        'alcohol': 'お酒',
+        'smoking': 'タバコ',
+        'generic': 'ジェネリック希望',
+        'memo': 'その他ご要望'
     };
+
+    const genericMap = { 'prefer': 'ジェネリックで大丈夫', 'ag': 'オーソライズド・ジェネリックでなら希望', 'avoid': '先発医薬品を希望する' };
 
     const otcLabels = {
         'cold': '風邪薬', 'pain': '痛み止め', 'stomach': '胃腸薬', 'eye': '目薬',
@@ -169,14 +174,6 @@ function generateConfirmation() {
         'hayfever': '花粉症', 'housedust': 'ハウスダスト', 'mite': 'ダニ',
         'dog-cat': '犬・猫', 'temp': '寒暖差', 'perennial': '通年性', 'testing': 'アレルギーの検査中', 'other': 'その他'
     };
-    
-    const historyLabels = {
-        'hypertension': '高血圧', 'diabetes': '糖尿病', 'heart': '心臓病', 
-        'kidney': '腎臓病', 'liver': '肝臓病', 'asthma': '喘息', 
-        'epilepsy': 'てんかん', 'glaucoma': '緑内障', 'prostate': '前立腺肥大',
-        'other': 'その他'
-    };
-
     
     const hayfeverTypeLabels = {
         'sugi': 'スギ', 'hinoki': 'ヒノキ', 'ine': 'イネ', 'butakusa': 'ブタクサ', 'kamogaya': 'カモガヤ'
@@ -203,19 +200,37 @@ function generateConfirmation() {
                     value = allergies.join(', ');
                 } else if (key === 'food-drink') {
                     value = value.map(v => foodDrinkLabels[v] || v).join(', ');
-                } else if (key === 'history') {
-                    value = value.map(v => historyLabels[v] || v).join(', ');
                 } else {
                     value = value.join(', ');
                 }
             }
             if (key === 'weight') value += ' kg';
             if (key === 'patient-condition') value = conditionLabels[value] || value;
-            if (value === 'yes') value = 'あり/する';
-            if (value === 'no') value = 'なし';
-            if (value === 'prefer') value = 'ジェネリック希望';
-            if (value === 'avoid') value = '先発希望';
-            if (value === 'ag') value = '先発（AGなら希望）';
+            if (key === 'generic') value = genericMap[value] || value;
+            // Convert yes/no to context-aware Japanese labels
+            if (value === 'yes') {
+                if (key === 'drug-allergy' || key === 'food-allergy') value = 'あり';
+                else if (key === 'driving') value = 'する';
+                else if (key === 'height-work') value = 'ある';
+                else if (key === 'soft-contact') value = 'あり';
+                else if (key === 'current-presc') value = 'あり';
+                else if (key === 'smoking') value = '吸う';
+                else value = 'あり';
+            }
+            if (value === 'no') {
+                if (key === 'drug-allergy' || key === 'food-allergy') value = 'なし';
+                else if (key === 'driving') value = 'しない';
+                else if (key === 'height-work') value = 'ない';
+                else if (key === 'soft-contact') value = 'なし';
+                else if (key === 'current-presc') value = 'なし';
+                else if (key === 'smoking') value = '吸わない';
+                else value = 'なし';
+            }
+            // Convert alcohol values
+            if (key === 'alcohol') {
+                const alcoholLabels = { 'none': '飲まない', 'occasionally': '時々', 'daily': '毎日' };
+                value = alcoholLabels[value] || value;
+            }
             
             if (value) {
                 html += `<div class="conf-item">
@@ -242,10 +257,10 @@ async function handleSubmit(e) {
     submitBtn.innerText = '送信中...';
 
     // Prepare message for LINE if applicable
+    const genericMapSubmit = { 'prefer': 'ジェネリックで大丈夫', 'ag': 'オーソライズド・ジェネリックでなら希望', 'avoid': '先発医薬品を希望する' };
+    const genericText = genericMapSubmit[formData.generic] || formData.generic;
     const condStr = (formData['patient-condition'] !== 'none') ? `\n状態: ${formData['patient-condition']} (体重: ${formData.weight || '-'}kg)` : '\n状態: 該当なし';
-    const genericMap = { 'prefer': 'ジェネリック希望', 'avoid': '先発希望', 'ag': '先発（AGなら希望）' };
-    const genericStr = genericMap[formData.generic] || formData.generic || '未選択';
-    const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${condStr}\n薬アレルギー: ${formData['drug-allergy']}\n副作用: ${formData['side-effect'] || 'なし'}\n運転: ${formData.driving}\n高所作業: ${formData['height-work']}\nジェネリック: ${genericStr}`;
+    const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${condStr}\n薬アレルギー: ${formData['drug-allergy']}\n副作用: ${formData['side-effect'] || 'なし'}\n運転: ${formData.driving}\n高所作業: ${formData['height-work']}\nジェネリック: ${genericText}`;
 
     try {
         if (typeof liff !== 'undefined' && liff.isInClient()) {
@@ -279,7 +294,7 @@ function showSuccess() {
         <div class="success-view" style="text-align: center; padding: 40px 20px;">
             <div class="success-icon" style="color: #06C755; font-size: 80px; margin-bottom: 20px;">✓</div>
             <h2 style="font-size: 1.5rem; color: #333; margin-bottom: 15px;">送信完了しました</h2>
-            <p style="font-size: 1.1rem; color: #555; line-height: 1.6;">ご協力ありがとうございました。<br>窓口のスタッフにお声がけください。</p>
+            <p style="font-size: 1.1rem; color: #555; line-height: 1.6;">ご協力ありがとうございました</p>
             <button class="btn btn-primary" onclick="closeLiff()" style="margin-top:30px; padding: 12px 30px; font-size: 1.1rem; border-radius: 30px; border: none; cursor: pointer;">画面を閉じる</button>
         </div>
     `;

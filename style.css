@@ -25,7 +25,8 @@ body {
     color: var(--text-main);
     line-height: 1.6;
     overflow-x: hidden;
-    font-weight: 500; /* Bumped base body font weight */
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
 }
 
 .app-container {
@@ -102,13 +103,16 @@ body {
 }
 
 .info-note {
-    background-color: #fffbe6;
-    border: 1px solid #ffe58f;
-    padding: 12px;
+    background-color: #e8f7ed;
+    border: 2px solid var(--line-green);
+    padding: 14px;
     border-radius: var(--radius-md);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    font-weight: 700;
     margin-bottom: 16px;
-    color: #856404;
+    color: #05a346;
+    line-height: 1.6;
+    text-align: center;
 }
 
 .input-group label {
@@ -201,6 +205,44 @@ input:focus, select:focus, textarea:focus {
     border-color: var(--line-green);
     color: var(--line-green);
     font-weight: 600;
+}
+
+.radio-label span.text-left-card {
+    display: block !important;
+    text-align: left;
+    padding: 14px 16px;
+    height: auto;
+    min-height: 0;
+    word-break: normal;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    overflow: hidden;
+}
+
+.text-left-card .card-title {
+    display: block !important;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.5;
+    word-break: normal;
+    overflow-wrap: anywhere;
+}
+
+.text-left-card .card-desc {
+    display: block !important;
+    font-size: 0.78rem;
+    color: var(--line-green);
+    font-weight: 600;
+    margin-top: 6px;
+    line-height: 1.5;
+    word-break: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+}
+
+.radio-label input:checked + span.text-left-card .card-title,
+.radio-label input:checked + span.text-left-card .card-desc {
+    color: var(--line-green-dark);
 }
 
 .sub-input {
