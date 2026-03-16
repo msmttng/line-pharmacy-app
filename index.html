@@ -88,18 +88,26 @@
                     <div class="input-group">
                         <label>花粉症・ハウスダストなど環境アレルギーはありますか？</label>
                         <div class="checkbox-grid">
-                            <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="hayfever-sugi"><span>スギの花粉症</span></label>
-                            <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="hayfever-hinoki"><span>ヒノキの花粉症</span></label>
-                            <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="hayfever-ine"><span>イネの花粉症</span></label>
-                            <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="hayfever-butakusa"><span>ブタクサの花粉症</span></label>
-                            <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="hayfever-kamogaya"><span>カモガヤの花粉症</span></label>
-                            <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="hayfever-other"><span>その他の花粉症</span></label>
+                            <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="hayfever" id="hayfever-toggle"><span>花粉症</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="housedust"><span>ハウスダスト</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="mite"><span>ダニ</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="dog-cat"><span>犬・猫</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="temp"><span>寒暖差</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="perennial"><span>通年性</span></label>
+                            <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="testing"><span>アレルギーの検査中</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="other"><span>その他</span></label>
+                        </div>
+                        
+                        <!-- Sub-categories for Hayfever (Hidden by default) -->
+                        <div id="hayfever-subgroup" class="hidden mt-10" style="padding: 10px; background: #f9f9f9; border-radius: 8px; border-left: 3px solid var(--line-green);">
+                            <label style="font-size: 0.85em; font-weight: bold; color: #555; margin-bottom: 8px; display: block;">花粉症の種類（複数選択可）</label>
+                            <div class="checkbox-grid">
+                                <label class="checkbox-label"><input type="checkbox" name="hayfever-type" value="sugi"><span>スギ</span></label>
+                                <label class="checkbox-label"><input type="checkbox" name="hayfever-type" value="hinoki"><span>ヒノキ</span></label>
+                                <label class="checkbox-label"><input type="checkbox" name="hayfever-type" value="ine"><span>イネ</span></label>
+                                <label class="checkbox-label"><input type="checkbox" name="hayfever-type" value="butakusa"><span>ブタクサ</span></label>
+                                <label class="checkbox-label"><input type="checkbox" name="hayfever-type" value="kamogaya"><span>カモガヤ</span></label>
+                            </div>
                         </div>
                     </div>
                 </section>

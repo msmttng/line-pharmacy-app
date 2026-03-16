@@ -160,8 +160,12 @@ function generateConfirmation() {
     };
     
     const envLabels = {
-        'hayfever-sugi': 'スギ花粉症', 'hayfever-hinoki': 'ヒノキ花粉症', 'hayfever-ine': 'イネ花粉症', 'hayfever-butakusa': 'ブタクサ花粉症', 'hayfever-kamogaya': 'カモガヤ花粉症', 'hayfever-other': 'その他花粉症', 'hayfever': '花粉症', 'housedust': 'ハウスダスト', 'mite': 'ダニ',
-        'dog-cat': '犬・猫', 'temp': '寒暖差', 'perennial': '通年性', 'other': 'その他'
+        'hayfever': '花粉症', 'housedust': 'ハウスダスト', 'mite': 'ダニ',
+        'dog-cat': '犬・猫', 'temp': '寒暖差', 'perennial': '通年性', 'testing': 'アレルギーの検査中', 'other': 'その他'
+    };
+    
+    const hayfeverTypeLabels = {
+        'sugi': 'スギ', 'hinoki': 'ヒノキ', 'ine': 'イネ', 'butakusa': 'ブタクサ', 'kamogaya': 'カモガヤ'
     };
     
     const foodDrinkLabels = {
@@ -181,6 +185,13 @@ function generateConfirmation() {
             if (Array.isArray(value)) {
                 if (key === 'otc-list') {
                     value = value.map(v => otcLabels[v] || v).join(', ');
+                } else if (key === 'env-allergy') {
+                    let allergies = value.map(v => envLabels[v] || v);
+                    if (value.includes('hayfever') && formData['hayfever-type'] && formData['hayfever-type'].length > 0) {
+                        const types = formData['hayfever-type'].map(t => hayfeverTypeLabels[t] || t).join('・');
+                        allergies = allergies.map(a => a === '花粉症' ? `花粉症(${types})` : a);
+                    }
+                    value = allergies.join(', ');
                 } else if (key === 'food-drink') {
                     value = value.map(v => foodDrinkLabels[v] || v).join(', ');
                 } else {
@@ -293,5 +304,21 @@ document.querySelectorAll('input[type="radio"]').forEach(radio => {
 });
 
 // Start
+
+document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+    checkbox.addEventListener('change', (e) => {
+        if (e.target.id === 'hayfever-toggle') {
+            const subgroup = document.getElementById('hayfever-subgroup');
+            const typeInputs = subgroup.querySelectorAll('input[type="checkbox"]');
+            if (e.target.checked) {
+                subgroup.classList.remove('hidden');
+            } else {
+                subgroup.classList.add('hidden');
+                typeInputs.forEach(input => input.checked = false);
+            }
+        }
+    });
+});
+
 initializeLiff();
 updateNavigation();
