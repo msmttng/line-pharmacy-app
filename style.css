@@ -110,25 +110,6 @@ body {
     color: #856404;
 }
 
-.info-note-small {
-    font-size: 0.8rem;
-    color: #555; /* Changed from green to dark gray for better readability */
-    margin-bottom: 12px;
-    line-height: 1.4;
-    font-weight: 500;
-}
-
-.success-view {
-    text-align: center;
-    padding: 40px 20px;
-}
-
-.success-icon {
-    font-size: 4rem;
-    color: var(--line-green);
-    margin-bottom: 20px;
-}
-
 .input-group label {
     display: block;
     margin-bottom: 10px;

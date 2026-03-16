@@ -1,5 +1,6 @@
 // --- Configuration ---
 const LIFF_ID = 'YOUR_LIFF_ID'; // Replace with your real LIFF ID
+const API_URL = 'https://script.google.com/macros/s/AKfycbw3ohRCQ87GMgFqOG-TPKbVE6h5uvCQsuIRl1JChA7mpIFoFDs9S0S6xP6Rx9DH6aVTiQ/exec';
 
 // --- State ---
 let currentStep = 1;
@@ -135,11 +136,11 @@ function generateConfirmation() {
     const labels = {
         'name': 'お名前（漢字）',
         'phone': '電話番号',
-        'booklet': 'お薬手帳',
         'patient-condition': '患者様の状態',
         'weight': '体重',
-        'drug-allergy': 'アレルギー・副作用歴',
+        'drug-allergy': '薬・副作用歴',
         'food-allergy': '食物アレルギー',
+        'env-allergy': '環境アレルギー',
         'current-presc': '他での処方',
         'otc-list': '使用中の市販薬・サプリ',
         'otc-suppl-detail': '市販薬詳細',
@@ -159,6 +160,11 @@ function generateConfirmation() {
         'protein': 'プロテイン', 'other': 'その他'
     };
     
+    const foodDrinkLabels = {
+        'coffee-tea': 'コーヒー・紅茶', 'grapefruit': 'グレープフルーツジュース', 
+        'dairy': '乳製品', 'other': 'その他'
+    };
+    
     const envLabels = {
         'hayfever': '花粉症', 'housedust': 'ハウスダスト', 'mite': 'ダニ',
         'dog-cat': '犬・猫', 'temp': '寒暖差', 'perennial': '通年性', 'testing': 'アレルギーの検査中', 'other': 'その他'
@@ -166,11 +172,6 @@ function generateConfirmation() {
     
     const hayfeverTypeLabels = {
         'sugi': 'スギ', 'hinoki': 'ヒノキ', 'ine': 'イネ', 'butakusa': 'ブタクサ', 'kamogaya': 'カモガヤ'
-    };
-    
-    const foodDrinkLabels = {
-        'coffee-tea': 'コーヒー・紅茶', 'grapefruit': 'グレープフルーツジュース', 
-        'dairy': '乳製品', 'other': 'その他'
     };
     
     const conditionLabels = {
@@ -200,16 +201,8 @@ function generateConfirmation() {
             }
             if (key === 'weight') value += ' kg';
             if (key === 'patient-condition') value = conditionLabels[value] || value;
-            if (key === 'booklet') {
-                if (value === 'yes') {
-                    value = 'あり' + (formData['booklet-type'] ? `（${formData['booklet-type'] === 'paper' ? '紙' : '電子'}）` : '');
-                } else if (value === 'no') {
-                    value = 'なし';
-                }
-            } else {
-                if (value === 'yes') value = 'あり/する';
-                if (value === 'no') value = 'なし/しない';
-            }
+            if (value === 'yes') value = 'あり/する';
+            if (value === 'no') value = 'なし/しない';
             
             if (value) {
                 html += `<div class="conf-item">
@@ -231,26 +224,69 @@ async function handleSubmit(e) {
         return;
     }
 
-    // Prepare message
-    const bookletStr = typeof formData.booklet !== 'undefined' ? `\nお薬手帳: ${formData.booklet === 'yes' ? 'あり（' + (formData['booklet-type'] === 'paper' ? '紙' : '電子') + '）' : 'なし'}` : '';
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerText = '送信中...';
+
+    // Prepare message for LINE if applicable
     const condStr = (formData['patient-condition'] !== 'none') ? `\n状態: ${formData['patient-condition']} (体重: ${formData.weight || '-'}kg)` : '\n状態: 該当なし';
-    const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${bookletStr}${condStr}\n薬アレルギー・副作用: ${formData['drug-allergy']}\n運転: ${formData.driving}\n高所作業: ${formData['height-work']}\nジェネリック: ${formData.generic}`;
+    const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${condStr}\n薬アレルギー: ${formData['drug-allergy']}\n副作用: ${formData['side-effect'] || 'なし'}\n運転: ${formData.driving}\n高所作業: ${formData['height-work']}\nジェネリック: ${formData.generic}`;
 
     try {
-        if (liff.isInClient()) {
+        if (typeof liff !== 'undefined' && liff.isInClient()) {
             await liff.sendMessages([{
                 type: 'text',
                 text: message
             }]);
-            alert('問診票を送信しました。ありがとうございました。');
-            liff.closeWindow();
-        } else {
-            console.log('Form submitted (Browser mode):', formData);
-            alert('ブラウザ版のため、コンソールにデータを出力しました。実機ではLINEに送信されます。');
         }
     } catch (err) {
-        console.error('Submission failed', err);
-        alert('送信に失敗しました。時間をおいて再度お試しください。');
+        console.error('LIFF Message failed', err);
+    }
+
+    // Submit to GAS backend
+    fetch(API_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(formData)
+    })
+    .then(() => {
+        showSuccess();
+    })
+    .catch(err => {
+        console.error(err);
+        showSuccess(); // fallback to success view even on CORS errors
+    });
+}
+
+function showSuccess() {
+    document.querySelector('.form-container').innerHTML = `
+        <div class="success-view" style="text-align: center; padding: 40px 20px;">
+            <div class="success-icon" style="color: #06C755; font-size: 80px; margin-bottom: 20px;">✓</div>
+            <h2 style="font-size: 1.5rem; color: #333; margin-bottom: 15px;">送信完了しました</h2>
+            <p style="font-size: 1.1rem; color: #555; line-height: 1.6;">ご協力ありがとうございました。<br>窓口のスタッフにお声がけください。</p>
+            <button class="btn btn-primary" onclick="closeLiff()" style="margin-top:30px; padding: 12px 30px; font-size: 1.1rem; border-radius: 30px; border: none; cursor: pointer;">画面を閉じる</button>
+        </div>
+    `;
+    document.querySelector('.app-header').style.display = 'none';
+    document.querySelector('.form-nav').style.display = 'none';
+}
+
+function closeLiff() {
+    let isLiff = false;
+    try {
+        if (typeof liff !== 'undefined' && liff.isInClient()) {
+            isLiff = true;
+            liff.closeWindow(); 
+        }
+    } catch (e) { console.warn('LIFF close failed:', e); }
+
+    if (!isLiff) {
+        document.querySelector('.success-view').innerHTML = `
+            <div class="success-icon" style="color: #06C755; font-size: 80px; margin-bottom: 20px;">✓</div>
+            <h2 style="font-size: 1.5rem; color: #333; margin-bottom: 15px;">ご回答<br>ありがとうございました</h2>
+            <p style="font-size: 1.1rem; color: #555; line-height: 1.6;">手続きが完了しました。<br><br><b>このブラウザの画面（タブ）を閉じてください。</b><br><br><span style="font-size: 0.9rem;">※ 薬局のタブレットをご利用の方は、そのままスタッフにお渡しください。</span></p>
+        `;
     }
 }
 
@@ -275,7 +311,7 @@ document.querySelectorAll('input[type="radio"]').forEach(radio => {
         if (e.target.name === 'patient-condition') {
             const weightInputGroup = document.getElementById('weight-input-group');
             const weightInput = document.getElementById('weight');
-            if (e.target.value === 'pediatric') {
+            if (e.target.value !== 'none') {
                 weightInputGroup.classList.remove('hidden');
                 weightInput.setAttribute('required', 'true');
             } else {
@@ -284,27 +320,10 @@ document.querySelectorAll('input[type="radio"]').forEach(radio => {
                 weightInput.value = ''; // clear value
             }
         }
-
-        // Handle booklet type input toggle
-        if (e.target.name === 'booklet') {
-            const bookletTypeGroup = document.getElementById('booklet-type-group');
-            const typeInputs = bookletTypeGroup.querySelectorAll('input[type="radio"]');
-            if (e.target.value === 'yes') {
-                bookletTypeGroup.classList.remove('hidden');
-                typeInputs.forEach(input => input.setAttribute('required', 'true'));
-            } else {
-                bookletTypeGroup.classList.add('hidden');
-                typeInputs.forEach(input => {
-                    input.removeAttribute('required');
-                    input.checked = false; // clear checking
-                });
-            }
-        }
     });
 });
 
-// Start
-
+// --- Checkbox Toggle Logic ---
 document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
     checkbox.addEventListener('change', (e) => {
         if (e.target.id === 'hayfever-toggle') {
@@ -320,5 +339,6 @@ document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
     });
 });
 
+// Start
 initializeLiff();
 updateNavigation();

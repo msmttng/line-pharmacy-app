@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>【薬局】初回問診票</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="app" class="app-container">
@@ -33,20 +33,6 @@
                         <input type="tel" id="phone" name="phone" placeholder="09012345678" required>
                     </div>
                     <div class="input-group">
-                        <label>お薬手帳はお持ちですか？<span class="required">必須</span></label>
-                        <div class="radio-group">
-                            <label class="radio-label"><input type="radio" name="booklet" value="yes" required><span>あり</span></label>
-                            <label class="radio-label"><input type="radio" name="booklet" value="no"><span>なし</span></label>
-                        </div>
-                    </div>
-                    <div id="booklet-type-group" class="input-group hidden">
-                        <label>手帳の種類を教えてください<span class="required">必須</span></label>
-                        <div class="radio-group">
-                            <label class="radio-label"><input type="radio" name="booklet-type" value="paper"><span>紙</span></label>
-                            <label class="radio-label"><input type="radio" name="booklet-type" value="digital"><span>電子（アプリ）</span></label>
-                        </div>
-                    </div>
-                    <div class="input-group">
                         <label>該当する状態を選んでください<span class="required">必須</span></label>
                         <div class="radio-group vertical">
                             <label class="radio-label"><input type="radio" name="patient-condition" value="none" checked required><span>該当なし</span></label>
@@ -68,7 +54,7 @@
                 <section class="form-step" data-step="2">
                     <h2 class="step-title">アレルギー・副作用について</h2>
                     <div class="input-group">
-                        <label>過去に薬でアレルギーや副作用が出たことはありますか？<span class="required">必須</span></label>
+                        <label>過去に薬でアレルギーや副作用がでたことはあります？<span class="required">必須</span></label>
                         <div class="radio-group">
                             <label class="radio-label"><input type="radio" name="drug-allergy" value="no" required><span>ない</span></label>
                             <label class="radio-label"><input type="radio" name="drug-allergy" value="yes"><span>ある</span></label>
@@ -76,9 +62,9 @@
                         <input type="text" name="drug-allergy-detail" class="sub-input hidden" placeholder="具体的な薬名や症状をご記入ください">
                     </div>
                     <div class="input-group">
-                        <label>食物アレルギーはありますか？</label>
+                        <label>食物アレルギーはありますか？<span class="required">必須</span></label>
                         <div class="radio-group">
-                            <label class="radio-label"><input type="radio" name="food-allergy" value="no"><span>ない</span></label>
+                            <label class="radio-label"><input type="radio" name="food-allergy" value="no" required><span>ない</span></label>
                             <label class="radio-label"><input type="radio" name="food-allergy" value="yes"><span>ある</span></label>
                         </div>
                         <input type="text" name="food-allergy-detail" class="sub-input hidden" placeholder="具体的な食物名をご記入ください">
@@ -94,7 +80,7 @@
                             <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="dog-cat"><span>犬・猫</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="temp"><span>寒暖差</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="perennial"><span>通年性</span></label>
-                            <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="testing"><span>アレルギーの検査中</span></label>
+                            <label class="checkbox-label" style="grid-column: 1 / -1;"><input type="checkbox" name="env-allergy" value="testing"><span>アレルギーの検査中</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="env-allergy" value="other"><span>その他</span></label>
                         </div>
                         
@@ -115,11 +101,11 @@
                 <!-- Step 3: Current Medications -->
                 <section class="form-step" data-step="3">
                     <h2 class="step-title">現在の服用状況</h2>
+                    <div class="info-note">
+                        ※お薬手帳、またはマイナ保険証で医療情報の提供に同意いただける方は、以下の入力は不要です。
+                    </div>
                     <div class="input-group">
-                        <label>服用中のお薬はありますか？</label>
-                        <div class="info-note-small" style="color: var(--line-green); font-weight: bold;">
-                            ※お薬手帳やマイナ保険証で医療情報を公開している場合は「あり」を選択し、以下の詳細入力は不要です。
-                        </div>
+                        <label>現在、他で処方されている薬はありますか？</label>
                         <div class="radio-group">
                             <label class="radio-label"><input type="radio" name="current-presc" value="no"><span>ない</span></label>
                             <label class="radio-label"><input type="radio" name="current-presc" value="yes"><span>ある</span></label>
@@ -131,18 +117,15 @@
                         <div class="checkbox-grid">
                             <label class="checkbox-label"><input type="checkbox" name="otc-list" value="cold"><span>風邪薬</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="otc-list" value="pain"><span>痛み止め</span></label>
-                            <label class="checkbox-label"><input type="checkbox" name="otc-list" value="rhinitis"><span>鼻炎薬</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="otc-list" value="stomach"><span>胃腸薬</span></label>
-                            <label class="checkbox-label"><input type="checkbox" name="otc-list" value="constipation"><span>便秘薬</span></label>
-                            <label class="checkbox-label"><input type="checkbox" name="otc-list" value="kanpo"><span>漢方薬</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="otc-list" value="eye"><span>目薬</span></label>
-                            <label class="checkbox-label"><input type="checkbox" name="otc-list" value="vitamin"><span>ビタミン</span></label>
+                            <label class="checkbox-label"><input type="checkbox" name="otc-list" value="vitamin"><span>ビタミン類</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="otc-list" value="multi-mineral"><span>マルチミネラル</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="otc-list" value="iron"><span>鉄</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="otc-list" value="zinc"><span>亜鉛</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="otc-list" value="calcium"><span>カルシウム</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="otc-list" value="magnesium"><span>マグネシウム</span></label>
-                            <label class="checkbox-label"><input type="checkbox" name="otc-list" value="dha-epa"><span>DHA/EPA</span></label>
+                            <label class="checkbox-label"><input type="checkbox" name="otc-list" value="dha-epa"><span>DHA・EPA</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="otc-list" value="protein"><span>プロテイン</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="otc-list" value="other"><span>その他</span></label>
                         </div>
@@ -152,7 +135,7 @@
                         <label>日常的によく摂取している飲食物はありますか？<br><span style="font-size: 0.85em; font-weight: normal; color: var(--text-sub);">（お薬との飲み合わせ確認のため・複数選択可）</span></label>
                         <div class="checkbox-grid">
                             <label class="checkbox-label"><input type="checkbox" name="food-drink" value="coffee-tea"><span>コーヒー・紅茶</span></label>
-                            <label class="checkbox-label"><input type="checkbox" name="food-drink" value="grapefruit"><span>グレープフルーツジュース</span></label>
+                            <label class="checkbox-label" style="grid-column: 1 / -1;"><input type="checkbox" name="food-drink" value="grapefruit"><span>グレープフルーツジュース</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="food-drink" value="dairy"><span>乳製品</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="food-drink" value="other"><span>その他</span></label>
                         </div>
@@ -192,7 +175,10 @@
                         </div>
                     </div>
                     <div class="input-group">
-                        <label>高所作業（高い所での作業）をされますか？<span class="required">必須</span></label>
+                        <label style="display: flex; align-items: center; justify-content: space-between; gap: 5px;">
+                            <span style="letter-spacing: -0.5px;">高所作業（高いところでの作業）をされますか？</span>
+                            <span class="required" style="margin-left: 0; flex-shrink: 0;">必須</span>
+                        </label>
                         <div class="radio-group">
                             <label class="radio-label"><input type="radio" name="height-work" value="no" required><span>ない</span></label>
                             <label class="radio-label"><input type="radio" name="height-work" value="yes"><span>ある</span></label>
@@ -226,17 +212,10 @@
                 <section class="form-step" data-step="6">
                     <h2 class="step-title">ご要望・その他</h2>
                     <div class="input-group">
-                        <label>ジェネリック医薬品（後発品）の希望</label>
-                        <div class="info-note-small" style="background:#f9f9f9; padding:10px; border-radius:8px; margin-bottom:15px; border:1px solid #eee;">
-                            <p style="margin:0 0 5px 0; font-weight:bold; font-size:0.85rem;">【ジェネリック医薬品とは】</p>
-                            <p style="margin:0 0 10px 0; font-size:0.8rem; color:#555;">先発医薬品と同等の効き目・安全性を持ち、より安価なお薬です。</p>
-                            <p style="margin:0 0 5px 0; font-weight:bold; font-size:0.85rem;">【AG（オーソライズド・ジェネリック）】</p>
-                            <p style="margin:0; font-size:0.8rem; color:#555;">先発品メーカー公認の、成分・製法が<b>先発品と全く同じ</b>ジェネリックです。</p>
-                        </div>
+                        <label>ジェネリック医薬品を希望されますか？</label>
                         <div class="radio-group vertical">
-                            <label class="radio-label"><input type="radio" name="generic" value="prefer" checked><span>ジェネリック希望</span></label>
-                            <label class="radio-label"><input type="radio" name="generic" value="avoid"><span>先発希望</span></label>
-                            <label class="radio-label"><input type="radio" name="generic" value="ag"><span>先発（AGなら希望）</span></label>
+                            <label class="radio-label"><input type="radio" name="generic" value="prefer" checked><span>安価なジェネリックを希望する</span></label>
+                            <label class="radio-label"><input type="radio" name="generic" value="avoid"><span>先発医薬品を希望する</span></label>
                         </div>
                     </div>
                     <div class="input-group">
@@ -251,9 +230,11 @@
                     <div id="confirmation-view" class="confirmation-view">
                         <!-- Content via JS -->
                     </div>
-                    <div class="agreement" style="margin-top: 30px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                        <input type="checkbox" id="agree" required style="width: 24px; height: 24px; cursor: pointer;">
-                        <label for="agree" style="font-weight: bold; cursor: pointer; display: inline-block; margin-bottom: 0;">個人情報の取り扱いに同意します</label>
+                    <div class="agreement">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="agree" required>
+                            <span>個人情報の取り扱いに同意します</span>
+                        </label>
                     </div>
                 </section>
 
