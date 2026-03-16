@@ -23,9 +23,9 @@ body {
     font-family: 'Inter', 'Noto Sans JP', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-main);
-    line-height: 1.7;
+    line-height: 1.6;
     overflow-x: hidden;
-    font-weight: 600; /* Bumped base body font weight */
+    font-weight: 500;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -87,12 +87,11 @@ body {
 }
 
 .step-title {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     margin-bottom: 20px;
     color: var(--line-green);
     border-left: 4px solid var(--line-green);
     padding-left: 12px;
-    font-weight: 800;
 }
 
 .input-group {
@@ -117,9 +116,8 @@ body {
     display: block;
     margin-bottom: 12px;
     font-weight: 700;
-    font-size: 1rem;
-    line-height: 1.6;
-    color: var(--text-main);
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 .input-group label span.required {
@@ -189,9 +187,9 @@ input:focus, select:focus, textarea:focus {
     background: #f8f9fa;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    font-size: 0.95rem;
-    font-weight: 700;
-    line-height: 1.4;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.35;
     transition: all 0.2s;
     word-break: keep-all;
     overflow-wrap: break-word;
@@ -221,7 +219,7 @@ input:focus, select:focus, textarea:focus {
 .text-left-card .card-title {
     display: block !important;
     font-size: 0.95rem;
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1.5;
     word-break: normal;
     overflow-wrap: anywhere;
@@ -369,20 +367,20 @@ input:focus, select:focus, textarea:focus {
         padding: 15px;
     }
     .input-group label {
-        font-size: 0.95rem;
+        font-size: 0.85rem;
     }
     .step-title {
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         margin-bottom: 15px;
     }
     .radio-label span, .checkbox-label span {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         min-height: 48px;
     }
 }
 @media (max-width: 380px) {
     .radio-label span, .checkbox-label span {
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         min-height: 46px;
     }
 }
