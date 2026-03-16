@@ -135,6 +135,7 @@ function generateConfirmation() {
     const labels = {
         'name': 'お名前（漢字）',
         'phone': '電話番号',
+        'booklet': 'お薬手帳',
         'patient-condition': '患者様の状態',
         'weight': '体重',
         'drug-allergy': '薬のアレルギー',
@@ -184,8 +185,16 @@ function generateConfirmation() {
             }
             if (key === 'weight') value += ' kg';
             if (key === 'patient-condition') value = conditionLabels[value] || value;
-            if (value === 'yes') value = 'あり/する';
-            if (value === 'no') value = 'なし/しない';
+            if (key === 'booklet') {
+                if (value === 'yes') {
+                    value = 'あり' + (formData['booklet-type'] ? `（${formData['booklet-type'] === 'paper' ? '紙' : '電子'}）` : '');
+                } else if (value === 'no') {
+                    value = 'なし';
+                }
+            } else {
+                if (value === 'yes') value = 'あり/する';
+                if (value === 'no') value = 'なし/しない';
+            }
             
             if (value) {
                 html += `<div class="conf-item">
@@ -208,8 +217,9 @@ async function handleSubmit(e) {
     }
 
     // Prepare message
+    const bookletStr = typeof formData.booklet !== 'undefined' ? `\nお薬手帳: ${formData.booklet === 'yes' ? 'あり（' + (formData['booklet-type'] === 'paper' ? '紙' : '電子') + '）' : 'なし'}` : '';
     const condStr = (formData['patient-condition'] !== 'none') ? `\n状態: ${formData['patient-condition']} (体重: ${formData.weight || '-'}kg)` : '\n状態: 該当なし';
-    const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${condStr}\n薬アレルギー: ${formData['drug-allergy']}\n副作用: ${formData['side-effect']}\n運転: ${formData.driving}\n高所作業: ${formData['height-work']}\nジェネリック: ${formData.generic}`;
+    const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${bookletStr}${condStr}\n薬アレルギー: ${formData['drug-allergy']}\n副作用: ${formData['side-effect']}\n運転: ${formData.driving}\n高所作業: ${formData['height-work']}\nジェネリック: ${formData.generic}`;
 
     try {
         if (liff.isInClient()) {
@@ -257,6 +267,22 @@ document.querySelectorAll('input[type="radio"]').forEach(radio => {
                 weightInputGroup.classList.add('hidden');
                 weightInput.removeAttribute('required');
                 weightInput.value = ''; // clear value
+            }
+        }
+
+        // Handle booklet type input toggle
+        if (e.target.name === 'booklet') {
+            const bookletTypeGroup = document.getElementById('booklet-type-group');
+            const typeInputs = bookletTypeGroup.querySelectorAll('input[type="radio"]');
+            if (e.target.value === 'yes') {
+                bookletTypeGroup.classList.remove('hidden');
+                typeInputs.forEach(input => input.setAttribute('required', 'true'));
+            } else {
+                bookletTypeGroup.classList.add('hidden');
+                typeInputs.forEach(input => {
+                    input.removeAttribute('required');
+                    input.checked = false; // clear checking
+                });
             }
         }
     });

@@ -33,6 +33,20 @@
                         <input type="tel" id="phone" name="phone" placeholder="09012345678" required>
                     </div>
                     <div class="input-group">
+                        <label>お薬手帳はお持ちですか？<span class="required">必須</span></label>
+                        <div class="radio-group">
+                            <label class="radio-label"><input type="radio" name="booklet" value="yes" required><span>あり</span></label>
+                            <label class="radio-label"><input type="radio" name="booklet" value="no"><span>なし</span></label>
+                        </div>
+                    </div>
+                    <div id="booklet-type-group" class="input-group hidden">
+                        <label>手帳の種類を教えてください<span class="required">必須</span></label>
+                        <div class="radio-group">
+                            <label class="radio-label"><input type="radio" name="booklet-type" value="paper"><span>紙</span></label>
+                            <label class="radio-label"><input type="radio" name="booklet-type" value="digital"><span>電子（アプリ）</span></label>
+                        </div>
+                    </div>
+                    <div class="input-group">
                         <label>該当する状態を選んでください<span class="required">必須</span></label>
                         <div class="radio-group vertical">
                             <label class="radio-label"><input type="radio" name="patient-condition" value="none" checked required><span>該当なし</span></label>
