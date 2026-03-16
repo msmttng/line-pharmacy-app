@@ -87,8 +87,19 @@
             
             <div class="data-grid">
               <div class="data-item">
+                <span class="label">患者様の状態</span>
+                <span class="val">${highlight(item['状態'])}</span>
+                ${item['妊婦体重'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(体重: ${item['妊婦体重']}kg)</div>` : ''}
+                ${item['授乳婦体重'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(体重: ${item['授乳婦体重']}kg)</div>` : ''}
+                ${item['小児体重'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(体重: ${item['小児体重']}kg)</div>` : ''}
+              </div>
+              <div class="data-item">
                 <span class="label">後発品変更希望</span>
                 <span class="val" style="color:#06C755;">${item['ジェネリック'] || 'なし'}</span>
+              </div>
+              <div class="data-item">
+                <span class="label">手帳活用の有無</span>
+                <span class="val" style="color:#06C755; font-weight:bold;">${item['お薬手帳'] || 'なし'}</span>
               </div>
               <div class="data-item">
                 <span class="label">既往歴</span>
@@ -153,7 +164,12 @@
         return v;
       };
 
+      text += `■患者様の状態: ${formatVal(item['状態'])}\n`;
+      if (item['妊婦体重']) text += `  └ 体重: ${item['妊婦体重']}kg\n`;
+      if (item['授乳婦体重']) text += `  └ 体重: ${item['授乳婦体重']}kg\n`;
+      if (item['小児体重']) text += `  └ 体重: ${item['小児体重']}kg\n`;
       text += `■後発品変更希望: ${formatVal(item['ジェネリック'])}\n`;
+      text += `■手帳活用の有無: ${formatVal(item['お薬手帳'])}\n`;
       text += `■既往歴: ${getDetail(item['既往歴'], item['既往歴詳細'])}\n`;
       text += `■花粉症・アレルゲンについて: ${formatVal(item['環境アレルギー'])}\n`;
       text += `■副作用歴、薬物アレルギー: 副作用:${getDetail(item['副作用'], item['副作用詳細'])} / 薬物アレルギー:${getDetail(item['薬アレルギー'], item['アレルギー詳細'])}\n`;
