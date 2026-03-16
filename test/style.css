@@ -103,13 +103,15 @@ body {
 }
 
 .info-note {
-    background-color: #fffbe6;
-    border: 1px solid #ffe58f;
-    padding: 12px;
+    background-color: #e8f7ed;
+    border: 2px solid var(--line-green);
+    padding: 14px;
     border-radius: var(--radius-md);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    font-weight: 700;
     margin-bottom: 16px;
-    color: #856404;
+    color: #05a346;
+    line-height: 1.6;
 }
 
 .input-group label {
