@@ -204,26 +204,35 @@ input:focus, select:focus, textarea:focus {
 }
 
 .radio-label span.text-left-card {
-    display: block;
+    display: block !important;
     text-align: left;
-    padding: 16px;
+    padding: 14px 16px;
     height: auto;
     min-height: 0;
+    word-break: normal;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    overflow: hidden;
 }
 
 .text-left-card .card-title {
-    display: block;
+    display: block !important;
     font-size: 0.95rem;
     font-weight: 700;
+    line-height: 1.5;
+    word-break: normal;
+    overflow-wrap: anywhere;
 }
 
 .text-left-card .card-desc {
-    display: block;
-    font-size: 0.8rem;
+    display: block !important;
+    font-size: 0.78rem;
     color: var(--text-sub);
-    font-weight: 500;
+    font-weight: 400;
     margin-top: 6px;
-    line-height: 1.4;
+    line-height: 1.5;
+    word-break: normal;
+    overflow-wrap: anywhere;
 }
 
 .radio-label input:checked + span.text-left-card .card-title,
