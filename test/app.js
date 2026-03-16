@@ -323,6 +323,7 @@ function closeLiff() {
 // --- Event Listeners ---
 document.getElementById('next-btn').addEventListener('click', handleNext);
 document.getElementById('prev-btn').addEventListener('click', handlePrev);
+document.getElementById('submit-btn').addEventListener('click', handleSubmit);
 document.getElementById('questionnaire-form').addEventListener('submit', handleSubmit);
 
 // --- Detail Toggle Logic ---
