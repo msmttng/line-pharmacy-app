@@ -269,7 +269,7 @@ function showSuccess() {
         <div class="success-view" style="text-align: center; padding: 40px 20px;">
             <div class="success-icon" style="color: #06C755; font-size: 80px; margin-bottom: 20px;">✓</div>
             <h2 style="font-size: 1.5rem; color: #333; margin-bottom: 15px;">送信完了しました</h2>
-            <p style="font-size: 1.1rem; color: #555; line-height: 1.6;">ご協力ありがとうございました。<br>窓口のスタッフにお声がけください。</p>
+            <p style="font-size: 1.1rem; color: #555; line-height: 1.6;">ご協力ありがとうございました。<br>窓口のスタッフにお声がけください</p>
             <button class="btn btn-primary" onclick="closeLiff()" style="margin-top:30px; padding: 12px 30px; font-size: 1.1rem; border-radius: 30px; border: none; cursor: pointer;">画面を閉じる</button>
         </div>
     `;
