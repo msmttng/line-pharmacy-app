@@ -89,7 +89,7 @@
             <div class="data-grid">
               <div class="data-item">
                 <span class="label">患者様の状態</span>
-                <span class="val">${(() => { const s = item['状態']; if (!s || s === 'none') return '該当なし'; if (s === 'pregnant') return '<span style="color:#ff4d4f; font-weight:bold;">妊娠中(可能性あり)</span>'; if (s === 'breastfeeding') return '<span style="color:#ff4d4f; font-weight:bold;">授乳中</span>'; if (s === 'pediatric') return '<span style="color:#ff4d4f; font-weight:bold;">小児(15歳未満)</span>'; return highlight(s); })()}</span>
+                <span class="val">${(() => { const s = item['状態']; if (!s || s === 'none' || s === 'なし/飲まない' || s === 'なし/しない' || s === 'なし') return '該当なし'; if (s === 'pregnant' || s === '妊娠中(可能性あり)') return '<span style="color:#ff4d4f; font-weight:bold;">妊娠中(可能性あり)</span>'; if (s === 'breastfeeding' || s === '授乳中') return '<span style="color:#ff4d4f; font-weight:bold;">授乳中</span>'; if (s === 'pediatric' || s === '小児(15歳未満)') return '<span style="color:#ff4d4f; font-weight:bold;">小児(15歳未満)</span>'; return highlight(s); })()}</span>
                 ${item['妊婦体重'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(体重: ${item['妊婦体重']}kg)</div>` : ''}
                 ${item['授乳婦体重'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(体重: ${item['授乳婦体重']}kg)</div>` : ''}
                 ${item['小児体重'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(体重: ${item['小児体重']}kg)</div>` : ''}
@@ -167,10 +167,10 @@
       };
 
       const formatCondition = (val) => {
-        if (!val || val === 'none') return '該当なし';
-        if (val === 'pregnant') return '妊娠中(可能性あり)';
-        if (val === 'breastfeeding') return '授乳中';
-        if (val === 'pediatric') return '小児(15歳未満)';
+        if (!val || val === 'none' || val === 'なし/飲まない' || val === 'なし/しない' || val === 'なし') return '該当なし';
+        if (val === 'pregnant' || val === '妊娠中(可能性あり)') return '妊娠中(可能性あり)';
+        if (val === 'breastfeeding' || val === '授乳中') return '授乳中';
+        if (val === 'pediatric' || val === '小児(15歳未満)') return '小児(15歳未満)';
         return val;
       };
       const formatGeneric = (val) => {
