@@ -112,20 +112,16 @@ body {
 }
 
 .input-group label {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
+    display: block;
     margin-bottom: 12px;
     font-weight: 700;
     font-size: 0.95rem;
     line-height: 1.5;
-    word-break: keep-all;
-    overflow-wrap: break-word;
 }
 
 .input-group label span.required {
-    flex-shrink: 0;
+    display: inline-block;
+    vertical-align: text-bottom;
 }
 
 .required {
