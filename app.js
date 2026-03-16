@@ -212,7 +212,7 @@ function generateConfirmation() {
             if (key === 'weight') value += ' kg';
             if (key === 'patient-condition') value = conditionLabels[value] || value;
             if (value === 'yes') value = 'あり/する';
-            if (value === 'no') value = 'なし/しない';
+            if (value === 'no') value = 'なし';
             if (value === 'prefer') value = 'ジェネリック希望';
             if (value === 'avoid') value = '先発希望';
             if (value === 'ag') value = '先発（AGなら希望）';
