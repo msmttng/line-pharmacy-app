@@ -135,7 +135,7 @@
                         <label>日常的によく摂取している飲食物はありますか？<br><span style="font-size: 0.85em; font-weight: normal; color: var(--text-sub);">（お薬との飲み合わせ確認のため・複数選択可）</span></label>
                         <div class="checkbox-grid">
                             <label class="checkbox-label"><input type="checkbox" name="food-drink" value="coffee-tea"><span>コーヒー・紅茶</span></label>
-                            <label class="checkbox-label" style="grid-column: 1 / -1;"><input type="checkbox" name="food-drink" value="grapefruit"><span>グレープフルーツジュース</span></label>
+                            <label class="checkbox-label"><input type="checkbox" name="food-drink" value="grapefruit"><span>グレープフルーツジュース</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="food-drink" value="dairy"><span>乳製品</span></label>
                             <label class="checkbox-label"><input type="checkbox" name="food-drink" value="other"><span>その他</span></label>
                         </div>
@@ -175,10 +175,7 @@
                         </div>
                     </div>
                     <div class="input-group">
-                        <label style="display: flex; align-items: center; justify-content: space-between; gap: 5px;">
-                            <span style="letter-spacing: -0.5px;">高所作業（高いところでの作業）をされますか？</span>
-                            <span class="required" style="margin-left: 0; flex-shrink: 0;">必須</span>
-                        </label>
+                        <label>高所作業（高いところでの作業）をされますか？<span class="required">必須</span></label>
                         <div class="radio-group">
                             <label class="radio-label"><input type="radio" name="height-work" value="no" required><span>ない</span></label>
                             <label class="radio-label"><input type="radio" name="height-work" value="yes"><span>ある</span></label>
@@ -193,11 +190,11 @@
                     </div>
                     <div class="input-group">
                         <label>お酒は飲みますか？</label>
-                        <select name="alcohol">
-                            <option value="none">飲まない</option>
-                            <option value="occasionally">時々</option>
-                            <option value="daily">毎日</option>
-                        </select>
+                        <div class="radio-group">
+                            <label class="radio-label"><input type="radio" name="alcohol" value="none" checked><span>飲まない</span></label>
+                            <label class="radio-label"><input type="radio" name="alcohol" value="occasionally"><span>時々</span></label>
+                            <label class="radio-label"><input type="radio" name="alcohol" value="daily"><span>毎日</span></label>
+                        </div>
                     </div>
                     <div class="input-group">
                         <label>タバコは吸いますか？</label>
