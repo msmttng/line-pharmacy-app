@@ -25,6 +25,7 @@ body {
     color: var(--text-main);
     line-height: 1.6;
     overflow-x: hidden;
+    font-weight: 500; /* Bumped base body font weight */
 }
 
 .app-container {
@@ -111,7 +112,10 @@ body {
 }
 
 .input-group label {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
     margin-bottom: 12px;
     font-weight: 700;
     font-size: 0.95rem;
@@ -121,8 +125,7 @@ body {
 }
 
 .input-group label span.required {
-    display: inline-block;
-    vertical-align: text-bottom;
+    flex-shrink: 0;
 }
 
 .required {
