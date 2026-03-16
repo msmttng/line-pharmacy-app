@@ -227,7 +227,7 @@ input:focus, select:focus, textarea:focus {
 .text-left-card .card-desc {
     display: block !important;
     font-size: 0.78rem;
-    color: var(--text-sub);
+    color: var(--line-green);
     font-weight: 400;
     margin-top: 6px;
     line-height: 1.5;

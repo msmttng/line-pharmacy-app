@@ -153,7 +153,7 @@ function generateConfirmation() {
         'generic': 'ジェネリック希望'
     };
 
-    const genericMap = { 'prefer': 'ジェネリックで大丈夫', 'ag': 'オーソライズドジェネリック（AG）なら希望', 'avoid': '先発医薬品を希望する' };
+    const genericMap = { 'prefer': 'ジェネリックで大丈夫', 'ag': 'オーソライズド・ジェネリックでなら希望', 'avoid': '先発医薬品を希望する' };
 
     const otcLabels = {
         'cold': '風邪薬', 'pain': '痛み止め', 'stomach': '胃腸薬', 'eye': '目薬',
@@ -232,7 +232,7 @@ async function handleSubmit(e) {
     submitBtn.innerText = '送信中...';
 
     // Prepare message for LINE if applicable
-    const genericMapSubmit = { 'prefer': 'ジェネリックで大丈夫', 'ag': 'オーソライズドジェネリック（AG）なら希望', 'avoid': '先発医薬品を希望する' };
+    const genericMapSubmit = { 'prefer': 'ジェネリックで大丈夫', 'ag': 'オーソライズド・ジェネリックでなら希望', 'avoid': '先発医薬品を希望する' };
     const genericText = genericMapSubmit[formData.generic] || formData.generic;
     const condStr = (formData['patient-condition'] !== 'none') ? `\n状態: ${formData['patient-condition']} (体重: ${formData.weight || '-'}kg)` : '\n状態: 該当なし';
     const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${condStr}\n薬アレルギー: ${formData['drug-allergy']}\n副作用: ${formData['side-effect'] || 'なし'}\n運転: ${formData.driving}\n高所作業: ${formData['height-work']}\nジェネリック: ${genericText}`;
