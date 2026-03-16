@@ -138,9 +138,8 @@ function generateConfirmation() {
         'booklet': 'お薬手帳',
         'patient-condition': '患者様の状態',
         'weight': '体重',
-        'drug-allergy': '薬のアレルギー',
+        'drug-allergy': 'アレルギー・副作用歴',
         'food-allergy': '食物アレルギー',
-        'side-effect': '副作用歴',
         'current-presc': '他での処方',
         'otc-list': '使用中の市販薬・サプリ',
         'otc-suppl-detail': '市販薬詳細',
@@ -219,7 +218,7 @@ async function handleSubmit(e) {
     // Prepare message
     const bookletStr = typeof formData.booklet !== 'undefined' ? `\nお薬手帳: ${formData.booklet === 'yes' ? 'あり（' + (formData['booklet-type'] === 'paper' ? '紙' : '電子') + '）' : 'なし'}` : '';
     const condStr = (formData['patient-condition'] !== 'none') ? `\n状態: ${formData['patient-condition']} (体重: ${formData.weight || '-'}kg)` : '\n状態: 該当なし';
-    const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${bookletStr}${condStr}\n薬アレルギー: ${formData['drug-allergy']}\n副作用: ${formData['side-effect']}\n運転: ${formData.driving}\n高所作業: ${formData['height-work']}\nジェネリック: ${formData.generic}`;
+    const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${bookletStr}${condStr}\n薬アレルギー・副作用: ${formData['drug-allergy']}\n運転: ${formData.driving}\n高所作業: ${formData['height-work']}\nジェネリック: ${formData.generic}`;
 
     try {
         if (liff.isInClient()) {

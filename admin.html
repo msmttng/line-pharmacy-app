@@ -112,9 +112,9 @@
               </div>
               <div class="data-item">
                 <span class="label">副作用歴、薬物アレルギー</span>
-                <span class="val">副作用:${highlight(item['副作用'])}<br>薬物アレルギー:${highlight(item['薬アレルギー'])}</span>
+                <span class="val">${item['副作用'] && item['副作用'] !== 'なし' ? '副作用:' + highlight(item['副作用']) + '<br>' : ''}薬歴・副作用:${highlight(item['薬アレルギー'])}</span>
                 ${item['副作用詳細'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(副作用詳細: ${item['副作用詳細']})</div>` : ''}
-                ${item['アレルギー詳細'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(薬アレルギー詳細: ${item['アレルギー詳細']})</div>` : ''}
+                ${item['アレルギー詳細'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(詳細: ${item['アレルギー詳細']})</div>` : ''}
               </div>
               <div class="data-item">
                 <span class="label">食物等アレルギー</span>
@@ -172,7 +172,8 @@
       text += `■手帳活用の有無: ${formatVal(item['お薬手帳'])}\n`;
       text += `■既往歴: ${getDetail(item['既往歴'], item['既往歴詳細'])}\n`;
       text += `■花粉症・アレルゲンについて: ${formatVal(item['環境アレルギー'])}\n`;
-      text += `■副作用歴、薬物アレルギー: 副作用:${getDetail(item['副作用'], item['副作用詳細'])} / 薬物アレルギー:${getDetail(item['薬アレルギー'], item['アレルギー詳細'])}\n`;
+      const sideEffectStr = item['副作用'] && item['副作用'] !== 'なし' ? ` 副作用:${getDetail(item['副作用'], item['副作用詳細'])} /` : '';
+      text += `■副作用歴、薬物アレルギー:${sideEffectStr} 薬・副作用等:${getDetail(item['薬アレルギー'], item['アレルギー詳細'])}\n`;
       text += `■食物等アレルギー: ${getDetail(item['食品アレルギー'], item['食品詳細'])}\n`;
       text += `■定期的服用薬・サプリメント・OTC: 他院処方:${getDetail(item['他院処方'], item['他院詳細'])} / 市販薬･サプリ:${getDetail(item['市販薬'], item['市販薬詳細'])}\n`;
       text += `■飲食物の摂取状況等: 酒:${formatVal(item['酒'])} / 飲食物:${getDetail(item['飲食物'], item['飲食物詳細'])}\n`;
