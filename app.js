@@ -159,6 +159,11 @@ function generateConfirmation() {
         'protein': 'プロテイン', 'other': 'その他'
     };
     
+    const envLabels = {
+        'hayfever-sugi': 'スギ花粉症', 'hayfever-hinoki': 'ヒノキ花粉症', 'hayfever-ine': 'イネ花粉症', 'hayfever-butakusa': 'ブタクサ花粉症', 'hayfever-kamogaya': 'カモガヤ花粉症', 'hayfever-other': 'その他花粉症', 'hayfever': '花粉症', 'housedust': 'ハウスダスト', 'mite': 'ダニ',
+        'dog-cat': '犬・猫', 'temp': '寒暖差', 'perennial': '通年性', 'other': 'その他'
+    };
+    
     const foodDrinkLabels = {
         'coffee-tea': 'コーヒー・紅茶', 'grapefruit': 'グレープフルーツジュース', 
         'dairy': '乳製品', 'other': 'その他'
