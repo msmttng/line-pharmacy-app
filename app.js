@@ -311,7 +311,7 @@ document.querySelectorAll('input[type="radio"]').forEach(radio => {
         if (e.target.name === 'patient-condition') {
             const weightInputGroup = document.getElementById('weight-input-group');
             const weightInput = document.getElementById('weight');
-            if (e.target.value !== 'none') {
+            if (e.target.value === 'pediatric') {
                 weightInputGroup.classList.remove('hidden');
                 weightInput.setAttribute('required', 'true');
             } else {
