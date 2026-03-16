@@ -58,9 +58,10 @@
       }
 
       const highlight = (val) => {
-        if (!val) return 'なし';
-        if (typeof val === 'string' && (val.includes('あり') || val.includes('毎日') || val.includes('時々') || val !== 'なし' && val !== 'なし/飲まない' && val !== '' && !val.includes('なし'))) {
-           // なし 以外の具体的な文字が入っている場合は強調（赤色・太字）にする
+        if (!val || val === 'なし' || val === 'none' || val === '') return 'なし';
+        if (val === 'no') return 'なし';
+        if (val === 'yes') return `<span style="color:#ff4d4f; font-weight:bold;">あり</span>`;
+        if (typeof val === 'string' && (val.includes('あり') || val.includes('毎日') || val.includes('時々') || val.includes('する') || val.includes('吸う') || val.includes('ある'))) {
            return `<span style="color:#ff4d4f; font-weight:bold;">${val}</span>`;
         }
         return val;
@@ -88,14 +89,14 @@
             <div class="data-grid">
               <div class="data-item">
                 <span class="label">患者様の状態</span>
-                <span class="val">${highlight(item['状態'])}</span>
+                <span class="val">${(() => { const s = item['状態']; if (!s || s === 'none') return '該当なし'; if (s === 'pregnant') return '<span style="color:#ff4d4f; font-weight:bold;">妊娠中(可能性あり)</span>'; if (s === 'breastfeeding') return '<span style="color:#ff4d4f; font-weight:bold;">授乳中</span>'; if (s === 'pediatric') return '<span style="color:#ff4d4f; font-weight:bold;">小児(15歳未満)</span>'; return highlight(s); })()}</span>
                 ${item['妊婦体重'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(体重: ${item['妊婦体重']}kg)</div>` : ''}
                 ${item['授乳婦体重'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(体重: ${item['授乳婦体重']}kg)</div>` : ''}
                 ${item['小児体重'] ? `<div style="font-size:0.75rem; color:#555; margin-top:2px;">(体重: ${item['小児体重']}kg)</div>` : ''}
               </div>
               <div class="data-item">
                 <span class="label">後発品変更希望</span>
-                <span class="val" style="color:#06C755;">${item['ジェネリック'] || 'なし'}</span>
+                <span class="val" style="color:#06C755;">${(() => { const g = item['ジェネリック']; if (!g || g === 'なし') return 'なし'; if (g === 'prefer') return 'ジェネリックで大丈夫'; if (g === 'ag') return 'オーソライズド・ジェネリックでなら希望'; if (g === 'avoid') return '先発医薬品を希望する'; return g; })()}</span>
               </div>
               <div class="data-item">
                 <span class="label">手帳活用の有無</span>
@@ -134,7 +135,7 @@
               </div>
               <div class="data-item">
                 <span class="label">薬学的管理に必要な患者の生活像</span>
-                <span class="val">妊娠・授乳・小児:${highlight(item['状態'])}<br>運転:${highlight(item['運転'])}<br>高所作業:${highlight(item['高所'])}<br>コンタクト:${highlight(item['ソフトコンタクト'])}<br>喫煙:${highlight(item['煙草'])}</span>
+                <span class="val">妊娠・授乳・小児:${(() => { const s = item['状態']; if (!s || s === 'none') return '該当なし'; if (s === 'pregnant') return '<span style="color:#ff4d4f; font-weight:bold;">妊娠中(可能性あり)</span>'; if (s === 'breastfeeding') return '<span style="color:#ff4d4f; font-weight:bold;">授乳中</span>'; if (s === 'pediatric') return '<span style="color:#ff4d4f; font-weight:bold;">小児(15歳未満)</span>'; return highlight(s); })()}<br>運転:${highlight(item['運転'])}<br>高所作業:${highlight(item['高所'])}<br>コンタクト:${highlight(item['ソフトコンタクト'])}<br>喫煙:${highlight(item['煙草'])}</span>
               </div>
             </div>
             ${item['備考'] ? `
@@ -152,7 +153,8 @@
       let text = "【初回問診引用】\n";
 
       const formatVal = (val) => {
-        if (!val || val === 'なし/しない' || val === 'なし/飲まない' || val === 'false') return 'なし';
+        if (!val || val === 'なし/しない' || val === 'なし/飲まない' || val === 'false' || val === 'none' || val === 'no') return 'なし';
+        if (val === 'yes') return 'あり';
         return val;
       };
       
@@ -164,11 +166,26 @@
         return v;
       };
 
-      text += `■患者様の状態: ${formatVal(item['状態'])}\n`;
+      const formatCondition = (val) => {
+        if (!val || val === 'none') return '該当なし';
+        if (val === 'pregnant') return '妊娠中(可能性あり)';
+        if (val === 'breastfeeding') return '授乳中';
+        if (val === 'pediatric') return '小児(15歳未満)';
+        return val;
+      };
+      const formatGeneric = (val) => {
+        if (!val) return 'なし';
+        if (val === 'prefer') return 'ジェネリックで大丈夫';
+        if (val === 'ag') return 'オーソライズド・ジェネリックでなら希望';
+        if (val === 'avoid') return '先発医薬品を希望する';
+        return val;
+      };
+
+      text += `■患者様の状態: ${formatCondition(item['状態'])}\n`;
       if (item['妊婦体重']) text += `  └ 体重: ${item['妊婦体重']}kg\n`;
       if (item['授乳婦体重']) text += `  └ 体重: ${item['授乳婦体重']}kg\n`;
       if (item['小児体重']) text += `  └ 体重: ${item['小児体重']}kg\n`;
-      text += `■後発品変更希望: ${formatVal(item['ジェネリック'])}\n`;
+      text += `■後発品変更希望: ${formatGeneric(item['ジェネリック'])}\n`;
       text += `■手帳活用の有無: ${formatVal(item['お薬手帳'])}\n`;
       text += `■既往歴: ${getDetail(item['既往歴'], item['既往歴詳細'])}\n`;
       text += `■花粉症・アレルゲンについて: ${formatVal(item['環境アレルギー'])}\n`;
@@ -177,7 +194,7 @@
       text += `■食物等アレルギー: ${getDetail(item['食品アレルギー'], item['食品詳細'])}\n`;
       text += `■定期的服用薬・サプリメント・OTC: 他院処方:${getDetail(item['他院処方'], item['他院詳細'])} / 市販薬･サプリ:${getDetail(item['市販薬'], item['市販薬詳細'])}\n`;
       text += `■飲食物の摂取状況等: 酒:${formatVal(item['酒'])} / 飲食物:${getDetail(item['飲食物'], item['飲食物詳細'])}\n`;
-      text += `■薬学的管理に必要な患者の生活像: 妊娠・授乳・小児:${formatVal(item['状態'])} / 運転:${formatVal(item['運転'])} / 高所作業:${formatVal(item['高所'])} / コンタクト:${formatVal(item['ソフトコンタクト'])} / 喫煙:${formatVal(item['煙草'])}\n`;
+      text += `■薬学的管理に必要な患者の生活像: 妊娠・授乳・小児:${formatCondition(item['状態'])} / 運転:${formatVal(item['運転'])} / 高所作業:${formatVal(item['高所'])} / コンタクト:${formatVal(item['ソフトコンタクト'])} / 喫煙:${formatVal(item['煙草'])}\n`;
       if (item['備考']) {
         text += `■特記事項: ${item['備考']}\n`;
       }
