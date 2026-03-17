@@ -82,7 +82,10 @@
                 ${item['名前'] || '名前なし'} 様
                 <span style="font-size:0.8rem; color:#666; font-weight:normal; margin-left:10px;">TEL: ${item['電話番号'] || '不明'}</span>
               </div>
-              <button class="btn" onclick="copy(${i}, this)">薬歴用にコピー</button>
+              <div>
+                <button class="btn" onclick="copy(${i}, this)">薬歴用にコピー</button>
+                <button class="btn" style="background-color: #007bff; margin-left: 8px;" onclick="copy(${i}, this, true)">調剤くん用</button>
+              </div>
             </div>
             <div style="font-size:0.75rem; color:#888; margin-bottom:15px;">受信: ${item['日時'] || ''}</div>
             
@@ -148,9 +151,12 @@
       }).join('');
     }
 
-    function copy(idx, btn) {
+    function copy(idx, btn, isChozaiKun = false) {
       const item = listData[idx];
       let text = "【初回問診引用】\n";
+      if (isChozaiKun) {
+        text += `${item['電話番号'] || '不明'}\n`;
+      }
 
       const formatVal = (val) => {
         if (!val || val === 'なし/しない' || val === 'なし/飲まない' || val === 'false' || val === 'none' || val === 'no') return 'なし';
