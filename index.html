@@ -102,7 +102,7 @@
                 <section class="form-step" data-step="3">
                     <h2 class="step-title">現在の服用状況</h2>
                     <div class="info-note">
-                        ※お薬手帳、またはマイナ保険証で医療情報の提供に同意いただける方は、以下の入力は不要です。
+                        ※お薬手帳、またはマイナ保険証で医療情報の提供に<br>同意いただける方は、以下の入力は不要です。
                     </div>
                     <div class="input-group">
                         <label>現在、他で処方されている薬はありますか？</label>
@@ -210,26 +210,9 @@
                     <h2 class="step-title">ご要望・その他</h2>
                     <div class="input-group">
                         <label>ジェネリック医薬品を希望されますか？</label>
-                        <div class="radio-group vertical">
-                            <label class="radio-label">
-                                <input type="radio" name="generic" value="prefer" checked>
-                                <span class="text-left-card">
-                                    <span class="card-title">ジェネリックで大丈夫</span>
-                                </span>
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="generic" value="ag">
-                                <span class="text-left-card">
-                                    <span class="card-title">オーソライズド・ジェネリックでなら希望</span>
-                                    <span class="card-desc">※先発医薬品と原薬・添加物・製造方法等が<br>同一のジェネリック医薬品です。</span>
-                                </span>
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="generic" value="avoid">
-                                <span class="text-left-card">
-                                    <span class="card-title">先発医薬品を希望する</span>
-                                </span>
-                            </label>
+                        <div class="radio-group">
+                            <label class="radio-label"><input type="radio" name="generic" value="prefer" checked><span>ジェネリックで大丈夫</span></label>
+                            <label class="radio-label"><input type="radio" name="generic" value="avoid"><span>先発医薬品を希望する</span></label>
                         </div>
                     </div>
                     <div class="input-group">
@@ -244,10 +227,13 @@
                     <div id="confirmation-view" class="confirmation-view">
                         <!-- Content via JS -->
                     </div>
+                    <p class="data-notice">入力いただいた情報は、当薬局が運営するシステム（Google フォームサービス経由）に安全に送信され、薬剤師による服薬指導にのみ使用されます。</p>
                     <div class="agreement">
                         <label class="agree-box">
                             <input type="checkbox" id="agree" required>
-                            <span>個人情報の取り扱いに同意します</span>
+                            <span>
+                              <a href="privacy-policy.html" target="_blank" rel="noopener noreferrer">個人情報の取り扱い</a>に同意します
+                            </span>
                         </label>
                     </div>
                 </section>
@@ -262,7 +248,7 @@
         </main>
 
         <footer class="app-footer">
-            <p>&copy; 2024 Your Pharmacy</p>
+            <p>&copy; 2025 丸山薬局</p>
         </footer>
     </div>
 

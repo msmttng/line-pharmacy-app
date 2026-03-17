@@ -323,6 +323,18 @@ input:focus, select:focus, textarea:focus {
     display: block;
 }
 
+.data-notice {
+    font-size: 0.82rem;
+    color: var(--text-sub);
+    background: #f4f7f6;
+    border-left: 3px solid var(--line-green);
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    margin: 20px 0 10px 0;
+    line-height: 1.6;
+    text-align: center;
+}
+
 .agreement {
     margin: 30px 0 20px 0;
 }

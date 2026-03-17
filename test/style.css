@@ -203,7 +203,7 @@ input:focus, select:focus, textarea:focus {
 .checkbox-label input:checked + span {
     background: #e8f7ed;
     border-color: var(--line-green);
-    color: var(--line-green);
+    color: var(--text-main) !important;
     font-weight: 600;
 }
 
@@ -242,7 +242,7 @@ input:focus, select:focus, textarea:focus {
 
 .radio-label input:checked + span.text-left-card .card-title,
 .radio-label input:checked + span.text-left-card .card-desc {
-    color: var(--line-green-dark);
+    color: var(--text-main) !important;
 }
 
 .sub-input {
@@ -321,6 +321,18 @@ input:focus, select:focus, textarea:focus {
 .conf-value {
     font-weight: 700;
     display: block;
+}
+
+.data-notice {
+    font-size: 0.82rem;
+    color: var(--text-sub);
+    background: #f4f7f6;
+    border-left: 3px solid var(--line-green);
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    margin: 20px 0 10px 0;
+    line-height: 1.6;
+    text-align: center;
 }
 
 .agreement {

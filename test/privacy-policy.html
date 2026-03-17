@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>個人情報の取り扱いについて | 丸山薬局</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --line-green: #06C755;
+            --line-green-dark: #05a346;
+            --bg-color: #f4f7f6;
+            --text-main: #333333;
+            --text-sub: #666666;
+            --radius-lg: 16px;
+            --radius-md: 8px;
+            --shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.8;
+            font-weight: 500;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #fff;
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .content {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .policy-card {
+            background: #fff;
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+        }
+
+        .policy-card h2 {
+            font-size: 1rem;
+            color: var(--line-green);
+            border-left: 4px solid var(--line-green);
+            padding-left: 12px;
+            margin: 0 0 16px 0;
+        }
+
+        .policy-card h3 {
+            font-size: 0.92rem;
+            color: var(--text-main);
+            margin: 20px 0 8px 0;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .policy-card p,
+        .policy-card li {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            line-height: 1.8;
+        }
+
+        .policy-card ul {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+
+        .policy-card li {
+            margin-bottom: 4px;
+        }
+
+        .pharmacy-info {
+            background: #e8f7ed;
+            border: 1px solid var(--line-green);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin: 16px 0;
+            text-align: center;
+        }
+
+        .pharmacy-info p {
+            margin: 4px 0;
+            font-size: 0.88rem;
+            color: var(--text-main);
+        }
+
+        .pharmacy-info .name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--line-green-dark);
+        }
+
+        .effective-date {
+            text-align: center;
+            font-size: 0.82rem;
+            color: var(--text-sub);
+            margin-top: 20px;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: var(--radius-md);
+        }
+
+        .back-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            background-color: var(--line-green);
+            color: #fff;
+            text-align: center;
+            text-decoration: none;
+            margin: 20px 0;
+            transition: all 0.3s;
+        }
+
+        .back-btn:active {
+            background-color: var(--line-green-dark);
+            transform: scale(0.98);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>個人情報の取り扱いについて</h1>
+        </header>
+
+        <main class="content">
+            <div class="policy-card">
+                <h2>基本方針</h2>
+                <p>丸山薬局（以下「当薬局」）は、患者様の個人情報の保護に関し、以下のとおりプライバシーポリシーを定め、適切な取り扱いと保護に努めます。</p>
+            </div>
+
+            <div class="policy-card">
+                <h2>収集する個人情報</h2>
+                <p>当薬局は、問診票を通じて以下の情報を収集いたします。</p>
+                <ul>
+                    <li>お名前、電話番号</li>
+                    <li>健康状態（妊娠・授乳の有無など）</li>
+                    <li>アレルギー・副作用歴</li>
+                    <li>現在の服用薬・サプリメント</li>
+                    <li>既往歴・生活習慣</li>
+                    <li>ジェネリック医薬品の希望</li>
+                    <li>その他、薬剤師への伝達事項</li>
+                </ul>
+            </div>
+
+            <div class="policy-card">
+                <h2>利用目的</h2>
+                <p>収集した個人情報は、以下の目的にのみ使用いたします。</p>
+                <ul>
+                    <li>薬剤師による適切な服薬指導の実施</li>
+                    <li>処方薬の安全性確認（アレルギー・飲み合わせ等）</li>
+                    <li>患者様への適切な医療サービスの提供</li>
+                    <li>法令に基づく行政機関等への報告</li>
+                </ul>
+                <p>上記以外の目的で使用する場合は、事前に患者様の同意を得るものとします。</p>
+            </div>
+
+            <div class="policy-card">
+                <h2>情報の送信・管理</h2>
+
+                <h3>送信方法</h3>
+                <p>問診票に入力いただいた情報は、Google フォームサービスを経由して当薬局のシステムに安全に送信されます。通信はSSL/TLS暗号化により保護されています。</p>
+
+                <h3>保管・管理</h3>
+                <p>収集した個人情報は、適切なセキュリティ対策を講じたシステムにおいて管理し、不正アクセス・漏洩・紛失等の防止に努めます。</p>
+
+                <h3>保存期間</h3>
+                <p>個人情報は、薬剤師法および医薬品医療機器等法等の関連法令に定められた期間、適切に保存いたします。保存期間経過後は、速やかに安全な方法で削除いたします。</p>
+            </div>
+
+            <div class="policy-card">
+                <h2>第三者への提供</h2>
+                <p>当薬局は、以下の場合を除き、患者様の個人情報を第三者に提供いたしません。</p>
+                <ul>
+                    <li>患者様ご本人の同意がある場合</li>
+                    <li>法令に基づく場合</li>
+                    <li>人の生命・身体または財産の保護のために必要な場合</li>
+                    <li>公衆衛生の向上のために特に必要な場合</li>
+                </ul>
+            </div>
+
+            <div class="policy-card">
+                <h2>患者様の権利</h2>
+                <p>患者様は、ご自身の個人情報について以下の権利を有します。</p>
+                <ul>
+                    <li><strong>開示請求</strong>：保有する個人情報の開示を求めることができます</li>
+                    <li><strong>訂正・削除</strong>：情報に誤りがある場合、訂正・削除を求めることができます</li>
+                    <li><strong>利用停止</strong>：個人情報の利用停止を求めることができます</li>
+                </ul>
+                <p>上記のご請求は、当薬局窓口にてお申し出ください。</p>
+            </div>
+
+            <div class="policy-card">
+                <h2>お問い合わせ先</h2>
+                <div class="pharmacy-info">
+                    <p class="name">丸山薬局</p>
+                    <p>個人情報に関するお問い合わせは<br>薬局窓口までお願いいたします。</p>
+                </div>
+            </div>
+
+            <div class="effective-date">
+                制定日：2025年4月1日
+            </div>
+
+            <a href="javascript:history.back()" class="back-btn">問診票に戻る</a>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2025 丸山薬局</p>
+        </footer>
+    </div>
+</body>
+</html>
