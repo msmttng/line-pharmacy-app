@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>問診回答管理</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- display=swapでフォントロードがレンダリングをブロックしないよう修正 -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
   <style>
     :root {
       --line-green: #06C755;
@@ -70,6 +72,8 @@
     .btn-secondary { background: #0066cc; color: white; box-shadow: 0 2px 4px rgba(0, 102, 204, 0.2); }
     .btn-secondary:hover { background: #0052a3; box-shadow: 0 4px 6px rgba(0, 102, 204, 0.3); }
     .btn:active { transform: scale(0.97); }
+    .btn-retry { background: #06C755; color: white; padding: 12px 24px; font-size: 1rem; margin-top: 12px; }
+    .btn-retry:hover { background: #05a847; }
 
     #msg { padding: 20px; text-align: center; color: var(--text-muted); font-size: 1.1rem; font-weight: 500; }
 
@@ -111,47 +115,223 @@
     
     .time { font-size: 0.8rem; color: #9ca3af; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 4px; }
     .time::before { content: "🕒"; font-size: 0.85rem; }
+
+    /* ===== スケルトンUI ===== */
+    .skeleton-wrap { display: flex; flex-direction: column; gap: 24px; }
+    .skeleton-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .skeleton-line {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 6px;
+      height: 16px;
+      margin-bottom: 12px;
+    }
+    .skeleton-line.wide { width: 60%; }
+    .skeleton-line.medium { width: 40%; }
+    .skeleton-line.narrow { width: 25%; height: 12px; }
+    .skeleton-line.header-line { width: 45%; height: 22px; }
+    .skeleton-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 16px; }
+    .skeleton-block { background: #f9fafb; border-radius: 12px; padding: 16px; border: 1px solid #f0f0f0; }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    /* ===== ローディング状態バー ===== */
+    #loading-status {
+      text-align: center;
+      padding: 12px;
+      font-size: 0.9rem;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid #e5e7eb;
+      border-top-color: #06C755;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== 件数バッジ ===== */
+    #count-badge {
+      display: inline-block;
+      background: #06C755;
+      color: white;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 2px 12px;
+      border-radius: 999px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    /* ===== エラー表示 ===== */
+    #error-box {
+      display: none;
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      color: #ef4444;
+      margin-bottom: 16px;
+    }
+    #error-box p { margin: 0 0 8px; font-weight: 600; }
+
+    /* ===== カードフェードイン ===== */
+    .card { opacity: 0; transform: translateY(8px); transition: opacity 0.25s ease, transform 0.25s ease; }
+    .card.visible { opacity: 1; transform: none; }
   </style>
 </head>
 <body>
   <div style="max-width: 900px; margin: 0 auto;">
-    <h2 style="padding: 10px 0;">問診回答一覧</h2>
-    <div id="msg">データを読み込んでいます...</div>
+    <h2 style="padding: 10px 0;">問診回答一覧<span id="count-badge" style="display:none;"></span></h2>
+
+    <!-- ローディングステータス -->
+    <div id="loading-status">
+      <span class="spinner"></span>
+      <span id="loading-text">データを取得しています...</span>
+    </div>
+
+    <!-- エラーボックス -->
+    <div id="error-box">
+      <p id="error-msg">データの取得に失敗しました。</p>
+      <button class="btn btn-retry" onclick="retryFetch()">↺ 再試行</button>
+    </div>
+
+    <!-- スケルトンUI（ロード中に表示） -->
+    <div id="skeleton" class="skeleton-wrap">
+      <!-- スケルトンカード × 3枚 -->
+      <div class="skeleton-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div><div class="skeleton-line header-line"></div><div class="skeleton-line narrow"></div></div>
+          <div style="display:flex; gap:10px;"><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div></div>
+        </div>
+        <div class="skeleton-line narrow" style="margin-bottom:16px;"></div>
+        <div class="skeleton-grid">
+          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+        </div>
+      </div>
+      <div class="skeleton-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div><div class="skeleton-line header-line"></div><div class="skeleton-line narrow"></div></div>
+          <div style="display:flex; gap:10px;"><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div></div>
+        </div>
+        <div class="skeleton-line narrow" style="margin-bottom:16px;"></div>
+        <div class="skeleton-grid">
+          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+        </div>
+      </div>
+      <div class="skeleton-card" style="opacity:0.5;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div><div class="skeleton-line header-line"></div><div class="skeleton-line narrow"></div></div>
+          <div style="display:flex; gap:10px;"><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div></div>
+        </div>
+        <div class="skeleton-grid">
+          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="msg" style="display:none;"></div>
     <div id="container"></div>
   </div>
 
   <script>
     let listData = [];
     const API_URL = "https://script.google.com/macros/s/AKfycbw3ohRCQ87GMgFqOG-TPKbVE6h5uvCQsuIRl1JChA7mpIFoFDs9S0S6xP6Rx9DH6aVTiQ/exec?action=get";
+    const TIMEOUT_MS = 10000; // 10秒でタイムアウト
 
-    // 画面の描画を待たずに、スクリプトが読み込まれた瞬間にデータ取得を開始する（通信の前倒し）
-    const fetchPromise = fetch(API_URL).then(response => response.json());
+    // ページ読み込みと同時にfetch開始（通信の前倒し）
+    let fetchPromise = startFetch();
 
-    window.onload = function() {
-      fetchPromise
-        .then(function(res) {
-          const msg = document.getElementById("msg");
-          if (res && res.success) {
-            listData = res.list;
-            msg.innerText = res.list.length + " 件の回答があります";
-            render();
-          } else {
-            msg.innerText = "エラー: " + (res ? res.error : "不明なエラー");
-          }
-        })
-        .catch(function(err) {
-          document.getElementById("msg").innerText = "通信エラー: " + err.message;
-        });
-    };
+    function startFetch() {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    function render() {
-      const container = document.getElementById('container');
-      if (listData.length === 0) {
-        container.innerHTML = '<div id="msg">データがありません。</div>';
-        return;
+      return fetch(API_URL, { signal: controller.signal })
+        .then(r => { clearTimeout(timeoutId); return r.json(); });
+    }
+
+    function retryFetch() {
+      document.getElementById('error-box').style.display = 'none';
+      document.getElementById('skeleton').style.display = 'flex';
+      document.getElementById('loading-status').style.display = 'flex';
+      document.getElementById('loading-text').textContent = 'データを再取得しています...';
+      document.getElementById('container').innerHTML = '';
+      document.getElementById('msg').style.display = 'none';
+      fetchPromise = startFetch();
+      fetchPromise.then(handleResponse).catch(handleError);
+    }
+
+    function handleResponse(res) {
+      document.getElementById('skeleton').style.display = 'none';
+      document.getElementById('loading-status').style.display = 'none';
+
+      if (res && res.success) {
+        listData = res.list;
+        const count = res.list.length;
+
+        if (count === 0) {
+          const msg = document.getElementById('msg');
+          msg.style.display = 'block';
+          msg.textContent = 'データがありません。';
+          return;
+        }
+
+        // 件数バッジ表示
+        const badge = document.getElementById('count-badge');
+        badge.textContent = count + '件';
+        badge.style.display = 'inline-block';
+
+        // 段階的レンダリング: 最初の5件を即時描画、残りはrAFで
+        renderBatch(0, 5, true);
+      } else {
+        showError('エラー: ' + (res ? res.error : '不明なエラー'));
       }
+    }
 
-      // Muted set: treated as "no information"
+    function handleError(err) {
+      document.getElementById('skeleton').style.display = 'none';
+      document.getElementById('loading-status').style.display = 'none';
+      if (err.name === 'AbortError') {
+        showError('タイムアウト: サーバーの応答が遅いです。しばらく待ってから再試行してください。');
+      } else {
+        showError('通信エラー: ' + err.message);
+      }
+    }
+
+    function showError(msg) {
+      const box = document.getElementById('error-box');
+      document.getElementById('error-msg').textContent = msg;
+      box.style.display = 'block';
+    }
+
+    // バッチレンダリング: start〜endを描画し、残りをrequestAnimationFrameで非同期処理
+    function renderBatch(start, end, firstBatch) {
+      const container = document.getElementById('container');
+      const fragment = document.createDocumentFragment();
+
       const MUTED_SET = new Set(['なし', 'none', '', 'no', 'なし/飲まない', '該当なし', 'なし/しない']);
       const isMuted = (val) => !val || MUTED_SET.has(val);
       const isHl = (val) => !isMuted(val);
@@ -165,108 +345,137 @@
       const mkLabel = (text) => `<span class="label">${text}</span>`;
       const formatKV = (lbl, val) => `<span style="color:${isHl(val)?'#06C755':'#9ca3af'}; font-weight:${isHl(val)?'700':'400'}; margin-right:4px;">${lbl}:</span> ${highlight(val)}`;
 
-      container.innerHTML = listData.map((item, i) => {
+      const actualEnd = Math.min(end, listData.length);
+      for (let i = start; i < actualEnd; i++) {
+        const item = listData[i];
         const hasWarning = (
           item['薬アレルギー'] === 'あり' || 
           item['食品アレルギー'] === 'あり' || 
           (item['環境アレルギー'] && item['環境アレルギー'] !== 'なし' && item['環境アレルギー'] !== '') ||
           item['副作用'] === 'あり'
         );
-        
-        return `
-          <div class="card" style="${hasWarning ? 'border-left: 6px solid var(--danger-text);' : ''}">
-            <div class="header">
-              <div class="name">
-                ${item['名前'] || '名前なし'} <span style="font-size: 1rem; color: #6b7280; font-weight: normal;">様</span>
-                <span class="name-sub">TEL: ${item['電話番号'] || '不明'}</span>
-              </div>
-              <div class="actions">
-                <button class="btn btn-primary" onclick="copy(${i}, this)">MEDIXS用</button>
-                <button class="btn btn-secondary" onclick="copy(${i}, this, true)">調剤くん用</button>
-              </div>
+
+        const div = document.createElement('div');
+        div.className = 'card';
+        if (hasWarning) div.style.borderLeft = '6px solid var(--danger-text)';
+
+        div.innerHTML = `
+          <div class="header">
+            <div class="name">
+              ${item['名前'] || '名前なし'} <span style="font-size: 1rem; color: #6b7280; font-weight: normal;">様</span>
+              <span class="name-sub">TEL: ${item['電話番号'] || '不明'}</span>
             </div>
-            <div class="time">受信: ${item['日時'] || ''}</div>
-            
-            <div class="data-grid">
-              <div class="data-item">
-                ${mkLabel('患者様の状態')}
-                <span class="val">${(() => { const s = item['状態']; if (!s || s === 'none' || s === 'なし/飲まない' || s === 'なし/しない' || s === 'なし') return '<span class="text-muted">該当なし</span>'; if (s === 'pregnant' || s === '妊娠中(可能性あり)' || s === '妊娠中') return '<span style="color:#06C755; font-weight:700;">妊娠中(可能性あり)</span>'; if (s === 'breastfeeding' || s === '授乳中') return '<span style="color:#06C755; font-weight:700;">授乳中</span>'; if (s === 'pediatric' || s === '小児(15歳未満)' || s === '小児') return '<span style="color:#06C755; font-weight:700;">小児(15歳未満)</span>'; return highlight(s); })()}</span>
-                ${item['妊婦体重'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(体重: ${item['妊婦体重']}kg)</div>` : ''}
-                ${item['授乳婦体重'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(体重: ${item['授乳婦体重']}kg)</div>` : ''}
-                ${item['小児体重'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(体重: ${item['小児体重']}kg)</div>` : ''}
-              </div>
-              <div class="data-item">
-                ${mkLabel('後発品変更希望')}
-                <span class="val" style="${item['ジェネリック'] && item['ジェネリック'] !== 'なし' ? 'color:#06C755; font-weight:700;' : ''}">${(() => { const g = item['ジェネリック']; if (!g || g === 'なし') return '<span class="text-muted">なし</span>'; if (g === 'prefer') return 'ジェネリックで大丈夫'; if (g === 'ag') return 'オーソライズド・ジェネリック希望'; if (g === 'avoid') return '先発医薬品を希望する'; return g; })()}</span>
-              </div>
-              <div class="data-item">
-                ${mkLabel('手帳活用の有無')}
-                <span class="val" style="${item['お薬手帳'] && item['お薬手帳'] !== 'なし' ? 'color:#06C755; font-weight:700;' : ''}">${!item['お薬手帳'] || item['お薬手帳']==='なし' ? '<span class="text-muted">なし</span>' : item['お薬手帳']}</span>
-              </div>
-              <div class="data-item">
-                ${mkLabel('既往歴')}
-                <span class="val">${highlight(item['既往歴'])}</span>
-                ${item['既往歴詳細'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(詳: ${item['既往歴詳細']})</div>` : ''}
-              </div>
-              <div class="data-item">
-                ${mkLabel('花粉症・アレルゲンについて')}
-                <span class="val">${highlight(item['環境アレルギー'])}</span>
-              </div>
-              <div class="data-item">
-                ${mkLabel('副作用歴、薬物アレルギー')}
-                <span class="val">${item['副作用'] && item['副作用'] !== 'なし' ? formatKV('副作用', item['副作用']) + '<br>' : ''}${formatKV('薬物アレルギー', item['薬アレルギー'])}</span>
-                ${item['副作用詳細'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(副作用詳細: ${item['副作用詳細']})</div>` : ''}
-                ${item['アレルギー詳細'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(詳細: ${item['アレルギー詳細']})</div>` : ''}
-              </div>
-              <div class="data-item">
-                ${mkLabel('食物等アレルギー')}
-                <span class="val">${highlight(item['食品アレルギー'])}</span>
-                ${item['食品詳細'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(食物詳細: ${item['食品詳細']})</div>` : ''}
-              </div>
-              <div class="data-item">
-                ${mkLabel('定期的服用薬・サプリメント・OTC')}
-                <span class="val">${formatKV('他院処方', item['他院処方'])}<br>${formatKV('市販薬･サプリ', item['市販薬'])}</span>
-                ${item['他院詳細'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(他院処方詳細: ${item['他院詳細']})</div>` : ''}
-                ${item['市販薬詳細'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(市販薬詳細: ${item['市販薬詳細']})</div>` : ''}
-              </div>
-              <div class="data-item">
-                ${mkLabel('飲食物の摂取状況等')}
-                <span class="val">${formatKV('酒', item['酒'])}<br>${formatKV('飲食物', item['飲食物'])}</span>
-                ${item['飲食物詳細'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(飲食物詳細: ${item['飲食物詳細']})</div>` : ''}
-              </div>
-              <div class="data-item">
-                ${mkLabel('薬学的管理に必要な患者の生活像')}
-                <span class="val" style="line-height:2;">
-                  ${(() => { 
-                    const s = item['状態']; 
-                    const hl = isHl(s);
-                    const lblColor = hl ? '#06C755' : '#9ca3af';
-                    const lblWeight = hl ? '700' : '400';
-                    let vHtml = highlight(s);
-                    // map English enum values to Japanese display
-                    if (s === 'pregnant' || s === '妊娠中(可能性あり)' || s === '妊娠中') vHtml = `<span style="color:#06C755; font-weight:700;">妊娠中(可能性あり)</span>`; 
-                    else if (s === 'breastfeeding' || s === '授乳中') vHtml = `<span style="color:#06C755; font-weight:700;">授乳中</span>`; 
-                    else if (s === 'pediatric' || s === '小児(15歳未満)' || s === '小児') vHtml = `<span style="color:#06C755; font-weight:700;">小児(15歳未満)</span>`;
-                    return `<span style="color:${lblColor}; font-weight:${lblWeight}; margin-right:4px;">妊娠・授乳・小児:</span> ${vHtml}`;
-                  })()}<br>
-                  ${formatKV('運転', item['運転'])}<br>
-                  ${formatKV('高所作業', item['高所'])}<br>
-                  ${formatKV('コンタクト', item['ソフトコンタクト'])}<br>
-                  ${formatKV('喫煙', item['煙草'])}
-                </span>
-              </div>
+            <div class="actions">
+              <button class="btn btn-primary" onclick="copyText(${i}, this)">MEDIXS用</button>
+              <button class="btn btn-secondary" onclick="copyText(${i}, this, true)">調剤くん用</button>
             </div>
-            ${item['備考'] ? `
-            <div class="data-item" style="margin-top:16px; border:1px solid #fde68a; border-left: 4px solid #f59e0b; background:#fffbeb; padding:16px; border-radius:12px;">
-              <span class="label" style="color:#b45309;">特記事項</span>
-              <span class="val" style="color:#b45309; font-weight:700;">${item['備考']}</span>
-            </div>` : ''}
           </div>
+          <div class="time">受信: ${item['日時'] || ''}</div>
+          
+          <div class="data-grid">
+            <div class="data-item">
+              ${mkLabel('患者様の状態')}
+              <span class="val">${(() => { const s = item['状態']; if (!s || s === 'none' || s === 'なし/飲まない' || s === 'なし/しない' || s === 'なし') return '<span class="text-muted">該当なし</span>'; if (s === 'pregnant' || s === '妊娠中(可能性あり)' || s === '妊娠中') return '<span style="color:#06C755; font-weight:700;">妊娠中(可能性あり)</span>'; if (s === 'breastfeeding' || s === '授乳中') return '<span style="color:#06C755; font-weight:700;">授乳中</span>'; if (s === 'pediatric' || s === '小児(15歳未満)' || s === '小児') return '<span style="color:#06C755; font-weight:700;">小児(15歳未満)</span>'; return highlight(s); })()}</span>
+              ${item['妊婦体重'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(体重: ${item['妊婦体重']}kg)</div>` : ''}
+              ${item['授乳婦体重'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(体重: ${item['授乳婦体重']}kg)</div>` : ''}
+              ${item['小児体重'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(体重: ${item['小児体重']}kg)</div>` : ''}
+            </div>
+            <div class="data-item">
+              ${mkLabel('後発品変更希望')}
+              <span class="val" style="${item['ジェネリック'] && item['ジェネリック'] !== 'なし' ? 'color:#06C755; font-weight:700;' : ''}">${(() => { const g = item['ジェネリック']; if (!g || g === 'なし') return '<span class="text-muted">なし</span>'; if (g === 'prefer') return 'ジェネリックで大丈夫'; if (g === 'ag') return 'オーソライズド・ジェネリック希望'; if (g === 'avoid') return '先発医薬品を希望する'; return g; })()}</span>
+            </div>
+            <div class="data-item">
+              ${mkLabel('手帳活用の有無')}
+              <span class="val" style="${item['お薬手帳'] && item['お薬手帳'] !== 'なし' ? 'color:#06C755; font-weight:700;' : ''}">${!item['お薬手帳'] || item['お薬手帳']==='なし' ? '<span class="text-muted">なし</span>' : item['お薬手帳']}</span>
+            </div>
+            <div class="data-item">
+              ${mkLabel('既往歴')}
+              <span class="val">${highlight(item['既往歴'])}</span>
+              ${item['既往歴詳細'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(詳: ${item['既往歴詳細']})</div>` : ''}
+            </div>
+            <div class="data-item">
+              ${mkLabel('花粉症・アレルゲンについて')}
+              <span class="val">${highlight(item['環境アレルギー'])}</span>
+            </div>
+            <div class="data-item">
+              ${mkLabel('副作用歴、薬物アレルギー')}
+              <span class="val">${item['副作用'] && item['副作用'] !== 'なし' ? formatKV('副作用', item['副作用']) + '<br>' : ''}${formatKV('薬物アレルギー', item['薬アレルギー'])}</span>
+              ${item['副作用詳細'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(副作用詳細: ${item['副作用詳細']})</div>` : ''}
+              ${item['アレルギー詳細'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(詳細: ${item['アレルギー詳細']})</div>` : ''}
+            </div>
+            <div class="data-item">
+              ${mkLabel('食物等アレルギー')}
+              <span class="val">${highlight(item['食品アレルギー'])}</span>
+              ${item['食品詳細'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(食物詳細: ${item['食品詳細']})</div>` : ''}
+            </div>
+            <div class="data-item">
+              ${mkLabel('定期的服用薬・サプリメント・OTC')}
+              <span class="val">${formatKV('他院処方', item['他院処方'])}<br>${formatKV('市販薬･サプリ', item['市販薬'])}</span>
+              ${item['他院詳細'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(他院処方詳細: ${item['他院詳細']})</div>` : ''}
+              ${item['市販薬詳細'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(市販薬詳細: ${item['市販薬詳細']})</div>` : ''}
+            </div>
+            <div class="data-item">
+              ${mkLabel('飲食物の摂取状況等')}
+              <span class="val">${formatKV('酒', item['酒'])}<br>${formatKV('飲食物', item['飲食物'])}</span>
+              ${item['飲食物詳細'] ? `<div style="font-size:0.8rem; color:#6b7280; margin-top:4px;">(飲食物詳細: ${item['飲食物詳細']})</div>` : ''}
+            </div>
+            <div class="data-item">
+              ${mkLabel('薬学的管理に必要な患者の生活像')}
+              <span class="val" style="line-height:2;">
+                ${(() => { 
+                  const s = item['状態']; 
+                  const hl = isHl(s);
+                  const lblColor = hl ? '#06C755' : '#9ca3af';
+                  const lblWeight = hl ? '700' : '400';
+                  let vHtml = highlight(s);
+                  if (s === 'pregnant' || s === '妊娠中(可能性あり)' || s === '妊娠中') vHtml = `<span style="color:#06C755; font-weight:700;">妊娠中(可能性あり)</span>`; 
+                  else if (s === 'breastfeeding' || s === '授乳中') vHtml = `<span style="color:#06C755; font-weight:700;">授乳中</span>`; 
+                  else if (s === 'pediatric' || s === '小児(15歳未満)' || s === '小児') vHtml = `<span style="color:#06C755; font-weight:700;">小児(15歳未満)</span>`;
+                  return `<span style="color:${lblColor}; font-weight:${lblWeight}; margin-right:4px;">妊娠・授乳・小児:</span> ${vHtml}`;
+                })()}<br>
+                ${formatKV('運転', item['運転'])}<br>
+                ${formatKV('高所作業', item['高所'])}<br>
+                ${formatKV('コンタクト', item['ソフトコンタクト'])}<br>
+                ${formatKV('喫煙', item['煙草'])}
+              </span>
+            </div>
+          </div>
+          ${item['備考'] ? `
+          <div class="data-item" style="margin-top:16px; border:1px solid #fde68a; border-left: 4px solid #f59e0b; background:#fffbeb; padding:16px; border-radius:12px;">
+            <span class="label" style="color:#b45309;">特記事項</span>
+            <span class="val" style="color:#b45309; font-weight:700;">${item['備考']}</span>
+          </div>` : ''}
         `;
-      }).join('');
+
+        fragment.appendChild(div);
+      }
+
+      container.appendChild(fragment);
+
+      // フェードイン: 次のフレームでvisibleを付与
+      requestAnimationFrame(() => {
+        const newCards = container.querySelectorAll('.card:not(.visible)');
+        newCards.forEach((card, idx) => {
+          setTimeout(() => { card.classList.add('visible'); }, idx * 40);
+        });
+      });
+
+      // 残りがあればrequestIdleCallbackで続きを描画
+      if (actualEnd < listData.length) {
+        const renderNext = () => renderBatch(actualEnd, actualEnd + 10, false);
+        if (typeof requestIdleCallback !== 'undefined') {
+          requestIdleCallback(renderNext, { timeout: 500 });
+        } else {
+          setTimeout(renderNext, 100);
+        }
+      }
     }
 
-    function copy(idx, btn, isChozaiKun = false) {
+    window.onload = function() {
+      fetchPromise.then(handleResponse).catch(handleError);
+    };
+
+    function copyText(idx, btn, isChozaiKun = false) {
       const item = listData[idx];
       let text = "【初回問診引用】\n";
       if (isChozaiKun) {
@@ -325,33 +534,24 @@
           const old = btn.innerText;
           btn.innerText = 'コピー完了！';
           setTimeout(() => { btn.innerText = old; }, 1500);
-        }).catch(err => {
-          console.error('Failed to copy: ', err);
-          const el = document.createElement('textarea');
-          el.value = text;
-          el.style.position = 'fixed';
-          el.style.left = '-9999px';
-          document.body.appendChild(el); 
-          el.select();
-          document.execCommand('copy'); 
-          document.body.removeChild(el);
-          const old = btn.innerText;
-          btn.innerText = 'コピー完了！';
-          setTimeout(() => { btn.innerText = old; }, 1500);
-        });
+        }).catch(() => fallbackCopy(text, btn));
       } else {
-        const el = document.createElement('textarea');
-        el.value = text;
-        el.style.position = 'fixed';
-        el.style.left = '-9999px';
-        document.body.appendChild(el); 
-        el.select();
-        document.execCommand('copy'); 
-        document.body.removeChild(el);
-        const old = btn.innerText;
-        btn.innerText = 'コピー完了！';
-        setTimeout(() => { btn.innerText = old; }, 1500);
+        fallbackCopy(text, btn);
       }
+    }
+
+    function fallbackCopy(text, btn) {
+      const el = document.createElement('textarea');
+      el.value = text;
+      el.style.position = 'fixed';
+      el.style.left = '-9999px';
+      document.body.appendChild(el); 
+      el.select();
+      document.execCommand('copy'); 
+      document.body.removeChild(el);
+      const old = btn.innerText;
+      btn.innerText = 'コピー完了！';
+      setTimeout(() => { btn.innerText = old; }, 1500);
     }
   </script>
 </body>
