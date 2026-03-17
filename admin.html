@@ -155,7 +155,7 @@
       const item = listData[idx];
       let text = "【初回問診引用】\n";
       if (isChozaiKun) {
-        text += `${item['電話番号'] || '不明'}\n`;
+        text += `■電話番号: ${item['電話番号'] || '不明'}\n`;
       }
 
       const formatVal = (val) => {
