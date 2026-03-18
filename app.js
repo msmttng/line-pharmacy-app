@@ -27,6 +27,10 @@ function updateNavigation() {
     const progress = (currentStep / totalSteps) * 100;
     document.getElementById('progress-bar').style.width = `${progress}%`;
 
+    // Update step counter (v2)
+    const stepCounter = document.getElementById('step-counter');
+    if (stepCounter) stepCounter.textContent = `${currentStep} / ${totalSteps}`;
+
     // Show/hide sections
     document.querySelectorAll('.form-step').forEach(step => {
         step.classList.remove('active');
@@ -335,45 +339,19 @@ document.getElementById('prev-btn').addEventListener('click', handlePrev);
 document.getElementById('submit-btn').addEventListener('click', handleSubmit);
 document.getElementById('questionnaire-form').addEventListener('submit', handleSubmit);
 
-// --- Detail Toggle Logic ---
+// --- Detail Toggle Logic (v2 対応: open クラスを使用) ---
+// Note: v2 では index.html 側のインラインスクリプトが条件展開を担当。
+// 旧 hidden クラス方式との互換性のため、sub-input の hidden クラスも保持。
 document.querySelectorAll('input[type="radio"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
-        const detailInput = e.target.closest('.input-group').querySelector('.sub-input');
+        // v2: sub-input は id 付きラッパーで open クラス制御（インライン JS 側が担当）
+        // 旧 HTML 向けに hidden クラス方式も残す
+        const detailInput = e.target.closest('.input-group').querySelector('.sub-input:not([id])');
         if (detailInput) {
             if (e.target.value === 'yes' || e.target.value === 'other') {
                 detailInput.classList.remove('hidden');
             } else if (e.target.value === 'no') {
                 detailInput.classList.add('hidden');
-            }
-        }
-        
-        // Handle patient condition weight input toggle
-        if (e.target.name === 'patient-condition') {
-            const weightInputGroup = document.getElementById('weight-input-group');
-            const weightInput = document.getElementById('weight');
-            if (e.target.value === 'pediatric') {
-                weightInputGroup.classList.remove('hidden');
-                weightInput.setAttribute('required', 'true');
-            } else {
-                weightInputGroup.classList.add('hidden');
-                weightInput.removeAttribute('required');
-                weightInput.value = ''; // clear value
-            }
-        }
-    });
-});
-
-// --- Checkbox Toggle Logic ---
-document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-    checkbox.addEventListener('change', (e) => {
-        if (e.target.id === 'hayfever-toggle') {
-            const subgroup = document.getElementById('hayfever-subgroup');
-            const typeInputs = subgroup.querySelectorAll('input[type="checkbox"]');
-            if (e.target.checked) {
-                subgroup.classList.remove('hidden');
-            } else {
-                subgroup.classList.add('hidden');
-                typeInputs.forEach(input => input.checked = false);
             }
         }
     });
