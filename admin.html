@@ -6,6 +6,7 @@
   <!-- display=swapでフォントロードがレンダリングをブロックしないよう修正 -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root {
       --line-green: #06C755;
@@ -18,6 +19,130 @@
       --warning-bg: #fef3c7;
       --warning-text: #d97706;
       --card-bg: #ffffff;
+    }
+
+    /* ===== ログイン画面 ===== */
+    #login-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      animation: loginFadeIn 0.4s ease;
+    }
+    @keyframes loginFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    #login-overlay.fade-out {
+      animation: loginFadeOut 0.4s ease forwards;
+    }
+    @keyframes loginFadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+    .login-box {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 16px;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    }
+    .login-box h2 {
+      color: #ffffff;
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .login-subtitle {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.85rem;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .login-icon {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+    .login-field {
+      margin-bottom: 20px;
+    }
+    .login-field label {
+      display: block;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .login-field input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.08);
+      color: #ffffff;
+      font-size: 1rem;
+      font-family: 'Noto Sans JP', sans-serif;
+      outline: none;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+    }
+    .login-field input:focus {
+      border-color: #06C755;
+      background: rgba(255,255,255,0.12);
+      box-shadow: 0 0 0 3px rgba(6, 199, 85, 0.15);
+    }
+    .login-field input::placeholder {
+      color: rgba(255,255,255,0.25);
+    }
+    .login-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #06C755, #05a847);
+      color: white;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: 'Noto Sans JP', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 8px;
+      box-shadow: 0 4px 12px rgba(6, 199, 85, 0.3);
+    }
+    .login-btn:hover {
+      background: linear-gradient(135deg, #05a847, #049a3e);
+      box-shadow: 0 6px 16px rgba(6, 199, 85, 0.4);
+      transform: translateY(-1px);
+    }
+    .login-btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+    .login-error {
+      color: #ef4444;
+      font-size: 0.85rem;
+      text-align: center;
+      margin-top: 16px;
+      min-height: 1.2em;
+      font-weight: 500;
+      animation: shake 0.4s ease;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
     }
     body {
       font-family: 'Noto Sans JP', sans-serif;
@@ -197,73 +322,150 @@
   </style>
 </head>
 <body>
-  <div style="max-width: 900px; margin: 0 auto;">
-    <h2 style="padding: 10px 0;">問診回答一覧<span id="count-badge" style="display:none;"></span></h2>
-
-    <!-- ローディングステータス -->
-    <div id="loading-status">
-      <span class="spinner"></span>
-      <span id="loading-text">データを取得しています...</span>
-    </div>
-
-    <!-- エラーボックス -->
-    <div id="error-box">
-      <p id="error-msg">データの取得に失敗しました。</p>
-      <button class="btn btn-retry" onclick="retryFetch()">↺ 再試行</button>
-    </div>
-
-    <!-- スケルトンUI（ロード中に表示） -->
-    <div id="skeleton" class="skeleton-wrap">
-      <!-- スケルトンカード × 3枚 -->
-      <div class="skeleton-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-          <div><div class="skeleton-line header-line"></div><div class="skeleton-line narrow"></div></div>
-          <div style="display:flex; gap:10px;"><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div></div>
+  <!-- ===== ログインオーバーレイ ===== -->
+  <div id="login-overlay">
+    <div class="login-box">
+      <div class="login-icon">🔐</div>
+      <h2>問診回答管理</h2>
+      <p class="login-subtitle">認証が必要です</p>
+      <form id="login-form" onsubmit="return handleLogin(event)">
+        <div class="login-field">
+          <label for="login-id">ユーザーID</label>
+          <input type="text" id="login-id" placeholder="IDを入力" autocomplete="username" required>
         </div>
-        <div class="skeleton-line narrow" style="margin-bottom:16px;"></div>
-        <div class="skeleton-grid">
-          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+        <div class="login-field">
+          <label for="login-pw">パスワード</label>
+          <input type="password" id="login-pw" placeholder="パスワードを入力" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="login-btn">ログイン</button>
+        <div id="login-error" class="login-error"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== メインコンテンツ（認証後に表示） ===== -->
+  <div id="main-content" style="display:none;">
+    <div style="max-width: 900px; margin: 0 auto;">
+      <h2 style="padding: 10px 0;">問診回答一覧<span id="count-badge" style="display:none;"></span></h2>
+
+      <!-- ローディングステータス -->
+      <div id="loading-status">
+        <span class="spinner"></span>
+        <span id="loading-text">データを取得しています...</span>
+      </div>
+
+      <!-- エラーボックス -->
+      <div id="error-box">
+        <p id="error-msg">データの取得に失敗しました。</p>
+        <button class="btn btn-retry" onclick="retryFetch()">↺ 再試行</button>
+      </div>
+
+      <!-- スケルトンUI（ロード中に表示） -->
+      <div id="skeleton" class="skeleton-wrap">
+        <!-- スケルトンカード × 3枚 -->
+        <div class="skeleton-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div><div class="skeleton-line header-line"></div><div class="skeleton-line narrow"></div></div>
+            <div style="display:flex; gap:10px;"><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div></div>
+          </div>
+          <div class="skeleton-line narrow" style="margin-bottom:16px;"></div>
+          <div class="skeleton-grid">
+            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+          </div>
+        </div>
+        <div class="skeleton-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div><div class="skeleton-line header-line"></div><div class="skeleton-line narrow"></div></div>
+            <div style="display:flex; gap:10px;"><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div></div>
+          </div>
+          <div class="skeleton-line narrow" style="margin-bottom:16px;"></div>
+          <div class="skeleton-grid">
+            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+          </div>
+        </div>
+        <div class="skeleton-card" style="opacity:0.5;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div><div class="skeleton-line header-line"></div><div class="skeleton-line narrow"></div></div>
+            <div style="display:flex; gap:10px;"><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div></div>
+          </div>
+          <div class="skeleton-grid">
+            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+          </div>
         </div>
       </div>
-      <div class="skeleton-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-          <div><div class="skeleton-line header-line"></div><div class="skeleton-line narrow"></div></div>
-          <div style="display:flex; gap:10px;"><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div></div>
-        </div>
-        <div class="skeleton-line narrow" style="margin-bottom:16px;"></div>
-        <div class="skeleton-grid">
-          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-        </div>
-      </div>
-      <div class="skeleton-card" style="opacity:0.5;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-          <div><div class="skeleton-line header-line"></div><div class="skeleton-line narrow"></div></div>
-          <div style="display:flex; gap:10px;"><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div></div>
-        </div>
-        <div class="skeleton-grid">
-          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-          <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-        </div>
-      </div>
-    </div>
 
-    <div id="msg" style="display:none;"></div>
-    <div id="container"></div>
+      <div id="msg" style="display:none;"></div>
+      <div id="container"></div>
+    </div>
   </div>
 
   <script>
+    // ===== 認証システム =====
+    const AUTH_HASH = '68c4c50e5c51823f9c822687b4c47a33b47d3a965e5545ec98ff5851c444cf4d';
+    const AUTH_KEY = 'admin_authenticated';
+
+    async function sha256(message) {
+      const msgBuffer = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const id = document.getElementById('login-id').value;
+      const pw = document.getElementById('login-pw').value;
+      const hash = await sha256(id + ':' + pw);
+      if (hash === AUTH_HASH) {
+        sessionStorage.setItem(AUTH_KEY, 'true');
+        showMainContent();
+      } else {
+        const errEl = document.getElementById('login-error');
+        errEl.textContent = 'IDまたはパスワードが違います';
+        errEl.style.animation = 'none';
+        errEl.offsetHeight; // reflow
+        errEl.style.animation = 'shake 0.4s ease';
+      }
+      return false;
+    }
+
+    function showMainContent() {
+      const overlay = document.getElementById('login-overlay');
+      overlay.classList.add('fade-out');
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        // 認証後にデータ取得開始
+        fetchPromise = startFetch();
+        fetchPromise.then(handleResponse).catch(handleError);
+      }, 400);
+    }
+
+    // ページ読み込み時にセッション確認
+    window.addEventListener('DOMContentLoaded', () => {
+      if (sessionStorage.getItem(AUTH_KEY) === 'true') {
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        fetchPromise = startFetch();
+        fetchPromise.then(handleResponse).catch(handleError);
+      } else {
+        // ID入力欄にフォーカス
+        document.getElementById('login-id').focus();
+      }
+    });
+
+    // ===== データ取得 =====
     let listData = [];
+    let fetchPromise = null;
     const API_URL = "https://script.google.com/macros/s/AKfycbw3ohRCQ87GMgFqOG-TPKbVE6h5uvCQsuIRl1JChA7mpIFoFDs9S0S6xP6Rx9DH6aVTiQ/exec?action=get";
     const TIMEOUT_MS = 10000; // 10秒でタイムアウト
-
-    // ページ読み込みと同時にfetch開始（通信の前倒し）
-    let fetchPromise = startFetch();
 
     function startFetch() {
       const controller = new AbortController();
@@ -471,9 +673,7 @@
       }
     }
 
-    window.onload = function() {
-      fetchPromise.then(handleResponse).catch(handleError);
-    };
+    // window.onload は不要（DOMContentLoadedで認証後にfetch開始するため）
 
     function copyText(idx, btn, isChozaiKun = false) {
       const item = listData[idx];
