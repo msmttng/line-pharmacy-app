@@ -342,6 +342,58 @@
     .notebook-drugs { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px 18px; font-size: 0.9rem; line-height: 1.8; color: #166534; white-space: pre-wrap; margin-bottom: 12px; }
     .btn-notebook-copy { background: #059669; color: white; box-shadow: 0 2px 4px rgba(5,150,105,0.2); }
     .btn-notebook-copy:hover { background: #047857; box-shadow: 0 4px 6px rgba(5,150,105,0.3); }
+
+    /* ===== タブナビゲーション ===== */
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      background: #f3f4f6;
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      background: transparent;
+      border-radius: 11px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .tab-btn:hover { color: #374151; }
+    .tab-btn.active {
+      background: white;
+      color: #111827;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .tab-btn.active.tab-monshin { color: #2563eb; }
+    .tab-btn.active.tab-notebook { color: #059669; }
+    .tab-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      min-width: 20px;
+      text-align: center;
+    }
+    .tab-btn.tab-monshin .tab-badge { background: #dbeafe; color: #2563eb; }
+    .tab-btn.active.tab-monshin .tab-badge { background: #2563eb; color: white; }
+    .tab-btn.tab-notebook .tab-badge { background: #d1fae5; color: #059669; }
+    .tab-btn.active.tab-notebook .tab-badge { background: #059669; color: white; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
   </style>
 </head>
 <body>
@@ -369,69 +421,88 @@
   <!-- ===== メインコンテンツ（認証後に表示） ===== -->
   <div id="main-content" style="display:none;">
     <div style="max-width: 900px; margin: 0 auto;">
-      <h2 style="padding: 10px 0;">問診回答一覧<span id="count-badge" style="display:none;"></span></h2>
 
-      <!-- ローディングステータス -->
-      <div id="loading-status">
-        <span class="spinner"></span>
-        <span id="loading-text">データを取得しています...</span>
+      <!-- タブナビゲーション -->
+      <div class="tab-bar" id="tab-bar">
+        <button class="tab-btn tab-monshin active" onclick="switchTab('monshin')">
+          📋 問診回答 <span class="tab-badge" id="tab-monshin-badge" style="display:none;"></span>
+        </button>
+        <button class="tab-btn tab-notebook" onclick="switchTab('notebook')">
+          📚 手帳データ <span class="tab-badge" id="tab-notebook-badge" style="display:none;"></span>
+        </button>
       </div>
 
-      <!-- エラーボックス -->
-      <div id="error-box">
-        <p id="error-msg">データの取得に失敗しました。</p>
-        <button class="btn btn-retry" onclick="retryFetch()">↺ 再試行</button>
+      <!-- ===== 問診回答タブ ===== -->
+      <div class="tab-panel active" id="panel-monshin">
+        <!-- ローディングステータス -->
+        <div id="loading-status">
+          <span class="spinner"></span>
+          <span id="loading-text">データを取得しています...</span>
+        </div>
+
+        <!-- エラーボックス -->
+        <div id="error-box">
+          <p id="error-msg">データの取得に失敗しました。</p>
+          <button class="btn btn-retry" onclick="retryFetch()">↺ 再試行</button>
+        </div>
+
+        <!-- スケルトンUI -->
+        <div id="skeleton" class="skeleton-wrap">
+          <div class="skeleton-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <div><div class="skeleton-line header-line"></div><div class="skeleton-line narrow"></div></div>
+              <div style="display:flex; gap:10px;"><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div></div>
+            </div>
+            <div class="skeleton-line narrow" style="margin-bottom:16px;"></div>
+            <div class="skeleton-grid">
+              <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+              <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+              <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+              <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+            </div>
+          </div>
+          <div class="skeleton-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <div><div class="skeleton-line header-line"></div><div class="skeleton-line narrow"></div></div>
+              <div style="display:flex; gap:10px;"><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div></div>
+            </div>
+            <div class="skeleton-line narrow" style="margin-bottom:16px;"></div>
+            <div class="skeleton-grid">
+              <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+              <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+              <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+              <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+            </div>
+          </div>
+          <div class="skeleton-card" style="opacity:0.5;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <div><div class="skeleton-line header-line"></div><div class="skeleton-line narrow"></div></div>
+              <div style="display:flex; gap:10px;"><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div></div>
+            </div>
+            <div class="skeleton-grid">
+              <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+              <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="msg" style="display:none;"></div>
+        <div id="container"></div>
       </div>
 
-      <!-- スケルトンUI（ロード中に表示） -->
-      <div id="skeleton" class="skeleton-wrap">
-        <!-- スケルトンカード × 3枚 -->
-        <div class="skeleton-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-            <div><div class="skeleton-line header-line"></div><div class="skeleton-line narrow"></div></div>
-            <div style="display:flex; gap:10px;"><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div></div>
-          </div>
-          <div class="skeleton-line narrow" style="margin-bottom:16px;"></div>
-          <div class="skeleton-grid">
-            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-          </div>
+      <!-- ===== 手帳データタブ ===== -->
+      <div class="tab-panel" id="panel-notebook">
+        <div id="notebook-loading" style="text-align:center;padding:40px 0;color:#9ca3af;display:none;">
+          <span class="spinner"></span>
+          <span>手帳データを取得中...</span>
         </div>
-        <div class="skeleton-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-            <div><div class="skeleton-line header-line"></div><div class="skeleton-line narrow"></div></div>
-            <div style="display:flex; gap:10px;"><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div></div>
-          </div>
-          <div class="skeleton-line narrow" style="margin-bottom:16px;"></div>
-          <div class="skeleton-grid">
-            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-          </div>
+        <div id="notebook-empty" style="display:none;text-align:center;padding:60px 20px;color:#9ca3af;">
+          <div style="font-size:3rem;margin-bottom:12px;">📚</div>
+          <p style="font-size:1.1rem;font-weight:600;">手帳データはまだありません</p>
         </div>
-        <div class="skeleton-card" style="opacity:0.5;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-            <div><div class="skeleton-line header-line"></div><div class="skeleton-line narrow"></div></div>
-            <div style="display:flex; gap:10px;"><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div><div class="skeleton-line" style="width:90px;height:36px;border-radius:999px;margin:0;"></div></div>
-          </div>
-          <div class="skeleton-grid">
-            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-            <div class="skeleton-block"><div class="skeleton-line wide"></div><div class="skeleton-line medium"></div></div>
-          </div>
-        </div>
-      </div>
-
-      <div id="msg" style="display:none;"></div>
-      <div id="container"></div>
-
-      <!-- 手帳データセクション -->
-      <div class="notebook-section" id="notebook-section" style="display:none;">
-        <h2>📚 お薬手帳データ<span id="notebook-count-badge" style="display:none;background:#059669;color:white;font-size:0.85rem;font-weight:700;padding:2px 12px;border-radius:999px;margin-left:8px;vertical-align:middle;"></span></h2>
         <div id="notebook-container"></div>
       </div>
+
     </div>
   </div>
 
@@ -530,9 +601,10 @@
           return;
         }
 
-        // 件数バッジ表示
-        const badge = document.getElementById('count-badge');
-        badge.textContent = count + '件';
+        // 問診タブバッジ更新
+        const badge = document.getElementById('tab-monshin-badge');
+        badge.textContent = count;
+        badge.style.display = 'inline-block';
         badge.style.display = 'inline-block';
 
         // 段階的レンダリング: 最初の5件を即時描画、残りはrAFで
@@ -783,30 +855,47 @@
       setTimeout(() => { btn.innerText = old; }, 1500);
     }
 
+    // ===== タブ切り替え =====
+    function switchTab(tabName) {
+      // パネル切り替え
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('panel-' + tabName).classList.add('active');
+      // タブボタン切り替え
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('.tab-' + tabName).classList.add('active');
+      window.scrollTo(0, 0);
+    }
+
     // ===== 手帳データ取得・表示 =====
     const NOTEBOOK_API_URL = API_URL.replace('action=get', 'action=getNotebook');
     let notebookData = [];
 
     function fetchNotebookData() {
+      document.getElementById('notebook-loading').style.display = 'block';
       fetch(NOTEBOOK_API_URL)
         .then(r => r.json())
         .then(res => {
+          document.getElementById('notebook-loading').style.display = 'none';
           if (res && res.success && res.list.length > 0) {
             notebookData = res.list;
+            // タブバッジ更新
+            const badge = document.getElementById('tab-notebook-badge');
+            badge.textContent = notebookData.length;
+            badge.style.display = 'inline-block';
             renderNotebookCards();
+          } else {
+            document.getElementById('notebook-empty').style.display = 'block';
           }
         })
-        .catch(err => console.error('手帳データ取得エラー:', err));
+        .catch(err => {
+          document.getElementById('notebook-loading').style.display = 'none';
+          document.getElementById('notebook-empty').style.display = 'block';
+          console.error('手帳データ取得エラー:', err);
+        });
     }
 
     function renderNotebookCards() {
-      const section = document.getElementById('notebook-section');
       const container = document.getElementById('notebook-container');
-      const badge = document.getElementById('notebook-count-badge');
-      
-      section.style.display = 'block';
-      badge.textContent = notebookData.length + '件';
-      badge.style.display = 'inline-block';
       container.innerHTML = '';
 
       const fragment = document.createDocumentFragment();
