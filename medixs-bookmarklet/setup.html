@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEDIXS 併用薬ペースト - ブックマークレット設定</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #059669;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 40px 20px;
+        }
+        .container { max-width: 700px; margin: 0 auto; }
+        h1 {
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 32px;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+        }
+        .step {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 16px;
+            align-items: flex-start;
+        }
+        .step-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-text { font-size: 0.9rem; line-height: 1.6; padding-top: 2px; }
+        .step-text strong { color: var(--primary); }
+        .bookmarklet-link {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 14px 28px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: grab;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+            transition: all 0.2s;
+            user-select: none;
+            margin: 16px 0;
+        }
+        .bookmarklet-link:hover {
+            box-shadow: 0 6px 16px rgba(37,99,235,0.4);
+            transform: translateY(-2px);
+        }
+        .bookmarklet-link:active {
+            cursor: grabbing;
+            transform: scale(0.98);
+        }
+        .drag-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+        .drag-hint::before { content: "↑"; font-size: 1.2rem; }
+        .highlight-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            color: #1e40af;
+            margin-top: 12px;
+        }
+        .warning-box {
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            color: #92400e;
+            margin-top: 12px;
+        }
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .flow-box {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        .flow-box.active { border-color: var(--primary); color: var(--primary); }
+        .flow-arrow { font-size: 1.2rem; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💊 MEDIXS 併用薬ペースト</h1>
+        <p class="subtitle">LINE薬局アプリの手帳データをMEDIXSに自動入力するブックマークレット</p>
+
+        <!-- フロー図 -->
+        <div class="flow-diagram">
+            <div class="flow-box">📱 LINE問診<br>admin.html</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-box active">📋 コピー</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-box active">🔖 ブックマークレット</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-box">💊 MEDIXS<br>併用薬</div>
+        </div>
+
+        <!-- セットアップ手順 -->
+        <div class="card">
+            <h2>🔧 セットアップ（初回のみ）</h2>
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-text">下のボタンを<strong>ブックマークバーにドラッグ&ドロップ</strong>してください</div>
+            </div>
+
+            <div style="text-align: center;">
+                <a class="bookmarklet-link" id="bookmarklet-btn" href="#">💊 併用薬ペースト</a>
+                <div class="drag-hint">このボタンをブックマークバーにドラッグ</div>
+            </div>
+
+            <div class="highlight-box">
+                💡 ブックマークバーが表示されていない場合: <strong>Ctrl + Shift + B</strong> で表示できます
+            </div>
+        </div>
+
+        <!-- 使い方 -->
+        <div class="card">
+            <h2>📖 使い方</h2>
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-text"><strong>admin.html</strong> の「📚手帳データ」タブから、対象の薬品名を<strong>「コピー」</strong>ボタンでクリップボードにコピー</div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-text"><strong>MEDIXS</strong> で対象患者の服薬指導画面を開き、<strong>併用薬 [F3]</strong> をクリック</div>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-text">ブックマークバーの <strong>「💊 併用薬ペースト」</strong> をクリック</div>
+            </div>
+            <div class="step">
+                <div class="step-num">4</div>
+                <div class="step-text">クリップボードの内容が自動反映されます。確認して<strong>「併用薬に入力」</strong>ボタンを押下</div>
+            </div>
+            <div class="step">
+                <div class="step-num">5</div>
+                <div class="step-text">MEDIXS の併用薬フィールドに薬品名が自動入力されます。最後にMEDIXSの<strong>「入力」</strong>ボタンで確定してください</div>
+            </div>
+            <div class="warning-box">
+                ⚠ 薬品名が6件以上の場合は、MEDIXS側で「+」ボタンを押して行を追加してからブックマークレットを実行してください
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ブックマークレットのコードを動的に生成
+        const bookmarkletCode = `javascript:void(function(){var s=document.createElement('style');s.textContent='%23medixs-paste-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:center;justify-content:center;font-family:Segoe UI,Meiryo,sans-serif}%23medixs-paste-dialog{background:%23fff;border-radius:12px;padding:24px;min-width:420px;max-width:600px;box-shadow:0 20px 60px rgba(0,0,0,.3)}%23medixs-paste-dialog h3{margin:0 0 16px;font-size:1.1rem;color:%231a1a2e;display:flex;align-items:center;gap:8px}%23medixs-paste-dialog textarea{width:100%25;min-height:200px;border:2px solid %23e0e0e0;border-radius:8px;padding:12px;font-size:.9rem;font-family:Consolas,Meiryo,monospace;resize:vertical;box-sizing:border-box;line-height:1.6}%23medixs-paste-dialog textarea:focus{border-color:%232563eb;outline:none;box-shadow:0 0 0 3px rgba(37,99,235,.15)}.mp-info{font-size:.8rem;color:%236b7280;margin:8px 0 16px}.mp-btns{display:flex;gap:10px;justify-content:flex-end}.mp-btns button{padding:10px 20px;border:none;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s}.mp-cancel{background:%23f3f4f6;color:%23374151}.mp-cancel:hover{background:%23e5e7eb}.mp-paste{background:%232563eb;color:%23fff;box-shadow:0 2px 8px rgba(37,99,235,.3)}.mp-paste:hover{background:%231d4ed8}.mp-status{margin-top:12px;padding:10px 14px;border-radius:8px;font-size:.85rem;display:none}.mp-status.ok{display:block;background:%23dcfce7;color:%23166534;border:1px solid %23bbf7d0}.mp-status.ng{display:block;background:%23fee2e2;color:%23991b1b;border:1px solid %23fecaca}';document.head.appendChild(s);var o=document.createElement('div');o.id='medixs-paste-overlay';o.innerHTML='<div id="medixs-paste-dialog"><h3>\\ud83d\\udc8a \\u4f75\\u7528\\u85ac\\u30da\\u30fc\\u30b9\\u30c8</h3><textarea id="mp-input" placeholder="\\u85ac\\u54c1\\u540d\\u30921\\u884c\\u306b1\\u3064\\u305a\\u3064\\u5165\\u529b"></textarea><div class="mp-info">\\u30d2\\u30f3\\u30c8: admin.html\\u3067\\u624b\\u5e33\\u30c7\\u30fc\\u30bf\\u306e\\u300c\\u30b3\\u30d4\\u30fc\\u300d\\u5f8c\\u3001\\u3053\\u3053\\u306b\\u8cbc\\u308a\\u4ed8\\u3051(Ctrl+V)</div><div class="mp-btns"><button class="mp-cancel" onclick="document.getElementById(\\'medixs-paste-overlay\\').remove()">\\u30ad\\u30e3\\u30f3\\u30bb\\u30eb</button><button class="mp-paste" id="mp-go">\\u4f75\\u7528\\u85ac\\u306b\\u5165\\u529b</button></div><div class="mp-status" id="mp-st"></div></div>';document.body.appendChild(o);var ta=document.getElementById('mp-input');try{navigator.clipboard.readText().then(function(t){if(t&&t.trim()){ta.value=t.trim();ta.select()}})}catch(e){}document.getElementById('mp-go').addEventListener('click',function(){var t=ta.value.trim();if(!t){sh('ng','\\u85ac\\u54c1\\u540d\\u304c\\u5165\\u529b\\u3055\\u308c\\u3066\\u3044\\u307e\\u305b\\u3093');return}var ls=t.split('\\n').map(function(l){return l.trim()}).filter(function(l){return l.length>0});if(!ls.length){sh('ng','\\u6709\\u52b9\\u306a\\u85ac\\u54c1\\u540d\\u304c\\u3042\\u308a\\u307e\\u305b\\u3093');return}var ai=document.querySelectorAll('input[type=text],input:not([type])');var mi=[];for(var i=0;i<ai.length;i++){var inp=ai[i];if(!inp.offsetParent)continue;var r=inp.getBoundingClientRect();if(r.width>=300&&r.top>100&&r.top<900)mi.push(inp)}if(!mi.length){var vi=[];for(var j=0;j<ai.length;j++){var el=ai[j];if(el.offsetParent&&el.getBoundingClientRect().top>100){vi.push(el)}}for(var k=0;k<vi.length;k+=2)mi.push(vi[k])}if(!mi.length){sh('ng','\\u4f75\\u7528\\u85ac\\u306e\\u5165\\u529b\\u30d5\\u30a3\\u30fc\\u30eb\\u30c9\\u304c\\u898b\\u3064\\u304b\\u308a\\u307e\\u305b\\u3093\\u3002\\u4f75\\u7528\\u85ac\\u30e2\\u30fc\\u30c0\\u30eb[F3]\\u3092\\u958b\\u3044\\u3066\\u304b\\u3089\\u5b9f\\u884c\\u3057\\u3066\\u304f\\u3060\\u3055\\u3044\\u3002');return}var f=0;for(var m=0;m<ls.length&&m<mi.length;m++){sv(mi[m],ls[m]);f++}if(ls.length>mi.length){sh('ng','\\u26a0 \\u5165\\u529b\\u884c\\u304c\\u8db3\\u308a\\u307e\\u305b\\u3093\\u3002+\\u30dc\\u30bf\\u30f3\\u3067\\u884c\\u3092\\u8ffd\\u52a0\\u3057\\u3066\\u304b\\u3089\\u518d\\u5b9f\\u884c\\u3057\\u3066\\u304f\\u3060\\u3055\\u3044\\u3002\\u5165\\u529b\\u6e08\\u307f:'+f+'\\u4ef6')}else{sh('ok','\\u2705 '+f+'\\u4ef6\\u306e\\u85ac\\u54c1\\u540d\\u3092\\u5165\\u529b\\u3057\\u307e\\u3057\\u305f');setTimeout(function(){document.getElementById('medixs-paste-overlay').remove()},2000)}});function sv(inp,val){var ns=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set;ns.call(inp,val);inp.dispatchEvent(new Event('input',{bubbles:true}));inp.dispatchEvent(new Event('change',{bubbles:true}));inp.focus();inp.dispatchEvent(new Event('blur',{bubbles:true}))}function sh(t,m){var el=document.getElementById('mp-st');el.className='mp-status '+t;el.textContent=m;el.style.display='block'}}())`;
+
+        document.getElementById('bookmarklet-btn').href = bookmarkletCode;
+    </script>
+</body>
+</html>
