@@ -319,6 +319,29 @@
     /* ===== カードフェードイン ===== */
     .card { opacity: 0; transform: translateY(8px); transition: opacity 0.25s ease, transform 0.25s ease; }
     .card.visible { opacity: 1; transform: none; }
+
+    /* ===== 手帳データカード ===== */
+    .notebook-section { margin-top: 2rem; }
+    .notebook-section h2 { color: #059669; }
+    .notebook-card {
+      background: var(--card-bg);
+      padding: 20px 24px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      border: 1px solid #f9fafb;
+      border-left: 5px solid #06C755;
+      opacity: 0; transform: translateY(8px); transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .notebook-card.visible { opacity: 1; transform: none; }
+    .notebook-card:hover { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08); transform: translateY(-2px); opacity: 1; }
+    .notebook-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+    .notebook-name { font-size: 1.2rem; font-weight: 700; color: #111827; }
+    .notebook-time { font-size: 0.8rem; color: #9ca3af; display: inline-flex; align-items: center; gap: 4px; }
+    .notebook-time::before { content: "🕒"; font-size: 0.85rem; }
+    .notebook-drugs { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px 18px; font-size: 0.9rem; line-height: 1.8; color: #166534; white-space: pre-wrap; margin-bottom: 12px; }
+    .btn-notebook-copy { background: #059669; color: white; box-shadow: 0 2px 4px rgba(5,150,105,0.2); }
+    .btn-notebook-copy:hover { background: #047857; box-shadow: 0 4px 6px rgba(5,150,105,0.3); }
   </style>
 </head>
 <body>
@@ -403,6 +426,12 @@
 
       <div id="msg" style="display:none;"></div>
       <div id="container"></div>
+
+      <!-- 手帳データセクション -->
+      <div class="notebook-section" id="notebook-section" style="display:none;">
+        <h2>📚 お薬手帳データ<span id="notebook-count-badge" style="display:none;background:#059669;color:white;font-size:0.85rem;font-weight:700;padding:2px 12px;border-radius:999px;margin-left:8px;vertical-align:middle;"></span></h2>
+        <div id="notebook-container"></div>
+      </div>
     </div>
   </div>
 
@@ -442,9 +471,9 @@
       setTimeout(() => {
         overlay.style.display = 'none';
         document.getElementById('main-content').style.display = 'block';
-        // 認証後にデータ取得開始
         fetchPromise = startFetch();
         fetchPromise.then(handleResponse).catch(handleError);
+        fetchNotebookData();
       }, 400);
     }
 
@@ -455,8 +484,8 @@
         document.getElementById('main-content').style.display = 'block';
         fetchPromise = startFetch();
         fetchPromise.then(handleResponse).catch(handleError);
+        fetchNotebookData();
       } else {
-        // ID入力欄にフォーカス
         document.getElementById('login-id').focus();
       }
     });
@@ -752,6 +781,71 @@
       const old = btn.innerText;
       btn.innerText = 'コピー完了！';
       setTimeout(() => { btn.innerText = old; }, 1500);
+    }
+
+    // ===== 手帳データ取得・表示 =====
+    const NOTEBOOK_API_URL = API_URL.replace('action=get', 'action=getNotebook');
+    let notebookData = [];
+
+    function fetchNotebookData() {
+      fetch(NOTEBOOK_API_URL)
+        .then(r => r.json())
+        .then(res => {
+          if (res && res.success && res.list.length > 0) {
+            notebookData = res.list;
+            renderNotebookCards();
+          }
+        })
+        .catch(err => console.error('手帳データ取得エラー:', err));
+    }
+
+    function renderNotebookCards() {
+      const section = document.getElementById('notebook-section');
+      const container = document.getElementById('notebook-container');
+      const badge = document.getElementById('notebook-count-badge');
+      
+      section.style.display = 'block';
+      badge.textContent = notebookData.length + '件';
+      badge.style.display = 'inline-block';
+      container.innerHTML = '';
+
+      const fragment = document.createDocumentFragment();
+      notebookData.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'notebook-card';
+        div.innerHTML = `
+          <div class="notebook-header">
+            <div>
+              <span class="notebook-name">${item['氏名'] || '不明'} <span style="font-size:1rem;color:#6b7280;font-weight:normal;">様</span></span>
+              <span class="notebook-time">${item['日時'] || ''}</span>
+            </div>
+            <button class="btn btn-notebook-copy" onclick="copyNotebook(${idx}, this)">コピー</button>
+          </div>
+          <div class="notebook-drugs">${item['医薬品名'] || ''}</div>
+        `;
+        fragment.appendChild(div);
+      });
+      container.appendChild(fragment);
+
+      requestAnimationFrame(() => {
+        container.querySelectorAll('.notebook-card').forEach((card, i) => {
+          setTimeout(() => card.classList.add('visible'), i * 50);
+        });
+      });
+    }
+
+    function copyNotebook(idx, btn) {
+      const item = notebookData[idx];
+      const text = item['医薬品名'] || '';
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          const old = btn.innerText;
+          btn.innerText = 'コピー完了！';
+          setTimeout(() => { btn.innerText = old; }, 1500);
+        }).catch(() => fallbackCopy(text, btn));
+      } else {
+        fallbackCopy(text, btn);
+      }
     }
   </script>
 </body>
