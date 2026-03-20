@@ -287,6 +287,7 @@ async function handleSubmit(e) {
     }
 
     // Submit to GAS backend
+    formData.source = 'webapp';
     fetch(API_URL, {
         method: 'POST',
         mode: 'no-cors',
