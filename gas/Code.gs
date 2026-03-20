@@ -183,8 +183,12 @@ function submitToSpreadsheet(data) {
     scriptCache.remove('submissions_cache_v2'); // 旧キー
     scriptCache.remove('submissions_cache_v3'); // 現行キー
 
-    // PDF自動生成
-    createAndSavePdf(data);
+    // Webアプリからのデータ（source === 'webapp'）の場合のみPDF自動生成（印刷）を実行する
+    if (data.source === 'webapp') {
+      createAndSavePdf(data);
+    } else {
+      console.log('Webアプリ以外（AI OCR等）からのデータのため、自動印刷をスキップします。');
+    }
 
     return { success: true };
   } catch (e) {
@@ -385,69 +389,115 @@ function createAndSavePdf(data) {
     const patientName = data.name || '不明';
     const fileName = `${dateStr}_${patientName}.pdf`;
 
-    // PDF用HTML本文
+    // 値表示用のヘルパー関数（「なし」はグレー、「あり」は赤ハイライト）
+    const highlight = (val, detail = '') => {
+      const noneWords = ['なし', '該当なし', '飲まない', '吸わない', 'しない', 'ない'];
+      if (!val || noneWords.includes(val)) {
+        return '<span class="none">' + (val || 'なし') + '</span>';
+      }
+      let html = '<span class="alert">' + val + '</span>';
+      if (detail && detail.trim() !== '') {
+        html += '<br><span class="alert-detail">' + detail + '</span>';
+      }
+      return html;
+    };
+
+    const bookletHtml = bookletStr === 'なし' ? '<span class="none">なし</span>' : '<span class="alert">' + bookletStr + '</span>';
+    const conditionHtml = conditionStr === '該当なし' ? '<span class="none">該当なし</span>' : '<span class="alert">' + conditionStr + '</span>';
+
+    // PDF用HTML本文 (Design A)
     const html = `<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <style>
-  body { font-family: 'Noto Sans JP', serif; font-size: 13pt; color: #222; margin: 20mm 15mm; }
-  h1 { text-align: center; font-size: 17pt; border-bottom: 2px solid #333; padding-bottom: 6px; margin-bottom: 4px; }
-  .subtitle { text-align: center; font-size: 10pt; color: #555; margin-bottom: 16px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
-  th { background: #eeeeee; text-align: left; padding: 5px 8px; font-size: 11pt; width: 38%; border: 1px solid #aaa; }
-  td { padding: 5px 8px; font-size: 11pt; border: 1px solid #aaa; }
-  .section-title { background: #333; color: #fff; padding: 4px 10px; font-size: 12pt; margin: 14px 0 4px; }
-  .memo { border: 1px solid #aaa; padding: 8px; min-height: 40px; font-size: 11pt; white-space: pre-wrap; }
-  .footer { text-align: right; font-size: 9pt; color: #888; margin-top: 20px; }
+  body { font-family: 'Noto Sans JP', serif; font-size: 11pt; color: #333; margin: 15mm; }
+  h1 { text-align: center; font-size: 16pt; border-bottom: 2px solid #333; padding-bottom: 5px; margin-bottom: 15px; }
+  .subtitle { text-align: center; font-size: 10pt; color: #666; margin-top: -10px; margin-bottom: 20px; }
+  
+  .alert { color: #d32f2f; font-weight: bold; background-color: #ffebee; padding: 2px 6px; border-radius: 3px; display: inline-block; }
+  .alert-detail { color: #d32f2f; font-weight: bold; margin-left: 8px; }
+  .none { color: #888; }
+  
+  .layout-table { width: 100%; border-collapse: collapse; border: none; }
+  .layout-td { width: 48%; vertical-align: top; border: none; padding: 0 10px; }
+  
+  .content-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .content-table th { background: #f0f4f8; text-align: left; padding: 8px; font-size: 10.5pt; width: 35%; border: 1px solid #ccc; font-weight: bold; color: #444; }
+  .content-table td { padding: 8px; font-size: 10.5pt; border: 1px solid #ccc; line-height: 1.4; }
+  
+  .section-title { font-size: 11.5pt; font-weight: bold; border-left: 4px solid #4a90e2; padding-left: 8px; margin: 10px 0 8px; color: #222; }
+  
+  .memo-space { margin-top: 15px; border: 1px solid #aaa; background-color: #fafafa; border-radius: 4px; padding: 10px; height: 320px; }
+  .memo-title { font-weight: bold; color: #666; font-size: 10pt; margin-bottom: 5px; }
+  .memo-content { font-size: 10.5pt; color: #333; white-space: pre-wrap; margin-top: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
+  
+  .footer { text-align: right; font-size: 9pt; color: #888; margin-top: 10px; }
 </style>
 </head>
 <body>
-<h1>初回問診票</h1>
-<p class="subtitle">受付日時: ${displayDate}</p>
+  <h1>初回問診票（サマリー表示）</h1>
+  <p class="subtitle">受付日時: \${displayDate}</p>
 
-<div class="section-title">■ 基本情報</div>
-<table>
-  <tr><th>氏名</th><td>${patientName}</td></tr>
-  <tr><th>電話番号</th><td>${data.phone || ''}</td></tr>
-  <tr><th>状態</th><td>${conditionStr}</td></tr>
-</table>
+  <div class="section-title">■ 基本情報</div>
+  <table class="content-table" style="margin-bottom: 15px;">
+    <tr>
+      <th>氏名</th><td style="font-size: 14pt; font-weight: bold; width:65%;">\${patientName} <span style="font-size: 10pt; font-weight: normal; margin-left:15px;">(\${data.phone || ''})</span></td>
+      <th>お薬手帳</th><td>\${bookletHtml}</td>
+    </tr>
+    <tr>
+      <th>状態</th><td colspan="3">\${conditionHtml}</td>
+    </tr>
+  </table>
 
-<div class="section-title">■ アレルギー</div>
-<table>
-  <tr><th>薬アレルギー</th><td>${t(data['drug-allergy'])}${ data['drug-allergy'] === 'yes' && data['drug-allergy-detail'] ? '：' + data['drug-allergy-detail'] : ''}</td></tr>
-  <tr><th>食品アレルギー</th><td>${t(data['food-allergy'])}${ data['food-allergy'] === 'yes' && data['food-allergy-detail'] ? '：' + data['food-allergy-detail'] : ''}</td></tr>
-  <tr><th>環境アレルギー</th><td>${envAllergyStr}</td></tr>
-</table>
+  <!-- 2カラムレイアウト開始 -->
+  <table class="layout-table">
+    <tr>
+      <!-- 左カラム -->
+      <td class="layout-td" style="padding-left: 0;">
+        <div class="section-title">■ アレルギー・副作用</div>
+        <table class="content-table">
+          <tr><th>薬アレルギー</th><td>\${highlight(t(data['drug-allergy']), data['drug-allergy-detail'])}</td></tr>
+          <tr><th>食品アレルギー</th><td>\${highlight(t(data['food-allergy']), data['food-allergy-detail'])}</td></tr>
+          <tr><th>環境アレルギー</th><td>\${highlight(envAllergyStr)}</td></tr>
+          <tr><th>副作用歴</th><td>\${highlight(t(data['side-effect']), data['side-effect-detail'])}</td></tr>
+        </table>
 
-<div class="section-title">■ 薬・医療歴</div>
-<table>
-  <tr><th>副作用</th><td>${t(data['side-effect'])}${ data['side-effect'] === 'yes' && data['side-effect-detail'] ? '：' + data['side-effect-detail'] : ''}</td></tr>
-  <tr><th>他院処方</th><td>${t(data['current-presc'])}${ data['current-presc'] === 'yes' && data['current-presc-detail'] ? '：' + data['current-presc-detail'] : ''}</td></tr>
-  <tr><th>市販薬・サプリ</th><td>${t(data['otc-list'])}${ data['otc-list'] && data['otc-list'] !== 'no' && data['otc-suppl-detail'] ? '：' + data['otc-suppl-detail'] : ''}</td></tr>
-  <tr><th>既往歴</th><td>${t(data.history)}${ data.history && data.history !== 'no' && data['history-other-detail'] ? '：' + data['history-other-detail'] : ''}</td></tr>
-</table>
+        <div class="section-title">■ 現在の服用状況</div>
+        <table class="content-table">
+          <tr><th>他院処方</th><td>\${highlight(t(data['current-presc']), data['current-presc-detail'])}</td></tr>
+          <tr><th>市販薬・サプリ</th><td>\${highlight(t(data['otc-list']), data['otc-suppl-detail'])}</td></tr>
+          <tr><th>飲食物（注意）</th><td>\${highlight(t(data['food-drink']), data['food-drink-detail'])}</td></tr>
+        </table>
+      </td>
 
-<div class="section-title">■ 生活習慣・確認事項</div>
-<table>
-  <tr><th>飲食物（注意）</th><td>${t(data['food-drink'])}${ data['food-drink'] && data['food-drink'] !== 'no' && data['food-drink-detail'] ? '：' + data['food-drink-detail'] : ''}</td></tr>
-  <tr><th>車の運転</th><td>${t(data.driving)}</td></tr>
-  <tr><th>高所作業</th><td>${t(data['height-work'])}</td></tr>
-  <tr><th>ソフトコンタクト</th><td>${t(data['soft-contact'])}</td></tr>
-  <tr><th>飲酒</th><td>${data.alcohol === 'none' ? '飲まない' : t(data.alcohol)}</td></tr>
-  <tr><th>喫煙</th><td>${t(data.smoking)}</td></tr>
-</table>
+      <!-- 右カラム -->
+      <td class="layout-td" style="padding-right: 0;">
+        <div class="section-title">■ 既往歴・現病歴</div>
+        <table class="content-table">
+          <tr><th>既往歴</th><td>\${highlight(t(data.history), data['history-other-detail'])}</td></tr>
+        </table>
 
-<div class="section-title">■ ジェネリック・お薬手帳</div>
-<table>
-  <tr><th>ジェネリック</th><td>${t(data.generic)}</td></tr>
-  <tr><th>お薬手帳</th><td>${bookletStr}</td></tr>
-</table>
+        <div class="section-title">■ 生活習慣・その他</div>
+        <table class="content-table">
+          <tr><th>車の運転</th><td>\${highlight(t(data.driving))}</td></tr>
+          <tr><th>高所作業</th><td>\${highlight(t(data['height-work']))}</td></tr>
+          <tr><th>コンタクト</th><td>\${highlight(t(data['soft-contact']))}</td></tr>
+          <tr><th>飲酒</th><td>\${highlight(data.alcohol === 'none' ? '飲まない' : t(data.alcohol))}</td></tr>
+          <tr><th>喫煙</th><td>\${highlight(t(data.smoking))}</td></tr>
+          <tr><th>ジェネリック</th><td>\${t(data.generic)}</td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 
-<div class="section-title">■ 備考</div>
-<div class="memo">${data.memo || '（なし）'}</div>
+  <!-- メモ欄（下半分を広々と使う） -->
+  <div class="memo-space">
+    <div class="memo-title">▼ 患者さまからの要望・メモ / 薬剤師 記入欄</div>
+    \${data.memo ? '<div class="memo-content">' + data.memo + '</div>' : ''}
+  </div>
 
-<p class="footer">このPDFはシステムにより自動生成されました</p>
+  <p class="footer">このPDFはWebアプリから自動生成されました（\${fileName}）</p>
 </body>
 </html>`;
 
