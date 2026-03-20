@@ -414,21 +414,29 @@ function createAndSavePdf(data) {
       .getAs('application/pdf')
       .setName(fileName);
 
-    // ★ getBytes() は createFile() の前に呼ぶ（blob は一度消費すると読めなくなるため）
+    // バイト配列を取得（Base64化とファイル保存の両方に使用）
     const pdfBytes = blob.getBytes();
     const pdfBase64 = Utilities.base64Encode(pdfBytes);
 
-    // Googleドライブに保存
-    const folder = getPdfFolder();
-    folder.createFile(blob);
-    console.log('PDF保存完了: ' + fileName);
-
-    // 印刷管理シート（印刷キュー）に登録
+    // ★ 印刷キューを先に登録（ドライブ保存が失敗しても印刷は可能にする）
     addToPrintQueue(fileName, patientName, pdfBase64);
+    console.log('印刷キューに登録完了: ' + fileName);
+
+    // Googleドライブに保存（消費済みblobではなくバイト配列から新しいBlobを作成）
+    try {
+      const folder = getPdfFolder();
+      const newBlob = Utilities.newBlob(pdfBytes, 'application/pdf', fileName);
+      folder.createFile(newBlob);
+      console.log('PDF保存完了: ' + fileName);
+    } catch (driveErr) {
+      console.error('Googleドライブ保存エラー（印刷キューには登録済み）: ' + driveErr.toString());
+      logError('DriveApp.createFile', driveErr.toString());
+    }
 
   } catch (err) {
     // PDF生成に失敗してもスプレッドシートへの書き込みには影響しない
     console.error('PDF生成エラー: ' + err.toString());
+    logError('createAndSavePdf', err.toString());
   }
 }
 
@@ -567,4 +575,23 @@ function clearCache() {
   cache.remove('submissions_cache_v2'); // 旧キー
   cache.remove('submissions_cache_v3'); // 現行キー
   console.log('キャッシュ（v2/v3）をクリアしました。admin.htmlをリロードすると最新データが表示されます。');
+}
+
+/**
+ * エラーログをスプレッドシートに記録する（デバッグ用）
+ */
+function logError(source, message) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    let logSheet = ss.getSheetByName('エラーログ');
+    if (!logSheet) {
+      logSheet = ss.insertSheet('エラーログ');
+      logSheet.getRange(1, 1, 1, 3).setValues([['日時', '発生元', 'エラー内容']])
+        .setBackground('#ffcccc').setFontWeight('bold');
+      logSheet.setFrozenRows(1);
+    }
+    logSheet.appendRow([new Date(), source, message]);
+  } catch (e) {
+    console.error('エラーログ記録失敗: ' + e.toString());
+  }
 }

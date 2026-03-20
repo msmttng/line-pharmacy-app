@@ -635,7 +635,7 @@
       const container = document.getElementById('container');
       const fragment = document.createDocumentFragment();
 
-      const MUTED_SET = new Set(['なし', 'none', '', 'no', 'なし/飲まない', '該当なし', 'なし/しない']);
+      const MUTED_SET = new Set(['なし', 'none', '', 'no', 'なし/飲まない', '該当なし', 'なし/しない', '飲まない']);
       const isMuted = (val) => !val || MUTED_SET.has(val);
       const isHl = (val) => !isMuted(val);
 
@@ -784,7 +784,7 @@
       }
 
       const formatVal = (val) => {
-        if (!val || val === 'なし/しない' || val === 'なし/飲まない' || val === 'false' || val === 'none' || val === 'no') return 'なし';
+        if (!val || val === 'なし/しない' || val === 'なし/飲まない' || val === '飲まない' || val === 'false' || val === 'none' || val === 'no') return 'なし';
         if (val === 'yes') return 'あり';
         return val;
       };

@@ -1,0 +1,402 @@
+:root {
+    --line-green: #06C755;
+    --line-green-dark: #05a346;
+    --bg-color: #f4f7f6;
+    --card-bg: #ffffff;
+    --text-main: #333333;
+    --text-sub: #666666;
+    --error-color: #ff4d4f;
+    --border-color: #e0e0e0;
+    --radius-lg: 16px;
+    --radius-md: 8px;
+    --shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    line-height: 1.6;
+    overflow-x: hidden;
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+}
+
+.app-container {
+    max-width: 600px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-header {
+    background-color: #fff;
+    padding: 20px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.app-header h1 {
+    margin: 0 0 15px 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 6px;
+    background-color: #eee;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: var(--line-green);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-container {
+    flex: 1;
+    padding: 20px;
+}
+
+.form-step {
+    display: none;
+    animation: fadeIn 0.4s ease;
+}
+
+.form-step.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.step-title {
+    font-size: 1.15rem;
+    margin-bottom: 20px;
+    color: var(--line-green);
+    border-left: 4px solid var(--line-green);
+    padding-left: 12px;
+}
+
+.input-group {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+}
+
+.info-note {
+    background-color: #e8f7ed;
+    border: 2px solid var(--line-green);
+    padding: 14px;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #05a346;
+    line-height: 1.6;
+    text-align: center;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.input-group label span.required {
+    display: inline-block;
+    vertical-align: text-bottom;
+}
+
+.required {
+    background: var(--error-color);
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+input[type="text"],
+input[type="tel"],
+input[type="date"],
+select,
+textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    transition: border-color 0.3s;
+    outline: none;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: var(--line-green);
+}
+
+.radio-group, .checkbox-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.radio-group.vertical {
+    flex-direction: column;
+}
+
+.radio-label, .checkbox-label {
+    flex: 1;
+    min-width: 80px;
+    position: relative;
+    cursor: pointer;
+    display: flex;
+}
+
+.radio-label input, .checkbox-label input {
+    position: absolute;
+    opacity: 0;
+}
+
+.radio-label span, .checkbox-label span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 54px;
+    padding: 10px 4px;
+    text-align: center;
+    background: #f8f9fa;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.35;
+    transition: all 0.2s;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
+}
+
+.radio-label input:checked + span,
+.checkbox-label input:checked + span {
+    background: #e8f7ed;
+    border-color: var(--line-green);
+    color: var(--line-green);
+    font-weight: 600;
+}
+
+.radio-label span.text-left-card {
+    display: block !important;
+    text-align: left;
+    padding: 14px 16px;
+    height: auto;
+    min-height: 0;
+    word-break: normal;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    overflow: hidden;
+}
+
+.text-left-card .card-title {
+    display: block !important;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.5;
+    word-break: normal;
+    overflow-wrap: anywhere;
+}
+
+.text-left-card .card-desc {
+    display: block !important;
+    font-size: 0.78rem;
+    color: var(--line-green);
+    font-weight: 600;
+    margin-top: 6px;
+    line-height: 1.5;
+    word-break: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+}
+
+.radio-label input:checked + span.text-left-card .card-title,
+.radio-label input:checked + span.text-left-card .card-desc {
+    color: var(--line-green-dark);
+}
+
+.sub-input {
+    margin-top: 15px;
+    display: block;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.mt-10 { margin-top: 10px; }
+
+.form-nav {
+    display: flex;
+    gap: 12px;
+    padding: 20px 0;
+}
+
+.btn {
+    flex: 1;
+    padding: 15px;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background-color: var(--line-green);
+    color: #fff;
+}
+
+.btn-primary:active {
+    background-color: var(--line-green-dark);
+    transform: scale(0.98);
+}
+
+.btn-secondary {
+    background-color: #fff;
+    color: var(--text-sub);
+    border: 1px solid var(--border-color);
+}
+
+.confirmation-view {
+    background: #fff;
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+}
+
+.conf-item {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed #eee;
+}
+
+.conf-item:last-child {
+    border-bottom: none;
+}
+
+.conf-label {
+    font-size: 0.8rem;
+    color: var(--text-sub);
+    display: block;
+}
+
+.conf-value {
+    font-weight: 700;
+    display: block;
+}
+
+.data-notice {
+    font-size: 0.82rem;
+    color: var(--text-sub);
+    background: #f4f7f6;
+    border-left: 3px solid var(--line-green);
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    margin: 20px 0 10px 0;
+    line-height: 1.6;
+    text-align: center;
+}
+
+.agreement {
+    margin: 30px 0 20px 0;
+}
+
+.agree-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eaffea;
+    border: 2px solid var(--line-green);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(6, 199, 85, 0.15);
+    transition: all 0.2s ease;
+}
+
+.agree-box:active {
+    transform: scale(0.98);
+}
+
+.agree-box input[type="checkbox"] {
+    width: 28px;
+    height: 28px;
+    margin-right: 15px;
+    accent-color: var(--line-green);
+    cursor: pointer;
+}
+
+.agree-box span {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--line-green-dark);
+}
+
+.app-footer {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-size: 0.8rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .input-group {
+        padding: 15px;
+    }
+    .input-group label {
+        font-size: 0.85rem;
+    }
+    .step-title {
+        font-size: 1.05rem;
+        margin-bottom: 15px;
+    }
+    .radio-label span, .checkbox-label span {
+        font-size: 0.8rem;
+        min-height: 48px;
+    }
+}
+@media (max-width: 380px) {
+    .radio-label span, .checkbox-label span {
+        font-size: 0.75rem;
+        min-height: 46px;
+    }
+}
