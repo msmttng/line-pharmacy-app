@@ -638,6 +638,7 @@
       const MUTED_SET = new Set(['なし', 'none', '', 'no', 'なし/飲まない', '該当なし', 'なし/しない', '飲まない']);
       const isMuted = (val) => !val || MUTED_SET.has(val);
       const isHl = (val) => !isMuted(val);
+      const formatTel = (tel) => { if (!tel) return '不明'; const d = tel.replace(/[^0-9]/g, ''); if (d.match(/^(090|080|070|050)/)) return d.replace(/^(\d{3})(\d{4})(\d{4})$/, '$1-$2-$3'); if (d.match(/^0\d/)) return d.replace(/^(\d{2,4})(\d{2,4})(\d{4})$/, '$1-$2-$3'); return tel; };
 
       const highlight = (val) => {
         if (isMuted(val)) return `<span class="text-muted">${val || 'なし'}</span>`;
@@ -666,7 +667,7 @@
           <div class="header">
             <div class="name">
               ${item['名前'] || '名前なし'} <span style="font-size: 1rem; color: #6b7280; font-weight: normal;">様</span>
-              <span class="name-sub">TEL: ${item['電話番号'] || '不明'}</span>
+              <span class="name-sub">TEL: ${formatTel(item['電話番号'])}</span>
             </div>
             <div class="actions">
               <button class="btn btn-primary" onclick="copyText(${i}, this)">MEDIXS用</button>
@@ -776,11 +777,16 @@
 
     // window.onload は不要（DOMContentLoadedで認証後にfetch開始するため）
 
+    // ===== Chrome拡張連携設定 =====
+    // Chrome拡張インストール後、chrome://extensions で表示されるIDに置き換えてください
+    const MEDIXS_EXTENSION_ID = 'diecadjbbijiakkgbgcgnpenhfdaeapo';
+
     function copyText(idx, btn, isChozaiKun = false) {
       const item = listData[idx];
-      let text = "【初回問診引用】\n";
+      const formatTel = (tel) => { if (!tel) return '不明'; const d = tel.replace(/[^0-9]/g, ''); if (d.match(/^(090|080|070|050)/)) return d.replace(/^(\d{3})(\d{4})(\d{4})$/, '$1-$2-$3'); if (d.match(/^0\d/)) return d.replace(/^(\d{2,4})(\d{2,4})(\d{4})$/, '$1-$2-$3'); return tel; };
+      let text = isChozaiKun ? "" : "【初回問診引用】\n";
       if (isChozaiKun) {
-        text += `■電話番号: ${item['電話番号'] || '不明'}\n`;
+        text += `■電話番号: ${formatTel(item['電話番号'])}\n`;
       }
 
       const formatVal = (val) => {
@@ -830,6 +836,42 @@
         text += `■特記事項: ${item['備考']}\n`;
       }
 
+      // MEDIXS用（調剤くん用でない場合）: Chrome拡張連携を試みる
+      if (!isChozaiKun && MEDIXS_EXTENSION_ID !== '__EXTENSION_ID_HERE__' && typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        // Chrome拡張経由で直接送信
+        btn.innerText = '送信中...';
+        btn.disabled = true;
+        try {
+          chrome.runtime.sendMessage(MEDIXS_EXTENSION_ID, {
+            type: 'MONSHIN_PASTE',
+            text: text
+          }, (response) => {
+            btn.disabled = false;
+            if (chrome.runtime.lastError || !response || !response.success) {
+              // 拡張未インストール or エラー → フォールバック：クリップボードコピー
+              const errMsg = response ? response.error : (chrome.runtime.lastError ? chrome.runtime.lastError.message : '不明なエラー');
+              console.warn('[admin] Chrome拡張エラー、クリップボードにフォールバック:', errMsg);
+              clipboardCopy(text, btn);
+            } else {
+              // 成功
+              const old = btn.innerText;
+              btn.innerText = `✅ ${response.count}箇所入力完了！`;
+              btn.style.background = '#059669';
+              setTimeout(() => { btn.innerText = 'MEDIXS用'; btn.style.background = ''; }, 3000);
+            }
+          });
+        } catch (e) {
+          // chrome.runtime.sendMessage自体が失敗 → フォールバック
+          btn.disabled = false;
+          clipboardCopy(text, btn);
+        }
+      } else {
+        // 調剤くん用 or 拡張IDが未設定 → 従来のクリップボードコピー
+        clipboardCopy(text, btn);
+      }
+    }
+
+    function clipboardCopy(text, btn) {
       if (navigator.clipboard) {
         navigator.clipboard.writeText(text).then(() => {
           const old = btn.innerText;
