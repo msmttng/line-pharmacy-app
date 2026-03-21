@@ -838,33 +838,11 @@
 
       // MEDIXS用（調剤くん用でない場合）: Chrome拡張連携を試みる
       if (!isChozaiKun && MEDIXS_EXTENSION_ID !== '__EXTENSION_ID_HERE__' && typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
-        // Chrome拡張経由で直接送信
+        // Chrome拡張経由で直接送信（タイムアウト + リトライ付き）
         btn.innerText = '送信中...';
         btn.disabled = true;
-        try {
-          chrome.runtime.sendMessage(MEDIXS_EXTENSION_ID, {
-            type: 'MONSHIN_PASTE',
-            text: text
-          }, (response) => {
-            btn.disabled = false;
-            if (chrome.runtime.lastError || !response || !response.success) {
-              // 拡張未インストール or エラー → フォールバック：クリップボードコピー
-              const errMsg = response ? response.error : (chrome.runtime.lastError ? chrome.runtime.lastError.message : '不明なエラー');
-              console.warn('[admin] Chrome拡張エラー、クリップボードにフォールバック:', errMsg);
-              clipboardCopy(text, btn);
-            } else {
-              // 成功
-              const old = btn.innerText;
-              btn.innerText = `✅ ${response.count}箇所入力完了！`;
-              btn.style.background = '#059669';
-              setTimeout(() => { btn.innerText = 'MEDIXS用'; btn.style.background = ''; }, 3000);
-            }
-          });
-        } catch (e) {
-          // chrome.runtime.sendMessage自体が失敗 → フォールバック
-          btn.disabled = false;
-          clipboardCopy(text, btn);
-        }
+
+        sendToExtensionWithRetry(text, btn, 2); // 最大2回試行
       } else {
         // 調剤くん用 or 拡張IDが未設定 → 従来のクリップボードコピー
         clipboardCopy(text, btn);
@@ -881,6 +859,74 @@
       } else {
         fallbackCopy(text, btn);
       }
+    }
+
+    // ===== Chrome拡張連携（タイムアウト + リトライ） =====
+    function sendToExtension(text) {
+      return new Promise((resolve) => {
+        let settled = false;
+        const timer = setTimeout(() => {
+          if (!settled) {
+            settled = true;
+            console.warn('[admin] Chrome拡張応答タイムアウト(8秒)');
+            resolve({ success: false, error: 'タイムアウト' });
+          }
+        }, 8000);
+
+        try {
+          chrome.runtime.sendMessage(MEDIXS_EXTENSION_ID, {
+            type: 'MONSHIN_PASTE',
+            text: text
+          }, (response) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            if (chrome.runtime.lastError || !response) {
+              const errMsg = chrome.runtime.lastError ? chrome.runtime.lastError.message : '応答なし';
+              console.warn('[admin] Chrome拡張エラー:', errMsg);
+              resolve({ success: false, error: errMsg });
+            } else {
+              resolve(response);
+            }
+          });
+        } catch (e) {
+          if (!settled) {
+            settled = true;
+            clearTimeout(timer);
+            console.warn('[admin] sendMessage例外:', e.message);
+            resolve({ success: false, error: e.message });
+          }
+        }
+      });
+    }
+
+    async function sendToExtensionWithRetry(text, btn, maxAttempts) {
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        btn.innerText = attempt > 1 ? `リトライ中... (${attempt}/${maxAttempts})` : '送信中...';
+        console.log(`[admin] 拡張送信 試行${attempt}/${maxAttempts}`);
+
+        const result = await sendToExtension(text);
+
+        if (result && result.success) {
+          btn.disabled = false;
+          btn.innerText = `✅ ${result.count}箇所入力完了！`;
+          btn.style.background = '#059669';
+          setTimeout(() => { btn.innerText = 'MEDIXS用'; btn.style.background = ''; }, 3000);
+          return;
+        }
+
+        console.warn(`[admin] 試行${attempt}失敗:`, result?.error);
+
+        // 最後の試行でなければ1秒待ってリトライ
+        if (attempt < maxAttempts) {
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      }
+
+      // 全試行失敗 → クリップボードにフォールバック
+      console.warn('[admin] 全試行失敗、クリップボードにフォールバック');
+      btn.disabled = false;
+      clipboardCopy(text, btn);
     }
 
     function fallbackCopy(text, btn) {
@@ -950,7 +996,10 @@
               <span class="notebook-name">${item['氏名'] || '不明'} <span style="font-size:1rem;color:#6b7280;font-weight:normal;">様</span></span>
               <span class="notebook-time">${item['日時'] || ''}</span>
             </div>
-            <button class="btn btn-notebook-copy" onclick="copyNotebook(${idx}, this)">コピー</button>
+            <div class="actions">
+              <button class="btn btn-primary" onclick="sendDrugsToExtension(${idx}, this)">MEDIXS併用薬</button>
+              <button class="btn btn-notebook-copy" onclick="copyNotebook(${idx}, this)">コピー</button>
+            </div>
           </div>
           <div class="notebook-drugs">${item['医薬品名'] || ''}</div>
         `;
@@ -976,6 +1025,80 @@
         }).catch(() => fallbackCopy(text, btn));
       } else {
         fallbackCopy(text, btn);
+      }
+    }
+
+    // ===== 手帳→MEDIXS併用薬 自動入力 =====
+    function sendDrugsToExtension(idx, btn) {
+      const item = notebookData[idx];
+      const text = item['医薬品名'] || '';
+      // 改行で分割して空行を除去
+      const drugs = text.split(/\n/).map(s => s.trim()).filter(s => s !== '');
+
+      if (drugs.length === 0) {
+        btn.innerText = '薬品名なし';
+        setTimeout(() => { btn.innerText = 'MEDIXS併用薬'; }, 2000);
+        return;
+      }
+
+      // 拡張IDが未設定 or Chrome拡張APIがない場合 → クリップボードにフォールバック
+      if (MEDIXS_EXTENSION_ID === '__EXTENSION_ID_HERE__' || typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.sendMessage) {
+        clipboardCopy(text, btn);
+        return;
+      }
+
+      btn.innerText = `送信中... (${drugs.length}品目)`;
+      btn.disabled = true;
+
+      // タイムアウト付き送信
+      let settled = false;
+      const timer = setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          btn.disabled = false;
+          btn.innerText = 'タイムアウト';
+          setTimeout(() => { btn.innerText = 'MEDIXS併用薬'; }, 3000);
+        }
+      }, 60000); // 併用薬は複数品目あるので60秒タイムアウト
+
+      try {
+        chrome.runtime.sendMessage(MEDIXS_EXTENSION_ID, {
+          type: 'DRUG_PASTE',
+          drugs: drugs
+        }, (response) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          btn.disabled = false;
+
+          if (chrome.runtime.lastError || !response) {
+            const errMsg = chrome.runtime.lastError ? chrome.runtime.lastError.message : '応答なし';
+            console.warn('[admin] 併用薬送信エラー:', errMsg);
+            btn.innerText = 'エラー: ' + errMsg;
+            setTimeout(() => { btn.innerText = 'MEDIXS併用薬'; }, 3000);
+            return;
+          }
+
+          if (response.success) {
+            btn.innerText = `✅ ${response.successCount}/${response.total}品目入力完了！`;
+            btn.style.background = '#059669';
+            setTimeout(() => { btn.innerText = 'MEDIXS併用薬'; btn.style.background = ''; }, 4000);
+          } else {
+            btn.innerText = response.error || '失敗';
+            setTimeout(() => { btn.innerText = 'MEDIXS併用薬'; }, 3000);
+          }
+
+          if (response.errors && response.errors.length > 0) {
+            console.warn('[admin] 併用薬エラー:', response.errors);
+          }
+        });
+      } catch (e) {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          btn.disabled = false;
+          clipboardCopy(text, btn);
+        }
       }
     }
   </script>
