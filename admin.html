@@ -638,7 +638,7 @@
       const MUTED_SET = new Set(['なし', 'none', '', 'no', 'なし/飲まない', '該当なし', 'なし/しない', '飲まない']);
       const isMuted = (val) => !val || MUTED_SET.has(val);
       const isHl = (val) => !isMuted(val);
-      const formatTel = (tel) => { if (!tel) return '不明'; const d = tel.replace(/[^0-9]/g, ''); if (d.match(/^(090|080|070|050)/)) return d.replace(/^(\d{3})(\d{4})(\d{4})$/, '$1-$2-$3'); if (d.match(/^0\d/)) return d.replace(/^(\d{2,4})(\d{2,4})(\d{4})$/, '$1-$2-$3'); return tel; };
+      const formatTel = (tel) => { if (!tel) return '不明'; let d = tel.replace(/[^0-9+]/g, ''); if (d.startsWith('+81')) d = '0' + d.slice(3); d = d.replace(/[^0-9]/g, ''); if (d.match(/^(090|080|070|050)/)) return d.replace(/^(\d{3})(\d{4})(\d{4})$/, '$1-$2-$3'); if (d.match(/^0\d/)) return d.replace(/^(\d{2,4})(\d{2,4})(\d{4})$/, '$1-$2-$3'); return tel; };
 
       const highlight = (val) => {
         if (isMuted(val)) return `<span class="text-muted">${val || 'なし'}</span>`;
@@ -783,7 +783,7 @@
 
     function copyText(idx, btn, isChozaiKun = false) {
       const item = listData[idx];
-      const formatTel = (tel) => { if (!tel) return '不明'; const d = tel.replace(/[^0-9]/g, ''); if (d.match(/^(090|080|070|050)/)) return d.replace(/^(\d{3})(\d{4})(\d{4})$/, '$1-$2-$3'); if (d.match(/^0\d/)) return d.replace(/^(\d{2,4})(\d{2,4})(\d{4})$/, '$1-$2-$3'); return tel; };
+      const formatTel = (tel) => { if (!tel) return '不明'; let d = tel.replace(/[^0-9+]/g, ''); if (d.startsWith('+81')) d = '0' + d.slice(3); d = d.replace(/[^0-9]/g, ''); if (d.match(/^(090|080|070|050)/)) return d.replace(/^(\d{3})(\d{4})(\d{4})$/, '$1-$2-$3'); if (d.match(/^0\d/)) return d.replace(/^(\d{2,4})(\d{2,4})(\d{4})$/, '$1-$2-$3'); return tel; };
       let text = isChozaiKun ? "" : "【初回問診引用】\n";
       if (isChozaiKun) {
         text += `■電話番号: ${formatTel(item['電話番号'])}\n`;
