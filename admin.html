@@ -1050,6 +1050,9 @@
       btn.innerText = `送信中... (${drugs.length}品目)`;
       btn.disabled = true;
 
+      // admin.htmlのウィンドウをblurしてMEDIXSが最前面に来るようにする
+      window.blur();
+
       // タイムアウト付き送信
       let settled = false;
       const timer = setTimeout(() => {
