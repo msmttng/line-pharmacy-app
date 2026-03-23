@@ -105,7 +105,7 @@ function validateStep(step) {
     });
 
     if (!isValid) {
-        alert('必須項目を入力してください。');
+        alert(t('validation_required'));
     }
     return isValid;
 }
@@ -134,65 +134,67 @@ function getStepOfInput(input) {
     return parseInt(input.closest('.form-step').dataset.step);
 }
 
-// --- Confirmation Page ---
+// --- Confirmation Page (multilingual) ---
 function generateConfirmation() {
     const view = document.getElementById('confirmation-view');
+
+    // 確認画面のラベルは入力言語で表示
     const labels = {
-        'name': 'お名前（漢字）',
-        'phone': '電話番号',
-        'patient-condition': '患者様の状態',
-        'weight': '体重',
-        'drug-allergy': '薬・副作用歴',
-        'food-allergy': '食物アレルギー',
-        'env-allergy': '環境アレルギー',
-        'current-presc': '他での処方',
-        'otc-list': '使用中の市販薬・サプリ',
-        'otc-suppl-detail': '市販薬詳細',
-        'food-drink': '日常的な飲食物',
-        'food-drink-detail': '飲食物詳細',
-        'history': '既往歴',
-        'driving': '運転の有無',
-        'height-work': '高所作業の有無',
-        'soft-contact': 'ソフトコンタクト',
-        'alcohol': 'お酒',
-        'smoking': 'タバコ',
-        'generic': 'ジェネリック希望',
-        'memo': 'その他ご要望'
+        'name': t('conf_name'),
+        'phone': t('conf_phone'),
+        'patient-condition': t('conf_condition'),
+        'weight': t('conf_weight'),
+        'drug-allergy': t('conf_drug_allergy'),
+        'food-allergy': t('conf_food_allergy'),
+        'env-allergy': t('conf_env_allergy'),
+        'current-presc': t('conf_current_presc'),
+        'otc-list': t('conf_otc'),
+        'otc-suppl-detail': t('conf_otc_detail'),
+        'food-drink': t('conf_food_drink'),
+        'food-drink-detail': t('conf_food_drink_detail'),
+        'history': t('conf_history'),
+        'driving': t('conf_driving'),
+        'height-work': t('conf_height_work'),
+        'soft-contact': t('conf_soft_contact'),
+        'alcohol': t('conf_alcohol'),
+        'smoking': t('conf_smoking'),
+        'generic': t('conf_generic'),
+        'memo': t('conf_memo')
     };
 
-    const genericMap = { 'prefer': 'ジェネリックで大丈夫', 'ag': 'オーソライズド・ジェネリックでなら希望', 'avoid': '先発医薬品を希望する' };
+    const genericMap = { 'prefer': t('val_generic_prefer'), 'ag': t('val_generic_prefer'), 'avoid': t('val_generic_avoid') };
 
     const otcLabels = {
-        'cold': '風邪薬', 'pain': '痛み止め', 'stomach': '胃腸薬', 'eye': '目薬',
-        'vitamin': 'ビタミン類', 'multi-mineral': 'マルチミネラル', 'iron': '鉄', 'zinc': '亜鉛', 
-        'calcium': 'カルシウム', 'magnesium': 'マグネシウム', 'dha-epa': 'DHA・EPA',
-        'protein': 'プロテイン', 'other': 'その他'
+        'cold': t('cold_med'), 'pain': t('painkiller'), 'stomach': t('stomach_med'), 'eye': t('eye_drops'),
+        'vitamin': t('vitamins'), 'multi-mineral': t('multi_mineral'), 'iron': t('iron'), 'zinc': t('zinc'), 
+        'calcium': t('calcium'), 'magnesium': t('magnesium'), 'dha-epa': t('dha_epa'),
+        'protein': t('protein'), 'other': t('other')
     };
     
     const foodDrinkLabels = {
-        'coffee-tea': 'コーヒー・紅茶', 'grapefruit': 'グレープフルーツジュース', 
-        'dairy': '乳製品', 'other': 'その他'
+        'coffee-tea': t('coffee_tea'), 'grapefruit': t('grapefruit'), 
+        'dairy': t('dairy'), 'other': t('other')
     };
     
     const envLabels = {
-        'hayfever': '花粉症', 'housedust': 'ハウスダスト', 'mite': 'ダニ',
-        'dog-cat': '犬・猫', 'temp': '寒暖差', 'perennial': '通年性', 'testing': 'アレルギーの検査中', 'other': 'その他'
+        'hayfever': t('hayfever'), 'housedust': t('housedust'), 'mite': t('mite'),
+        'dog-cat': t('dog_cat'), 'temp': t('temp_diff'), 'perennial': t('perennial'), 'testing': t('testing'), 'other': t('other')
     };
     
     const hayfeverTypeLabels = {
-        'sugi': 'スギ', 'hinoki': 'ヒノキ', 'ine': 'イネ', 'butakusa': 'ブタクサ', 'kamogaya': 'カモガヤ'
+        'sugi': t('sugi'), 'hinoki': t('hinoki'), 'ine': t('ine'), 'butakusa': t('butakusa'), 'kamogaya': t('kamogaya')
     };
     
     const conditionLabels = {
-        'none': '該当なし', 'pregnant': '妊娠中(可能性あり)', 
-        'breastfeeding': '授乳中', 'pediatric': '小児(15歳未満)'
+        'none': t('val_none'), 'pregnant': t('val_pregnant'), 
+        'breastfeeding': t('val_breastfeeding'), 'pediatric': t('val_pediatric')
     };
     
     const historyLabels = {
-        'hypertension': '高血圧', 'diabetes': '糖尿病', 'heart': '心臓病', 
-        'kidney': '腎臓病', 'liver': '肝臓病', 'asthma': '喘息', 
-        'epilepsy': 'てんかん', 'glaucoma': '緑内障', 'prostate': '前立腺肥大',
-        'other': 'その他'
+        'hypertension': t('hypertension'), 'diabetes': t('diabetes'), 'heart': t('heart_disease'), 
+        'kidney': t('kidney_disease'), 'liver': t('liver_disease'), 'asthma': t('asthma'), 
+        'epilepsy': t('epilepsy'), 'glaucoma': t('glaucoma'), 'prostate': t('prostate'),
+        'other': t('other')
     };
 
     let html = '';
@@ -206,7 +208,7 @@ function generateConfirmation() {
                     let allergies = value.map(v => envLabels[v] || v);
                     if (value.includes('hayfever') && formData['hayfever-type'] && formData['hayfever-type'].length > 0) {
                         const types = formData['hayfever-type'].map(t => hayfeverTypeLabels[t] || t).join('・');
-                        allergies = allergies.map(a => a === '花粉症' ? `花粉症(${types})` : a);
+                        allergies = allergies.map(a => a === envLabels['hayfever'] ? `${envLabels['hayfever']}(${types})` : a);
                     }
                     value = allergies.join(', ');
                 } else if (key === 'food-drink') {
@@ -220,28 +222,28 @@ function generateConfirmation() {
             if (key === 'weight') value += ' kg';
             if (key === 'patient-condition') value = conditionLabels[value] || value;
             if (key === 'generic') value = genericMap[value] || value;
-            // Convert yes/no to context-aware Japanese labels
+            // Convert yes/no to context-aware labels
             if (value === 'yes') {
-                if (key === 'drug-allergy' || key === 'food-allergy') value = 'あり';
-                else if (key === 'driving') value = 'する';
-                else if (key === 'height-work') value = 'ある';
-                else if (key === 'soft-contact') value = 'あり';
-                else if (key === 'current-presc') value = 'あり';
-                else if (key === 'smoking') value = '吸う';
-                else value = 'あり';
+                if (key === 'drug-allergy' || key === 'food-allergy') value = t('val_yes_allergy');
+                else if (key === 'driving') value = t('val_yes_drive');
+                else if (key === 'height-work') value = t('val_yes_height');
+                else if (key === 'soft-contact') value = t('val_yes_contact');
+                else if (key === 'current-presc') value = t('val_yes_presc');
+                else if (key === 'smoking') value = t('val_yes_smoke');
+                else value = t('val_yes_allergy');
             }
             if (value === 'no') {
-                if (key === 'drug-allergy' || key === 'food-allergy') value = 'なし';
-                else if (key === 'driving') value = 'しない';
-                else if (key === 'height-work') value = 'ない';
-                else if (key === 'soft-contact') value = 'なし';
-                else if (key === 'current-presc') value = 'なし';
-                else if (key === 'smoking') value = '吸わない';
-                else value = 'なし';
+                if (key === 'drug-allergy' || key === 'food-allergy') value = t('val_no_allergy');
+                else if (key === 'driving') value = t('val_no_drive');
+                else if (key === 'height-work') value = t('val_no_height');
+                else if (key === 'soft-contact') value = t('val_no_contact');
+                else if (key === 'current-presc') value = t('val_no_presc');
+                else if (key === 'smoking') value = t('val_no_smoke');
+                else value = t('val_no_allergy');
             }
             // Convert alcohol values
             if (key === 'alcohol') {
-                const alcoholLabels = { 'none': '飲まない', 'occasionally': '時々', 'daily': '毎日' };
+                const alcoholLabels = { 'none': t('val_alcohol_none'), 'occasionally': t('val_alcohol_occasionally'), 'daily': t('val_alcohol_daily') };
                 value = alcoholLabels[value] || value;
             }
             
@@ -261,13 +263,13 @@ async function handleSubmit(e) {
     e.preventDefault();
     
     if (!document.getElementById('agree').checked) {
-        alert('個人情報の取り扱いに同意してください。');
+        alert(t('validation_agree'));
         return;
     }
 
     const submitBtn = document.getElementById('submit-btn');
     submitBtn.disabled = true;
-    submitBtn.innerText = '送信中...';
+    submitBtn.innerText = t('btn_submitting');
 
     // Prepare message for LINE if applicable
     const genericMapSubmit = { 'prefer': 'ジェネリックで大丈夫', 'ag': 'オーソライズド・ジェネリックでなら希望', 'avoid': '先発医薬品を希望する' };
@@ -286,7 +288,7 @@ async function handleSubmit(e) {
         console.error('LIFF Message failed', err);
     }
 
-    // Submit to GAS backend
+    // Submit to GAS backend (value keys are always English — Code.gs translates to Japanese)
     formData.source = 'webapp';
     fetch(API_URL, {
         method: 'POST',
@@ -307,9 +309,9 @@ function showSuccess() {
     document.querySelector('.form-container').innerHTML = `
         <div class="success-view" style="text-align: center; padding: 40px 20px;">
             <div class="success-icon" style="color: #06C755; font-size: 80px; margin-bottom: 20px;">✓</div>
-            <h2 style="font-size: 1.5rem; color: #333; margin-bottom: 15px;">送信完了しました</h2>
-            <p style="font-size: 1.1rem; color: #555; line-height: 1.6;">ご協力ありがとうございました</p>
-            <button class="btn btn-primary" onclick="closeLiff()" style="margin-top:30px; padding: 12px 30px; font-size: 1.1rem; border-radius: 30px; border: none; cursor: pointer;">画面を閉じる</button>
+            <h2 style="font-size: 1.5rem; color: #333; margin-bottom: 15px;">${t('success_title')}</h2>
+            <p style="font-size: 1.1rem; color: #555; line-height: 1.6;">${t('success_message')}</p>
+            <button class="btn btn-primary" onclick="closeLiff()" style="margin-top:30px; padding: 12px 30px; font-size: 1.1rem; border-radius: 30px; border: none; cursor: pointer;">${t('btn_close')}</button>
         </div>
     `;
     document.querySelector('.app-header').style.display = 'none';
@@ -328,8 +330,8 @@ function closeLiff() {
     if (!isLiff) {
         document.querySelector('.success-view').innerHTML = `
             <div class="success-icon" style="color: #06C755; font-size: 80px; margin-bottom: 20px;">✓</div>
-            <h2 style="font-size: 1.5rem; color: #333; margin-bottom: 15px;">ご回答<br>ありがとうございました</h2>
-            <p style="font-size: 1.1rem; color: #555; line-height: 1.6;">手続きが完了しました。<br><br><b>このブラウザの画面（タブ）を閉じてください。</b><br><br><span style="font-size: 0.9rem;">※ 薬局のタブレットをご利用の方は、そのままスタッフにお渡しください。</span></p>
+            <h2 style="font-size: 1.5rem; color: #333; margin-bottom: 15px;">${t('success_browser_title')}</h2>
+            <p style="font-size: 1.1rem; color: #555; line-height: 1.6;">${t('success_browser_msg')}</p>
         `;
     }
 }

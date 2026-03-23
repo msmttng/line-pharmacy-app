@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>个人信息处理方针 | 丸山药局</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --line-green: #06C755;
+            --line-green-dark: #05a346;
+            --bg-color: #f4f7f6;
+            --text-main: #333333;
+            --text-sub: #666666;
+            --radius-lg: 16px;
+            --radius-md: 8px;
+            --shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.8;
+            font-weight: 500;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container { max-width: 600px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+        .header { background-color: #fff; padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .header h1 { margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-main); }
+        .content { flex: 1; padding: 20px; }
+        .policy-card { background: #fff; padding: 24px; border-radius: var(--radius-lg); box-shadow: var(--shadow); margin-bottom: 16px; }
+        .policy-card h2 { font-size: 1rem; color: var(--line-green); border-left: 4px solid var(--line-green); padding-left: 12px; margin: 0 0 16px 0; }
+        .policy-card h3 { font-size: 0.92rem; color: var(--text-main); margin: 20px 0 8px 0; padding-bottom: 6px; border-bottom: 1px solid #eee; }
+        .policy-card p, .policy-card li { font-size: 0.85rem; color: var(--text-sub); line-height: 1.8; }
+        .policy-card ul { padding-left: 20px; margin: 8px 0; }
+        .policy-card li { margin-bottom: 4px; }
+        .pharmacy-info { background: #e8f7ed; border: 1px solid var(--line-green); border-radius: var(--radius-md); padding: 16px; margin: 16px 0; text-align: center; }
+        .pharmacy-info p { margin: 4px 0; font-size: 0.88rem; color: var(--text-main); }
+        .pharmacy-info .name { font-size: 1.05rem; font-weight: 700; color: var(--line-green-dark); }
+        .effective-date { text-align: center; font-size: 0.82rem; color: var(--text-sub); margin-top: 20px; padding: 12px; background: #f9f9f9; border-radius: var(--radius-md); }
+        .back-btn { display: block; width: 100%; padding: 15px; border-radius: 30px; font-size: 1rem; font-weight: 700; border: none; cursor: pointer; background-color: var(--line-green); color: #fff; text-align: center; text-decoration: none; margin: 20px 0; transition: all 0.3s; }
+        .back-btn:active { background-color: var(--line-green-dark); transform: scale(0.98); }
+        .footer { text-align: center; padding: 20px; color: #999; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>个人信息处理方针</h1>
+        </header>
+
+        <main class="content">
+            <div class="policy-card">
+                <h2>基本方针</h2>
+                <p>丸山药局（以下简称"本药局"）制定本隐私政策，致力于妥善处理和保护患者的个人信息。</p>
+            </div>
+
+            <div class="policy-card">
+                <h2>收集的个人信息</h2>
+                <p>本药局通过问诊表收集以下信息：</p>
+                <ul>
+                    <li>姓名、电话号码</li>
+                    <li>健康状况（怀孕、哺乳等）</li>
+                    <li>过敏及副作用史</li>
+                    <li>目前服用的药物及保健品</li>
+                    <li>既往病史及生活习惯</li>
+                    <li>仿制药偏好</li>
+                    <li>其他需要告知药剂师的事项</li>
+                </ul>
+            </div>
+
+            <div class="policy-card">
+                <h2>使用目的</h2>
+                <p>收集的个人信息仅用于以下目的：</p>
+                <ul>
+                    <li>药剂师提供适当的用药指导</li>
+                    <li>确认处方药的安全性（过敏、药物相互作用等）</li>
+                    <li>为患者提供适当的医疗服务</li>
+                    <li>根据法律规定向行政机关报告</li>
+                </ul>
+                <p>如需将信息用于上述以外的目的，将事先征得患者的同意。</p>
+            </div>
+
+            <div class="policy-card">
+                <h2>信息传输与管理</h2>
+
+                <h3>传输方式</h3>
+                <p>在问诊表中填写的信息将通过Google表单服务安全传输至本药局的系统。通信通过SSL/TLS加密保护。</p>
+
+                <h3>保管与管理</h3>
+                <p>收集的个人信息在采取了适当安全措施的系统中进行管理，我们致力于防止未经授权的访问、泄露和丢失。</p>
+
+                <h3>保存期限</h3>
+                <p>个人信息将按照《药剂师法》及《药品医疗器械法》等相关法律规定的期限妥善保存。保存期限届满后，将立即以安全方式删除。</p>
+            </div>
+
+            <div class="policy-card">
+                <h2>向第三方提供</h2>
+                <p>除以下情况外，本药局不会向第三方提供患者的个人信息：</p>
+                <ul>
+                    <li>经患者本人同意</li>
+                    <li>法律规定的情况</li>
+                    <li>为保护他人的生命、身体或财产而必要的情况</li>
+                    <li>为提高公共卫生水平而特别必要的情况</li>
+                </ul>
+            </div>
+
+            <div class="policy-card">
+                <h2>患者权利</h2>
+                <p>患者对其个人信息享有以下权利：</p>
+                <ul>
+                    <li><strong>请求公开</strong>：可以要求公开我们持有的个人信息</li>
+                    <li><strong>更正/删除</strong>：如信息有误，可以要求更正或删除</li>
+                    <li><strong>停止使用</strong>：可以要求停止使用个人信息</li>
+                </ul>
+                <p>如需提出上述请求，请到药局窗口咨询。</p>
+            </div>
+
+            <div class="policy-card">
+                <h2>联系方式</h2>
+                <div class="pharmacy-info">
+                    <p class="name">丸山药局</p>
+                    <p>如有关于个人信息的疑问，<br>请到药局窗口咨询。</p>
+                </div>
+            </div>
+
+            <div class="effective-date">
+                制定日期：2025年4月1日
+            </div>
+
+            <a href="javascript:history.back()" class="back-btn">返回问诊表</a>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2025 丸山药局</p>
+        </footer>
+    </div>
+</body>
+</html>
