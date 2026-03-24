@@ -571,9 +571,8 @@
     .summary-tag.tag-warning { background: #fef3c7; color: #d97706; }
     .summary-tag.tag-info { background: #dbeafe; color: #2563eb; }
     .summary-tag.tag-ok { background: #f0fdf4; color: #16a34a; }
-    .summary-tag.tag-source-ai { background: #f3e8ff; color: #7c3aed; }
-    .summary-tag.tag-source-line { background: #dcfce7; color: #059669; }
-    .summary-tag.tag-entered { background: #fee2e2; color: #dc2626; border: 1px solid #f87171; }
+    .summary-tag.tag-source-web { background: #dcfce7; color: #059669; }
+    .summary-tag.tag-source-handwritten { background: #f3e8ff; color: #7c3aed; }
 
     /* ボタン用バッジ */
     .btn-action-wrapper { position: relative; display: inline-block; }
@@ -615,6 +614,36 @@
       background: #f3f4f6;
       color: #374151;
     }
+
+    /* 自動更新インジケーター */
+    .auto-refresh-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #06C755;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(6, 199, 85, 0.08);
+      white-space: nowrap;
+      animation: autoRefreshPulse 3s ease-in-out infinite;
+    }
+    .auto-refresh-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #06C755;
+      animation: dotBlink 3s ease-in-out infinite;
+    }
+    @keyframes autoRefreshPulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+    @keyframes dotBlink {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -654,6 +683,9 @@
         <button class="btn-refresh" id="btn-refresh" onclick="refreshAll()" title="データを更新">
           <span class="refresh-icon">🔄</span> 更新
         </button>
+        <span class="auto-refresh-indicator" id="auto-refresh-indicator" style="display:none;">
+          <span class="auto-refresh-dot"></span>自動更新 3分
+        </span>
       </div>
 
       <!-- ===== 患者検索バー ===== -->
@@ -783,6 +815,7 @@
         fetchPromise = startFetch();
         fetchPromise.then(handleResponse).catch(handleError);
         fetchNotebookData();
+        startAutoRefresh();
       }, 400);
     }
 
@@ -794,6 +827,7 @@
         fetchPromise = startFetch();
         fetchPromise.then(handleResponse).catch(handleError);
         fetchNotebookData();
+        startAutoRefresh();
       } else {
         document.getElementById('login-id').focus();
       }
@@ -902,6 +936,20 @@
       document.querySelectorAll('#container .card:not(.collapsed)').forEach(c => c.classList.add('collapsed'));
     }
 
+    // ===== 自動更新 =====
+    let autoRefreshTimer = null;
+    const AUTO_REFRESH_MS = 180000; // 3分
+
+    function startAutoRefresh() {
+      if (autoRefreshTimer) return; // 二重起動防止
+      autoRefreshTimer = setInterval(() => {
+        console.log('[admin] 自動更新実行');
+        refreshAll();
+      }, AUTO_REFRESH_MS);
+      const indicator = document.getElementById('auto-refresh-indicator');
+      if (indicator) indicator.style.display = 'inline-flex';
+    }
+
     // ===== データ取得 =====
     let listData = [];
     let fetchPromise = null;
@@ -945,7 +993,6 @@
         // 問診タブバッジ更新
         const badge = document.getElementById('tab-monshin-badge');
         badge.textContent = count;
-        badge.style.display = 'inline-block';
         badge.style.display = 'inline-block';
 
         // 段階的レンダリング: 最初の5件を即時描画、残りはrAFで
@@ -1017,7 +1064,7 @@
           if (item['環境アレルギー'] && item['環境アレルギー'] !== 'なし' && item['環境アレルギー'] !== '') summaryTags.push('<span class="summary-tag tag-warning">🌿 花粉症等</span>');
         }
         const s = item['状態'];
-        if (s === 'pregnant' || s === '姊娠中(可能性あり)' || s === '姊娠中') summaryTags.push('<span class="summary-tag tag-info">🫃 姊娠中</span>');
+        if (s === 'pregnant' || s === '妊娠中(可能性あり)' || s === '妊娠中') summaryTags.push('<span class="summary-tag tag-info">🫃 妊娠中</span>');
         else if (s === 'breastfeeding' || s === '授乳中') summaryTags.push('<span class="summary-tag tag-info">👶 授乳中</span>');
         else if (s === 'pediatric' || s === '小児(15歳未満)' || s === '小児') summaryTags.push('<span class="summary-tag tag-info">👧 小児</span>');
         if (item['他院処方'] && item['他院処方'] !== 'なし' && item['他院処方'] !== '' && item['他院処方'] !== 'none' && item['他院処方'] !== 'no') summaryTags.push('<span class="summary-tag tag-info">🏥 他院処方あり</span>');
@@ -1044,14 +1091,7 @@
           </div>
           <div class="time">受信: ${item['日時'] || ''}</div>
           <div class="card-summary">
-            ${(() => { 
-                const tags = [];
-                if (item['データ元'] === 'AI読取') tags.push('<span class="summary-tag tag-source-ai">🤖 AI読取</span>'); 
-                if (item['データ元'] === 'LINE問診') tags.push('<span class="summary-tag tag-source-line">💬 LINE問診</span>');
-                if (item['MEDIXS入力済'] === '済') tags.push('<span class="summary-tag tag-entered">✅ MEDIXS済</span>');
-                if (item['調剤くん入力済'] === '済') tags.push('<span class="summary-tag tag-entered">✅ 調剤くん済</span>');
-                return tags.join('');
-            })()}
+            ${item['データ元'] === 'LINE問診' ? '<span class="summary-tag tag-source-web">💬 web問診</span>' : '<span class="summary-tag tag-source-handwritten">✍ 手書き問診</span>'}
             ${summaryTags.join('')}
           </div>
           <div class="card-body">
@@ -1239,10 +1279,6 @@
         const resData = await res.json();
         if (resData.success) {
           item[isChozaiKun ? '調剤くん入力済' : 'MEDIXS入力済'] = '済';
-          const summaryDiv = btn.closest('.card').querySelector('.card-summary');
-          if (summaryDiv && !summaryDiv.innerHTML.includes(isChozaiKun ? '調剤くん済' : 'MEDIXS済')) {
-             summaryDiv.innerHTML = '<span class="summary-tag tag-entered">✅ ' + (isChozaiKun ? '調剤くん済' : 'MEDIXS済') + '</span>' + summaryDiv.innerHTML;
-          }
           const wrapper = btn.closest('.btn-action-wrapper');
           if (wrapper && !wrapper.querySelector('.badge-done')) {
              wrapper.insertAdjacentHTML('beforeend', '<span class="badge-done">済</span>');
