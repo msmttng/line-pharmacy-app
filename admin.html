@@ -435,6 +435,81 @@
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
+
+    /* ===== 検索バー ===== */
+    .search-bar {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .search-bar input {
+      width: 100%;
+      padding: 14px 44px 14px 44px;
+      border: 2px solid #e5e7eb;
+      border-radius: 14px;
+      background: #ffffff;
+      font-size: 1rem;
+      font-family: 'Noto Sans JP', sans-serif;
+      color: #1f2937;
+      outline: none;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .search-bar input:focus {
+      border-color: #06C755;
+      box-shadow: 0 0 0 3px rgba(6, 199, 85, 0.12), 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .search-bar input::placeholder {
+      color: #9ca3af;
+    }
+    .search-bar .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.1rem;
+      color: #9ca3af;
+      pointer-events: none;
+      transition: color 0.2s;
+    }
+    .search-bar input:focus ~ .search-icon {
+      color: #06C755;
+    }
+    .search-bar .search-clear {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #e5e7eb;
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      font-size: 0.9rem;
+      color: #6b7280;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      line-height: 1;
+    }
+    .search-bar .search-clear:hover {
+      background: #d1d5db;
+      color: #374151;
+    }
+    .search-result-info {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-top: 6px;
+      padding-left: 4px;
+      min-height: 1.2em;
+      transition: opacity 0.2s;
+    }
+    .search-result-info .highlight {
+      color: #06C755;
+      font-weight: 700;
+    }
   </style>
 </head>
 <body>
@@ -474,6 +549,14 @@
         <button class="btn-refresh" id="btn-refresh" onclick="refreshAll()" title="データを更新">
           <span class="refresh-icon">🔄</span> 更新
         </button>
+      </div>
+
+      <!-- ===== 患者検索バー ===== -->
+      <div class="search-bar" id="search-bar">
+        <input type="text" id="search-input" placeholder="患者名で検索（ひらがな・カタカナ・漢字）" oninput="handleSearch()">
+        <span class="search-icon">🔍</span>
+        <button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button>
+        <div class="search-result-info" id="search-result-info"></div>
       </div>
 
       <!-- ===== 問診回答タブ ===== -->
@@ -605,6 +688,97 @@
       }
     });
 
+    // ===== 検索機能（ひらがな・カタカナ・漢字対応） =====
+    let currentSearchQuery = '';
+
+    // ひらがな→カタカナ
+    function hiraToKata(str) {
+      return str.replace(/[\u3041-\u3096]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60));
+    }
+    // カタカナ→ひらがな
+    function kataToHira(str) {
+      return str.replace(/[\u30A1-\u30F6]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+    }
+    // 全角英数→半角英数
+    function zenToHan(str) {
+      return str.replace(/[\uFF01-\uFF5E]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0));
+    }
+
+    // 名前が検索クエリにマッチするか（ひらがな/カタカナ/漢字/部分一致）
+    function matchesSearch(name) {
+      if (!currentSearchQuery) return true;
+      if (!name) return false;
+      const q = currentSearchQuery.toLowerCase();
+      const n = name.toLowerCase();
+      // そのまま比較
+      if (n.includes(q)) return true;
+      // ひらがな変換して比較
+      const qHira = kataToHira(q);
+      const nHira = kataToHira(n);
+      if (nHira.includes(qHira)) return true;
+      // カタカナ変換して比較
+      const qKata = hiraToKata(q);
+      const nKata = hiraToKata(n);
+      if (nKata.includes(qKata)) return true;
+      // 全角半角正規化
+      const qNorm = zenToHan(q);
+      const nNorm = zenToHan(n);
+      if (nNorm.includes(qNorm)) return true;
+      return false;
+    }
+
+    function handleSearch() {
+      const input = document.getElementById('search-input');
+      const clearBtn = document.getElementById('search-clear');
+      const infoEl = document.getElementById('search-result-info');
+      currentSearchQuery = input.value.trim();
+      clearBtn.style.display = currentSearchQuery ? 'flex' : 'none';
+      applySearchFilter();
+    }
+
+    function clearSearch() {
+      document.getElementById('search-input').value = '';
+      document.getElementById('search-clear').style.display = 'none';
+      document.getElementById('search-result-info').textContent = '';
+      currentSearchQuery = '';
+      applySearchFilter();
+    }
+
+    function applySearchFilter() {
+      const infoEl = document.getElementById('search-result-info');
+
+      // 問診カードのフィルタ
+      const monshinCards = document.querySelectorAll('#container .card');
+      let monshinVisible = 0;
+      monshinCards.forEach((card, i) => {
+        if (i < listData.length) {
+          const name = listData[i]['名前'] || '';
+          const show = matchesSearch(name);
+          card.style.display = show ? '' : 'none';
+          if (show) monshinVisible++;
+        }
+      });
+
+      // 手帳カードのフィルタ
+      const notebookCards = document.querySelectorAll('#notebook-container .notebook-card');
+      let notebookVisible = 0;
+      notebookCards.forEach((card, i) => {
+        if (i < notebookData.length) {
+          const name = notebookData[i]['氏名'] || '';
+          const show = matchesSearch(name);
+          card.style.display = show ? '' : 'none';
+          if (show) notebookVisible++;
+        }
+      });
+
+      // 結果情報表示
+      if (currentSearchQuery) {
+        infoEl.innerHTML = `📋 問診 <span class="highlight">${monshinVisible}</span>件 ／ 📚 手帳 <span class="highlight">${notebookVisible}</span>件 がヒット`;
+      } else {
+        infoEl.textContent = '';
+      }
+    }
+
     // ===== データ取得 =====
     let listData = [];
     let fetchPromise = null;
@@ -653,6 +827,8 @@
 
         // 段階的レンダリング: 最初の5件を即時描画、残りはrAFで
         renderBatch(0, 5, true);
+        // 検索が有効なら再適用
+        if (currentSearchQuery) setTimeout(applySearchFilter, 200);
       } else {
         showError('エラー: ' + (res ? res.error : '不明なエラー'));
       }
@@ -1084,6 +1260,8 @@
           setTimeout(() => card.classList.add('visible'), i * 50);
         });
       });
+      // 検索が有効なら再適用
+      if (currentSearchQuery) setTimeout(applySearchFilter, 200);
     }
 
     function copyNotebook(idx, btn) {
