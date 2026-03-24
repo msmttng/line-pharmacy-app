@@ -11,6 +11,12 @@ function doGet(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
+  // 入力完了マーク更新 API
+  if (action === 'markEntered') {
+    return ContentService.createTextOutput(JSON.stringify(markEntered(e)))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   // 手帳データ取得
   if (action === 'getNotebook') {
     const data = getNotebookData();
@@ -76,7 +82,7 @@ function submitToSpreadsheet(data) {
         '飲食物', '飲食物詳細',
         '既往歴', '既往歴詳細', 
         '運転', '高所', 'ソフトコンタクト', '酒', '煙草', 
-        'ジェネリック', '備考', 'お薬手帳'
+        'ジェネリック', '備考', 'お薬手帳', 'データ元', 'MEDIXS入力済', '調剤くん入力済'
       ];
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setBackground('#eeeeee').setFontWeight('bold');
       sheet.setFrozenRows(1);
@@ -169,7 +175,10 @@ function submitToSpreadsheet(data) {
       translate(data.smoking), 
       translate(data.generic), 
       data.memo || '',
-      bookletVal
+      bookletVal,
+      data.source === 'webapp' ? 'LINE問診' : 'AI読取',
+      '',
+      ''
     ];
     sheet.appendRow(row);
 
@@ -217,7 +226,7 @@ function getSubmissions() {
     const sheet = ss.getSheets()[0];
     
     const lastRow = sheet.getLastRow();
-    const lastCol = Math.min(sheet.getLastColumn(), 30); // ヘッダー数(30)に制限
+    const lastCol = Math.min(sheet.getLastColumn(), 33); // ヘッダー数(33)に拡張
     
     if (lastRow <= 1) return { success: true, list: [] };
     
@@ -232,8 +241,10 @@ function getSubmissions() {
     const data = sheet.getRange(startRow, 1, numRows, lastCol).getValues();
     
     // 逆順（最新が上）にしてオブジェクトにマッピング
-    const list = data.reverse().map(r => {
-      let o = {};
+    const list = data.reverse().map((r, rowIdx) => {
+      let o = {
+        _rowIndex: startRow + numRows - 1 - rowIdx
+      };
       headers.forEach((name, i) => { 
         if(name) {
           let val = r[i];
@@ -685,5 +696,37 @@ function logError(source, message) {
     logSheet.appendRow([new Date(), source, message]);
   } catch (e) {
     console.error('エラーログ記録失敗: ' + e.toString());
+  }
+}
+
+function markEntered(e) {
+  try {
+    const rowIndex = parseInt(e.parameter.rowIndex, 10);
+    const target = e.parameter.target;
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheets()[0];
+    
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    let targetColStr = target === 'chozai' ? '調剤くん入力済' : 'MEDIXS入力済';
+    let colIndex = headers.indexOf(targetColStr) + 1;
+    
+    if (colIndex === 0) {
+      colIndex = headers.indexOf('データ元') + 1;
+      if (colIndex === 0) colIndex = 31;
+      if (target === 'medixs') colIndex += 1;
+      if (target === 'chozai') colIndex += 2;
+      sheet.getRange(1, headers.length + 1).setValue(targetColStr);
+      colIndex = headers.length + 1;
+    }
+    
+    sheet.getRange(rowIndex, colIndex).setValue('済');
+    
+    const cache = CacheService.getScriptCache();
+    cache.remove('submissions_cache_v2');
+    cache.remove('submissions_cache_v3');
+    
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.toString() };
   }
 }
