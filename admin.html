@@ -571,6 +571,9 @@
     .summary-tag.tag-warning { background: #fef3c7; color: #d97706; }
     .summary-tag.tag-info { background: #dbeafe; color: #2563eb; }
     .summary-tag.tag-ok { background: #f0fdf4; color: #16a34a; }
+    .summary-tag.tag-source-ai { background: #f3e8ff; color: #7c3aed; }
+    .summary-tag.tag-source-line { background: #dcfce7; color: #059669; }
+    .summary-tag.tag-entered { background: #fee2e2; color: #dc2626; border: 1px solid #f87171; }
 
     /* 全展開/全閉じるボタン */
     .collapse-controls {
@@ -1017,7 +1020,17 @@
             </div>
           </div>
           <div class="time">受信: ${item['日時'] || ''}</div>
-          <div class="card-summary">${summaryTags.join('')}</div>
+          <div class="card-summary">
+            ${(() => { 
+                const tags = [];
+                if (item['データ元'] === 'AI読取') tags.push('<span class="summary-tag tag-source-ai">🤖 AI読取</span>'); 
+                if (item['データ元'] === 'LINE問診') tags.push('<span class="summary-tag tag-source-line">💬 LINE問診</span>');
+                if (item['MEDIXS入力済'] === '済') tags.push('<span class="summary-tag tag-entered">✅ MEDIXS済</span>');
+                if (item['調剤くん入力済'] === '済') tags.push('<span class="summary-tag tag-entered">✅ 調剤くん済</span>');
+                return tags.join('');
+            })()}
+            ${summaryTags.join('')}
+          </div>
           <div class="card-body">
           <div class="data-grid">
             <div class="data-item">
@@ -1125,7 +1138,7 @@
     // Chrome拡張インストール後、chrome://extensions で表示されるIDに置き換えてください
     const MEDIXS_EXTENSION_ID = 'gekigkglmaeohlpnbmdleckcompealfj';
 
-    function copyText(idx, btn, isChozaiKun = false) {
+    async function copyText(idx, btn, isChozaiKun = false) {
       const item = listData[idx];
       const formatTel = (tel) => { if (!tel) return '不明'; let d = tel.replace(/[^0-9+]/g, ''); if (d.startsWith('+81')) d = '0' + d.slice(3); d = d.replace(/[^0-9]/g, ''); if (d.match(/^(090|080|070|050)/)) return d.replace(/^(\d{3})(\d{4})(\d{4})$/, '$1-$2-$3'); if (d.match(/^0\d/)) return d.replace(/^(\d{2,4})(\d{2,4})(\d{4})$/, '$1-$2-$3'); return tel; };
       let text = isChozaiKun ? "" : "【初回問診引用】\n";
@@ -1180,7 +1193,6 @@
         text += `■特記事項: ${item['備考']}\n`;
       }
 
-      // MEDIXS用（調剤くん用でない場合）: Chrome拡張連携を試みる
       if (!isChozaiKun && MEDIXS_EXTENSION_ID !== '__EXTENSION_ID_HERE__' && typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
         // Chrome拡張経由で直接送信（タイムアウト + リトライ付き）
         btn.innerText = '送信中...';
@@ -1190,6 +1202,27 @@
       } else {
         // 調剤くん用 or 拡張IDが未設定 → 従来のクリップボードコピー
         clipboardCopy(text, btn);
+      }
+
+      // 非同期でスプレッドシートに入力済マークを記録
+      markEntryAPI(idx, isChozaiKun, btn);
+    }
+
+    async function markEntryAPI(idx, isChozaiKun, btn) {
+      const item = listData[idx];
+      const target = isChozaiKun ? 'chozai' : 'medixs';
+      try {
+        const res = await fetch(`https://script.google.com/macros/s/AKfycbw3ohRCQ87GMgFqOG-TPKbVE6h5uvCQsuIRl1JChA7mpIFoFDs9S0S6xP6Rx9DH6aVTiQ/exec?action=markEntered&rowIndex=${item._rowIndex}&target=${target}`);
+        const resData = await res.json();
+        if (resData.success) {
+          item[isChozaiKun ? '調剤くん入力済' : 'MEDIXS入力済'] = '済';
+          const summaryDiv = btn.closest('.card').querySelector('.card-summary');
+          if (summaryDiv && !summaryDiv.innerHTML.includes(isChozaiKun ? '調剤くん済' : 'MEDIXS済')) {
+             summaryDiv.innerHTML = '<span class="summary-tag tag-entered">✅ ' + (isChozaiKun ? '調剤くん済' : 'MEDIXS済') + '</span>' + summaryDiv.innerHTML;
+          }
+        }
+      } catch(e) {
+        console.error('Entry tracking failed:', e);
       }
     }
 
