@@ -171,6 +171,10 @@ function submitToSpreadsheet(data) {
     const phoneCell = sheet.getRange(lastRow, 3);
     phoneCell.setNumberFormat('@');
     phoneCell.setValue(phoneStr);
+
+    // データ元カラム(AE列=31)に「LINE問診」を記録
+    sheet.getRange(lastRow, 31).setValue('LINE問診');
+
     // 書き込み後にキャッシュをクリアして直後の読み取りで即時反映されるようにする
     const scriptCache = CacheService.getScriptCache();
     scriptCache.remove('submissions_cache_v2'); // 旧キー
@@ -206,7 +210,7 @@ function getSubmissions() {
     const sheet = ss.getSheets()[0];
     
     const lastRow = sheet.getLastRow();
-    const lastCol = Math.min(sheet.getLastColumn(), 30); // ヘッダー数(30)に制限
+    const lastCol = Math.min(sheet.getLastColumn(), 35); // ヘッダー数(データ元等含む)
     
     if (lastRow <= 1) return { success: true, list: [] };
     
