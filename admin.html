@@ -510,6 +510,91 @@
       color: #06C755;
       font-weight: 700;
     }
+
+    /* ===== カード折りたたみ ===== */
+    .card-toggle {
+      background: none;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    .card-toggle:hover {
+      background: #f3f4f6;
+      color: #374151;
+      border-color: #d1d5db;
+    }
+    .card-toggle .toggle-icon {
+      display: inline-block;
+      transition: transform 0.25s ease;
+      font-size: 0.7rem;
+    }
+    .card.collapsed .card-toggle .toggle-icon {
+      transform: rotate(-90deg);
+    }
+    .card-body {
+      overflow: hidden;
+      transition: max-height 0.35s ease, opacity 0.25s ease;
+      max-height: 2000px;
+      opacity: 1;
+    }
+    .card.collapsed .card-body {
+      max-height: 0;
+      opacity: 0;
+    }
+    .card-summary {
+      display: none;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .card.collapsed .card-summary {
+      display: flex;
+    }
+    .summary-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .summary-tag.tag-danger { background: #fee2e2; color: #dc2626; }
+    .summary-tag.tag-warning { background: #fef3c7; color: #d97706; }
+    .summary-tag.tag-info { background: #dbeafe; color: #2563eb; }
+    .summary-tag.tag-ok { background: #f0fdf4; color: #16a34a; }
+
+    /* 全展開/全閉じるボタン */
+    .collapse-controls {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .collapse-controls button {
+      background: none;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #6b7280;
+      cursor: pointer;
+      font-family: 'Noto Sans JP', sans-serif;
+      transition: all 0.2s;
+    }
+    .collapse-controls button:hover {
+      background: #f3f4f6;
+      color: #374151;
+    }
   </style>
 </head>
 <body>
@@ -571,6 +656,12 @@
         <div id="error-box">
           <p id="error-msg">データの取得に失敗しました。</p>
           <button class="btn btn-retry" onclick="retryFetch()">↺ 再試行</button>
+        </div>
+
+        <!-- 全展開/全閉じるコントロール -->
+        <div class="collapse-controls" id="collapse-controls" style="display:none;">
+          <button onclick="expandAll()">▼ 全て展開</button>
+          <button onclick="collapseAll()">▲ 全てたたむ</button>
         </div>
 
         <!-- スケルトンUI -->
@@ -779,6 +870,18 @@
       }
     }
 
+    // ===== カード折りたたみ =====
+    function toggleCard(btn) {
+      const card = btn.closest('.card');
+      card.classList.toggle('collapsed');
+    }
+    function expandAll() {
+      document.querySelectorAll('#container .card.collapsed').forEach(c => c.classList.remove('collapsed'));
+    }
+    function collapseAll() {
+      document.querySelectorAll('#container .card:not(.collapsed)').forEach(c => c.classList.add('collapsed'));
+    }
+
     // ===== データ取得 =====
     let listData = [];
     let fetchPromise = null;
@@ -829,6 +932,8 @@
         renderBatch(0, 5, true);
         // 検索が有効なら再適用
         if (currentSearchQuery) setTimeout(applySearchFilter, 200);
+        // 全展開/全たたむコントロール表示
+        document.getElementById('collapse-controls').style.display = 'flex';
       } else {
         showError('エラー: ' + (res ? res.error : '不明なエラー'));
       }
@@ -880,8 +985,24 @@
         );
 
         const div = document.createElement('div');
-        div.className = 'card';
+        div.className = 'card collapsed';
         if (hasWarning) div.style.borderLeft = '6px solid var(--danger-text)';
+
+        // サマリーバッジ生成（たたんだ状態で重要情報が見える）
+        const summaryTags = [];
+        if (hasWarning) {
+          if (item['薬アレルギー'] === 'あり') summaryTags.push('<span class="summary-tag tag-danger">⚠ 薬アレルギー</span>');
+          if (item['食品アレルギー'] === 'あり') summaryTags.push('<span class="summary-tag tag-danger">⚠ 食物アレルギー</span>');
+          if (item['副作用'] === 'あり') summaryTags.push('<span class="summary-tag tag-warning">⚠ 副作用歴</span>');
+          if (item['環境アレルギー'] && item['環境アレルギー'] !== 'なし' && item['環境アレルギー'] !== '') summaryTags.push('<span class="summary-tag tag-warning">🌿 花粉症等</span>');
+        }
+        const s = item['状態'];
+        if (s === 'pregnant' || s === '姊娠中(可能性あり)' || s === '姊娠中') summaryTags.push('<span class="summary-tag tag-info">🫃 姊娠中</span>');
+        else if (s === 'breastfeeding' || s === '授乳中') summaryTags.push('<span class="summary-tag tag-info">👶 授乳中</span>');
+        else if (s === 'pediatric' || s === '小児(15歳未満)' || s === '小児') summaryTags.push('<span class="summary-tag tag-info">👧 小児</span>');
+        if (item['他院処方'] && item['他院処方'] !== 'なし' && item['他院処方'] !== '' && item['他院処方'] !== 'none' && item['他院処方'] !== 'no') summaryTags.push('<span class="summary-tag tag-info">🏥 他院処方あり</span>');
+        if (item['備考']) summaryTags.push('<span class="summary-tag tag-warning">📝 備考あり</span>');
+        if (summaryTags.length === 0) summaryTags.push('<span class="summary-tag tag-ok">✓ 特記なし</span>');
 
         div.innerHTML = `
           <div class="header">
@@ -890,12 +1011,14 @@
               <span class="name-sub">TEL: ${formatTel(item['電話番号'])}</span>
             </div>
             <div class="actions">
+              <button class="card-toggle" onclick="toggleCard(this)"><span class="toggle-icon">▼</span> 詳細</button>
               <button class="btn btn-primary" onclick="copyText(${i}, this)">MEDIXS用</button>
               <button class="btn btn-secondary" onclick="copyText(${i}, this, true)">調剤くん用</button>
             </div>
           </div>
           <div class="time">受信: ${item['日時'] || ''}</div>
-          
+          <div class="card-summary">${summaryTags.join('')}</div>
+          <div class="card-body">
           <div class="data-grid">
             <div class="data-item">
               ${mkLabel('患者様の状態')}
@@ -969,6 +1092,7 @@
             <span class="label" style="color:#b45309;">特記事項</span>
             <span class="val" style="color:#b45309; font-weight:700;">${item['備考']}</span>
           </div>` : ''}
+          </div>
         `;
 
         fragment.appendChild(div);
