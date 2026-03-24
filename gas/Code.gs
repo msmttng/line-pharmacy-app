@@ -411,42 +411,42 @@ function createAndSavePdf(data) {
 <head>
 <meta charset="UTF-8">
 <style>
-  body { font-family: 'Noto Sans JP', serif; font-size: 11pt; color: #333; margin: 15mm; }
-  h1 { text-align: center; font-size: 16pt; border-bottom: 2px solid #333; padding-bottom: 5px; margin-bottom: 15px; }
-  .subtitle { text-align: center; font-size: 10pt; color: #666; margin-top: -10px; margin-bottom: 20px; }
+  body { font-family: 'Noto Sans JP', serif; font-size: 11pt; color: #333; margin: 10mm; }
+  h1 { text-align: center; font-size: 16pt; border-bottom: 2px solid #333; padding-bottom: 4px; margin-bottom: 10px; }
+  .subtitle { text-align: center; font-size: 10pt; color: #666; margin-top: -8px; margin-bottom: 10px; }
   
-  .alert { color: #d32f2f; font-weight: bold; background-color: #ffebee; padding: 2px 6px; border-radius: 3px; display: inline-block; }
-  .alert-detail { color: #d32f2f; font-weight: bold; margin-left: 8px; }
+  .alert { color: #d32f2f; font-weight: bold; background-color: #ffebee; padding: 2px 4px; border-radius: 3px; display: inline-block; }
+  .alert-detail { color: #d32f2f; font-weight: bold; margin-left: 6px; }
   .none { color: #888; }
   
   .layout-table { width: 100%; border-collapse: collapse; border: none; }
-  .layout-td { width: 48%; vertical-align: top; border: none; padding: 0 10px; }
+  .layout-td { width: 48%; vertical-align: top; border: none; padding: 0 8px; }
   
-  .content-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-  .content-table th { background: #f0f4f8; text-align: left; padding: 8px; font-size: 10.5pt; width: 35%; border: 1px solid #ccc; font-weight: bold; color: #444; }
-  .content-table td { padding: 8px; font-size: 10.5pt; border: 1px solid #ccc; line-height: 1.4; }
+  .content-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .content-table th { background: #f0f4f8; text-align: left; padding: 4px 6px; font-size: 10.5pt; width: 35%; border: 1px solid #ccc; font-weight: bold; color: #444; }
+  .content-table td { padding: 4px 6px; font-size: 10.5pt; border: 1px solid #ccc; line-height: 1.3; }
   
-  .section-title { font-size: 11.5pt; font-weight: bold; border-left: 4px solid #4a90e2; padding-left: 8px; margin: 10px 0 8px; color: #222; }
+  .section-title { font-size: 11pt; font-weight: bold; border-left: 4px solid #4a90e2; padding-left: 6px; margin: 6px 0 4px; color: #222; }
   
-  .memo-space { margin-top: 15px; border: 1px solid #aaa; background-color: #fafafa; border-radius: 4px; padding: 10px; height: 320px; }
-  .memo-title { font-weight: bold; color: #666; font-size: 10pt; margin-bottom: 5px; }
-  .memo-content { font-size: 10.5pt; color: #333; white-space: pre-wrap; margin-top: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
+  .memo-space { margin-top: 10px; border: 1px solid #aaa; background-color: #fafafa; border-radius: 4px; padding: 8px; height: 160px; }
+  .memo-title { font-weight: bold; color: #666; font-size: 10pt; margin-bottom: 4px; }
+  .memo-content { font-size: 10.5pt; color: #333; white-space: pre-wrap; margin-top: 6px; border-bottom: 1px dashed #ccc; padding-bottom: 6px; }
   
-  .footer { text-align: right; font-size: 9pt; color: #888; margin-top: 10px; }
+  .footer { text-align: right; font-size: 8.5pt; color: #888; margin-top: 6px; }
 </style>
 </head>
 <body>
   <h1>初回問診票（サマリー表示）</h1>
-  <p class="subtitle">受付日時: \${displayDate}</p>
+  <p class="subtitle">受付日時: ${displayDate}</p>
 
   <div class="section-title">■ 基本情報</div>
   <table class="content-table" style="margin-bottom: 15px;">
     <tr>
-      <th>氏名</th><td style="font-size: 14pt; font-weight: bold; width:65%;">\${patientName} <span style="font-size: 10pt; font-weight: normal; margin-left:15px;">(\${data.phone || ''})</span></td>
-      <th>お薬手帳</th><td>\${bookletHtml}</td>
+      <th>氏名</th><td style="font-size: 14pt; font-weight: bold; width:65%;">${patientName} <span style="font-size: 10pt; font-weight: normal; margin-left:15px;">(${data.phone || ''})</span></td>
+      <th>お薬手帳</th><td>${bookletHtml}</td>
     </tr>
     <tr>
-      <th>状態</th><td colspan="3">\${conditionHtml}</td>
+      <th>状態</th><td colspan="3">${conditionHtml}</td>
     </tr>
   </table>
 
@@ -457,17 +457,17 @@ function createAndSavePdf(data) {
       <td class="layout-td" style="padding-left: 0;">
         <div class="section-title">■ アレルギー・副作用</div>
         <table class="content-table">
-          <tr><th>薬アレルギー</th><td>\${highlight(t(data['drug-allergy']), data['drug-allergy-detail'])}</td></tr>
-          <tr><th>食品アレルギー</th><td>\${highlight(t(data['food-allergy']), data['food-allergy-detail'])}</td></tr>
-          <tr><th>環境アレルギー</th><td>\${highlight(envAllergyStr)}</td></tr>
-          <tr><th>副作用歴</th><td>\${highlight(t(data['side-effect']), data['side-effect-detail'])}</td></tr>
+          <tr><th>薬アレルギー</th><td>${highlight(t(data['drug-allergy']), data['drug-allergy-detail'])}</td></tr>
+          <tr><th>食品アレルギー</th><td>${highlight(t(data['food-allergy']), data['food-allergy-detail'])}</td></tr>
+          <tr><th>環境アレルギー</th><td>${highlight(envAllergyStr)}</td></tr>
+          <tr><th>副作用歴</th><td>${highlight(t(data['side-effect']), data['side-effect-detail'])}</td></tr>
         </table>
 
         <div class="section-title">■ 現在の服用状況</div>
         <table class="content-table">
-          <tr><th>他院処方</th><td>\${highlight(t(data['current-presc']), data['current-presc-detail'])}</td></tr>
-          <tr><th>市販薬・サプリ</th><td>\${highlight(t(data['otc-list']), data['otc-suppl-detail'])}</td></tr>
-          <tr><th>飲食物（注意）</th><td>\${highlight(t(data['food-drink']), data['food-drink-detail'])}</td></tr>
+          <tr><th>他院処方</th><td>${highlight(t(data['current-presc']), data['current-presc-detail'])}</td></tr>
+          <tr><th>市販薬・サプリ</th><td>${highlight(t(data['otc-list']), data['otc-suppl-detail'])}</td></tr>
+          <tr><th>飲食物（注意）</th><td>${highlight(t(data['food-drink']), data['food-drink-detail'])}</td></tr>
         </table>
       </td>
 
@@ -475,17 +475,17 @@ function createAndSavePdf(data) {
       <td class="layout-td" style="padding-right: 0;">
         <div class="section-title">■ 既往歴・現病歴</div>
         <table class="content-table">
-          <tr><th>既往歴</th><td>\${highlight(t(data.history), data['history-other-detail'])}</td></tr>
+          <tr><th>既往歴</th><td>${highlight(t(data.history), data['history-other-detail'])}</td></tr>
         </table>
 
         <div class="section-title">■ 生活習慣・その他</div>
         <table class="content-table">
-          <tr><th>車の運転</th><td>\${highlight(t(data.driving))}</td></tr>
-          <tr><th>高所作業</th><td>\${highlight(t(data['height-work']))}</td></tr>
-          <tr><th>コンタクト</th><td>\${highlight(t(data['soft-contact']))}</td></tr>
-          <tr><th>飲酒</th><td>\${highlight(data.alcohol === 'none' ? '飲まない' : t(data.alcohol))}</td></tr>
-          <tr><th>喫煙</th><td>\${highlight(t(data.smoking))}</td></tr>
-          <tr><th>ジェネリック</th><td>\${t(data.generic)}</td></tr>
+          <tr><th>車の運転</th><td>${highlight(t(data.driving))}</td></tr>
+          <tr><th>高所作業</th><td>${highlight(t(data['height-work']))}</td></tr>
+          <tr><th>コンタクト</th><td>${highlight(t(data['soft-contact']))}</td></tr>
+          <tr><th>飲酒</th><td>${highlight(data.alcohol === 'none' ? '飲まない' : t(data.alcohol))}</td></tr>
+          <tr><th>喫煙</th><td>${highlight(t(data.smoking))}</td></tr>
+          <tr><th>ジェネリック</th><td>${highlight(t(data.generic))}</td></tr>
         </table>
       </td>
     </tr>
@@ -494,10 +494,10 @@ function createAndSavePdf(data) {
   <!-- メモ欄（下半分を広々と使う） -->
   <div class="memo-space">
     <div class="memo-title">▼ 患者さまからの要望・メモ / 薬剤師 記入欄</div>
-    \${data.memo ? '<div class="memo-content">' + data.memo + '</div>' : ''}
+    ${data.memo ? '<div class="memo-content">' + data.memo + '</div>' : ''}
   </div>
 
-  <p class="footer">このPDFはWebアプリから自動生成されました（\${fileName}）</p>
+  <p class="footer">このPDFはWebアプリから自動生成されました（${fileName}）</p>
 </body>
 </html>`;
 
