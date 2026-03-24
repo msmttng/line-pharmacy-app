@@ -575,6 +575,23 @@
     .summary-tag.tag-source-line { background: #dcfce7; color: #059669; }
     .summary-tag.tag-entered { background: #fee2e2; color: #dc2626; border: 1px solid #f87171; }
 
+    /* ボタン用バッジ */
+    .btn-action-wrapper { position: relative; display: inline-block; }
+    .badge-done {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #ef4444;
+        color: white;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 999px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        z-index: 10;
+        pointer-events: none;
+    }
+
     /* 全展開/全閉じるボタン */
     .collapse-controls {
       display: flex;
@@ -1015,8 +1032,14 @@
             </div>
             <div class="actions">
               <button class="card-toggle" onclick="toggleCard(this)"><span class="toggle-icon">▼</span> 詳細</button>
-              <button class="btn btn-primary" onclick="copyText(${i}, this)">MEDIXS用</button>
-              <button class="btn btn-secondary" onclick="copyText(${i}, this, true)">調剤くん用</button>
+              <div class="btn-action-wrapper">
+                <button class="btn btn-primary" onclick="copyText(${i}, this)">MEDIXS用</button>
+                ${item['MEDIXS入力済'] === '済' ? '<span class="badge-done">済</span>' : ''}
+              </div>
+              <div class="btn-action-wrapper">
+                <button class="btn btn-secondary" onclick="copyText(${i}, this, true)">調剤くん用</button>
+                ${item['調剤くん入力済'] === '済' ? '<span class="badge-done">済</span>' : ''}
+              </div>
             </div>
           </div>
           <div class="time">受信: ${item['日時'] || ''}</div>
@@ -1219,6 +1242,10 @@
           const summaryDiv = btn.closest('.card').querySelector('.card-summary');
           if (summaryDiv && !summaryDiv.innerHTML.includes(isChozaiKun ? '調剤くん済' : 'MEDIXS済')) {
              summaryDiv.innerHTML = '<span class="summary-tag tag-entered">✅ ' + (isChozaiKun ? '調剤くん済' : 'MEDIXS済') + '</span>' + summaryDiv.innerHTML;
+          }
+          const wrapper = btn.closest('.btn-action-wrapper');
+          if (wrapper && !wrapper.querySelector('.badge-done')) {
+             wrapper.insertAdjacentHTML('beforeend', '<span class="badge-done">済</span>');
           }
         }
       } catch(e) {
