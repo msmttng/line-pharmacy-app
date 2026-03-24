@@ -571,8 +571,6 @@
     .summary-tag.tag-warning { background: #fef3c7; color: #d97706; }
     .summary-tag.tag-info { background: #dbeafe; color: #2563eb; }
     .summary-tag.tag-ok { background: #f0fdf4; color: #16a34a; }
-    .summary-tag.tag-source-ai { background: #f3e8ff; color: #7c3aed; }
-    .summary-tag.tag-source-line { background: #dcfce7; color: #059669; }
 
     /* 全展開/全閉じるボタン */
     .collapse-controls {
@@ -1019,7 +1017,7 @@
             </div>
           </div>
           <div class="time">受信: ${item['日時'] || ''}</div>
-          <div class="card-summary">${(() => { const src = item['データ元']; if (src === 'AI読取') return '<span class="summary-tag tag-source-ai">🤖 AI読取</span>'; if (src === 'LINE問診') return '<span class="summary-tag tag-source-line">💬 LINE問診</span>'; return ''; })()}${summaryTags.join('')}</div>
+          <div class="card-summary">${summaryTags.join('')}</div>
           <div class="card-body">
           <div class="data-grid">
             <div class="data-item">
