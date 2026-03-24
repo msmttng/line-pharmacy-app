@@ -172,8 +172,8 @@ function submitToSpreadsheet(data) {
     phoneCell.setNumberFormat('@');
     phoneCell.setValue(phoneStr);
 
-    // データ元カラム(AE列=31)に「LINE問診」を記録
-    sheet.getRange(lastRow, 31).setValue('LINE問診');
+    // データ元カラム(AE列=31)に「web問診」を記録
+    sheet.getRange(lastRow, 31).setValue('web問診');
 
     // 書き込み後にキャッシュをクリアして直後の読み取りで即時反映されるようにする
     const scriptCache = CacheService.getScriptCache();
@@ -598,4 +598,40 @@ function logError(source, message) {
   } catch (e) {
     console.error('エラーログ記録失敗: ' + e.toString());
   }
+}
+
+/**
+ * 過去データの「データ元」を一括設定する（初回のみ実行）
+ * - 空欄 or 'LINE問診' の行 → 「web問診」
+ * - 「AI読取」が既にある行 → そのまま
+ * GASエディタでこの関数を選択して「実行」ボタンをクリックしてください
+ */
+function backfillDataSource() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheets()[0];
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) { console.log('データなし'); return; }
+
+  const DATA_COL = 31; // AE列
+  const range = sheet.getRange(2, DATA_COL, lastRow - 1, 1);
+  const values = range.getValues();
+  let updated = 0;
+
+  for (let i = 0; i < values.length; i++) {
+    const val = String(values[i][0]).trim();
+    if (val === '' || val === 'undefined' || val === 'null') {
+      values[i][0] = 'web問診';
+      updated++;
+    } else if (val === 'LINE問診') {
+      values[i][0] = 'web問診';
+      updated++;
+    }
+    // 'AI読取' はそのまま
+  }
+
+  range.setValues(values);
+  const cache = CacheService.getScriptCache();
+  cache.remove('submissions_cache_v2');
+  cache.remove('submissions_cache_v3');
+  console.log('データ元を一括更新しました: ' + updated + '行を「web問診」に設定');
 }

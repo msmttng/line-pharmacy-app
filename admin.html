@@ -1091,7 +1091,7 @@
           </div>
           <div class="time">受信: ${item['日時'] || ''}</div>
           <div class="card-summary">
-            ${item['データ元'] === 'LINE問診' ? '<span class="summary-tag tag-source-web">💬 web問診</span>' : '<span class="summary-tag tag-source-handwritten">✍ 手書き問診</span>'}
+            ${item['データ元'] === 'web問診' ? '<span class="summary-tag tag-source-web">💬 web問診</span>' : '<span class="summary-tag tag-source-handwritten">✍ 手書き問診</span>'}
             ${summaryTags.join('')}
           </div>
           <div class="card-body">
