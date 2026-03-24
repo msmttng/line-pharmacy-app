@@ -394,6 +394,47 @@
     .tab-btn.active.tab-notebook .tab-badge { background: #059669; color: white; }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
+
+    /* ===== 更新ボタン ===== */
+    .btn-refresh {
+      flex: none;
+      padding: 10px 16px;
+      border: none;
+      background: transparent;
+      border-radius: 11px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .btn-refresh:hover {
+      color: #06C755;
+      background: rgba(6, 199, 85, 0.08);
+    }
+    .btn-refresh:active {
+      transform: scale(0.95);
+    }
+    .btn-refresh .refresh-icon {
+      display: inline-block;
+      transition: transform 0.3s ease;
+    }
+    .btn-refresh.refreshing .refresh-icon {
+      animation: refreshSpin 0.8s linear infinite;
+    }
+    .btn-refresh.refreshing {
+      color: #06C755;
+      pointer-events: none;
+    }
+    @keyframes refreshSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -429,6 +470,9 @@
         </button>
         <button class="tab-btn tab-notebook" onclick="switchTab('notebook')">
           📚 手帳データ <span class="tab-badge" id="tab-notebook-badge" style="display:none;"></span>
+        </button>
+        <button class="btn-refresh" id="btn-refresh" onclick="refreshAll()" title="データを更新">
+          <span class="refresh-icon">🔄</span> 更新
         </button>
       </div>
 
@@ -954,13 +998,41 @@
       window.scrollTo(0, 0);
     }
 
+    // ===== 更新ボタン =====
+    function refreshAll() {
+      const btn = document.getElementById('btn-refresh');
+      btn.classList.add('refreshing');
+
+      // 問診データをリセット & 再取得
+      document.getElementById('error-box').style.display = 'none';
+      document.getElementById('skeleton').style.display = 'flex';
+      document.getElementById('loading-status').style.display = 'flex';
+      document.getElementById('loading-text').textContent = 'データを更新しています...';
+      document.getElementById('container').innerHTML = '';
+      document.getElementById('msg').style.display = 'none';
+      listData = [];
+
+      // 手帳データをリセット & 再取得
+      document.getElementById('notebook-container').innerHTML = '';
+      document.getElementById('notebook-empty').style.display = 'none';
+      notebookData = [];
+
+      // 両方のデータを並行で取得
+      const monshinPromise = startFetch().then(handleResponse).catch(handleError);
+      const notebookPromise = fetchNotebookData();
+
+      Promise.allSettled([monshinPromise, notebookPromise]).then(() => {
+        btn.classList.remove('refreshing');
+      });
+    }
+
     // ===== 手帳データ取得・表示 =====
     const NOTEBOOK_API_URL = API_URL.replace('action=get', 'action=getNotebook');
     let notebookData = [];
 
     function fetchNotebookData() {
       document.getElementById('notebook-loading').style.display = 'block';
-      fetch(NOTEBOOK_API_URL)
+      return fetch(NOTEBOOK_API_URL)
         .then(r => r.json())
         .then(res => {
           document.getElementById('notebook-loading').style.display = 'none';
