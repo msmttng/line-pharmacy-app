@@ -1,17 +1,31 @@
-# Changelog - LINE Pharmacy App
+# Changelog
 
-## [Unreleased] - 2026-03-20
+## [2026-03-25] 問診管理画面 バッジ・自動更新・データ元修正
 
 ### Added
-- 自動印刷用PDF（`createAndSavePdf`）のデザインを「A案：ハイライト強調＆2カラム構成（下半分メモ欄）」に変更
-- 手書き問診票（AI OCR）とWebアプリのデータを区別するため、送信用データに `source: 'webapp'` を追加（`gas/app.html`, `github-pages/app.js`）
-- `Code.gs` にて、Webアプリ経由（`source === 'webapp'`）の場合のみPDF自動印刷が実行されるよう処理を分岐
-- MEDIXS併用薬ペースト ブックマークレット (`medixs-bookmarklet/`)
-  - admin.htmlの手帳データをMEDIXS併用薬入力画面に自動入力
-  - クリップボードからの自動読み取り
-  - React対応のvalue設定（nativeInputValueSetter使用）
-  - ブックマークレット設定ページ (`setup.html`)
+- 💬 web問診 / ✍ 手書き問診 バッジ（データ元による自動判定）
+- 3分おき自動リフレッシュ（タブバーにインジケーター表示）
+- `backfillDataSource()` 関数（過去データ一括更新用）
+- `FixAI.gs`（印刷キュー照合によるAI読取復元スクリプト）
+
+### Changed
+- カラム取得制限: 30列 → 35列（AE列「データ元」対応）
+- 名称統一: LINE問診 → web問診
+- pharma_ai_tools キャッシュキー: `submissions_cache` → `submissions_cache_v3` 追加
+
+### Removed
+- 折りたたみ時の「✅ MEDIXS済」「✅ 調剤くん済」サマリーバッジ
+- `markEntryAPI` 内のサマリー動的追加処理
 
 ### Fixed
-- 管理画面（`admin.html`）にて、お酒の「飲まない」が注意色（緑太字）で表示されてしまう不具合を修正。
-  - 同時にクリップボード出力時は「酒: なし」に変換されるよう修正。
+- 「姊娠中」→「妊娠中」誤字修正
+- `badge.style.display` 重複行削除
+
+---
+
+## [2026-03-24] 患者検索・折りたたみ機能
+
+### Added
+- 患者名検索機能（ひらがな・カタカナ・漢字対応）
+- カード折りたたみ機能（全展開/全折りたたみボタン付き）
+- MEDIXS/調剤くん入力済バッジ（スプレッドシート連携）
