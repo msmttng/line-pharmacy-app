@@ -176,7 +176,7 @@ function submitToSpreadsheet(data) {
       translate(data.generic), 
       data.memo || '',
       bookletVal,
-      data.source === 'webapp' ? 'LINE問診' : 'AI読取',
+      data.source === 'webapp' ? 'web問診' : '手書き問診',
       '',
       ''
     ];
