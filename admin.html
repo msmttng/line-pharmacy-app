@@ -573,6 +573,7 @@
     .summary-tag.tag-ok { background: #f0fdf4; color: #16a34a; }
     .summary-tag.tag-source-web { background: #dcfce7; color: #059669; }
     .summary-tag.tag-source-handwritten { background: #f3e8ff; color: #7c3aed; }
+    .summary-tag.tag-source-ai { background: #e0f2fe; color: #0284c7; }
 
     /* ボタン用バッジ */
     .btn-action-wrapper { position: relative; display: inline-block; }
@@ -1091,7 +1092,7 @@
           </div>
           <div class="time">受信: ${item['日時'] || ''}</div>
           <div class="card-summary">
-            ${item['データ元'] === 'web問診' ? '<span class="summary-tag tag-source-web">💬 web問診</span>' : '<span class="summary-tag tag-source-handwritten">✍ 手書き問診</span>'}
+            ${(item['データ元'] === 'web問診' || item['データ元'] === 'LINE問診') ? '<span class="summary-tag tag-source-web">💬 web問診</span>' : '<span class="summary-tag tag-source-handwritten">✍ 手書き問診</span>'}
             ${summaryTags.join('')}
           </div>
           <div class="card-body">
