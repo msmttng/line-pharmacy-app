@@ -638,9 +638,6 @@
     .btn-filter-medixs { border-color: #F47B20; color: #F47B20; }
     .btn-filter-medixs:hover { background: rgba(244, 123, 32, 0.08); }
     .btn-filter-medixs.active { background: #F47B20; border-color: #F47B20; box-shadow: 0 2px 8px rgba(244, 123, 32, 0.3); }
-    .btn-filter-today { border-color: #059669; color: #059669; }
-    .btn-filter-today:hover { background: rgba(5, 150, 105, 0.08); }
-    .btn-filter-today.active { background: #059669; border-color: #059669; box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3); }
     .filter-count { font-size: 0.7rem; background: rgba(255,255,255,0.3); padding: 1px 6px; border-radius: 999px; margin-left: 2px; }
 
     /* 自動更新インジケーター */
@@ -742,7 +739,6 @@
         <div class="collapse-controls" id="collapse-controls" style="display:none;">
           <button class="btn-filter btn-filter-chozai" id="btn-filter-chozai" onclick="toggleFilter('chozai')">🔵 調剤くん未済</button>
           <button class="btn-filter btn-filter-medixs" id="btn-filter-medixs" onclick="toggleFilter('medixs')">🟠 MEDIXS未済</button>
-          <button class="btn-filter btn-filter-today" id="btn-filter-today" onclick="toggleFilter('today')">📅 今日のみ</button>
           <button onclick="expandAll()">▼ 全展開</button>
           <button onclick="collapseAll()">▲ 全たたむ</button>
         </div>
@@ -933,7 +929,6 @@
           let show = matchesSearch(name);
           if (show && filters.chozai && item['調剤くん入力済'] === '済') show = false;
           if (show && filters.medixs && item['MEDIXS入力済'] === '済') show = false;
-          if (show && filters.today && !isToday(item['日時'])) show = false;
           card.style.display = show ? '' : 'none';
           if (show) monshinVisible++;
         }
@@ -990,14 +985,13 @@
     // ===== フィルタ管理 =====
     const filters = {
       chozai: sessionStorage.getItem('filter_chozai') === 'true',
-      medixs: sessionStorage.getItem('filter_medixs') === 'true',
-      today: sessionStorage.getItem('filter_today') === 'true'
+      medixs: sessionStorage.getItem('filter_medixs') === 'true'
     };
 
     function toggleFilter(type) {
       filters[type] = !filters[type];
       sessionStorage.setItem('filter_' + type, filters[type]);
-      const btnId = type === 'chozai' ? 'btn-filter-chozai' : type === 'medixs' ? 'btn-filter-medixs' : 'btn-filter-today';
+      const btnId = type === 'chozai' ? 'btn-filter-chozai' : 'btn-filter-medixs';
       const btn = document.getElementById(btnId);
       btn.classList.toggle('active', filters[type]);
       applySearchFilter();
@@ -1006,22 +1000,20 @@
     // フィルタボタン件数バッジ更新
     function updateFilterCounts() {
       if (!listData.length) return;
-      let chozaiCount = 0, medixsCount = 0, todayCount = 0;
+      let chozaiCount = 0, medixsCount = 0;
       listData.forEach(item => {
         if (item['調剤くん入力済'] !== '済') chozaiCount++;
         if (item['MEDIXS入力済'] !== '済') medixsCount++;
-        if (isToday(item['日時'])) todayCount++;
       });
       document.getElementById('btn-filter-chozai').innerHTML = (filters.chozai ? '✅' : '🔵') + ` 調剤くん未済 <span class="filter-count">${chozaiCount}</span>`;
       document.getElementById('btn-filter-medixs').innerHTML = (filters.medixs ? '✅' : '🟠') + ` MEDIXS未済 <span class="filter-count">${medixsCount}</span>`;
-      document.getElementById('btn-filter-today').innerHTML = (filters.today ? '✅' : '📅') + ` 今日のみ <span class="filter-count">${todayCount}</span>`;
     }
 
     // フィルタ初期状態復元
     function restoreFilters() {
-      ['chozai', 'medixs', 'today'].forEach(type => {
+      ['chozai', 'medixs'].forEach(type => {
         if (filters[type]) {
-          const btnId = type === 'chozai' ? 'btn-filter-chozai' : type === 'medixs' ? 'btn-filter-medixs' : 'btn-filter-today';
+          const btnId = type === 'chozai' ? 'btn-filter-chozai' : 'btn-filter-medixs';
           document.getElementById(btnId).classList.add('active');
         }
       });
@@ -1029,7 +1021,7 @@
 
     // anyFilterActive ヘルパー
     function anyFilterActive() {
-      return filters.chozai || filters.medixs || filters.today;
+      return filters.chozai || filters.medixs;
     }
 
     // ===== 新着通知音 =====
