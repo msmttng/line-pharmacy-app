@@ -1290,6 +1290,7 @@
       text += `■副作用歴、薬物アレルギー:${sideEffectStr} 薬・副作用等:${getDetail(item['薬アレルギー'], item['アレルギー詳細'])}\n`;
       text += `■食物等アレルギー: ${getDetail(item['食品アレルギー'], item['食品詳細'])}\n`;
       text += `■定期的服用薬・サプリメント・OTC: 他院処方:${getDetail(item['他院処方'], item['他院詳細'])} / 市販薬･サプリ:${getDetail(item['市販薬'], item['市販薬詳細'])}\n`;
+      text += `■服薬状況(残薬状況含む): 問題なし\n`;
       text += `■飲食物の摂取状況等: 酒:${formatVal(item['酒'])} / 飲食物:${getDetail(item['飲食物'], item['飲食物詳細'])}\n`;
       text += `■薬学的管理に必要な患者の生活像: 妊娠・授乳・小児:${formatCondition(item['状態'])} / 運転:${formatVal(item['運転'])} / 高所作業:${formatVal(item['高所'])} / コンタクト:${formatVal(item['ソフトコンタクト'])} / 喫煙:${formatVal(item['煙草'])}\n`;
       if (item['備考']) {
