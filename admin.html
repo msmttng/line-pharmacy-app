@@ -1037,8 +1037,8 @@
 
         // 段階的レンダリング: 最初の5件を即時描画、残りはrAFで
         renderBatch(0, 5, true);
-        // 検索が有効なら再適用
-        if (currentSearchQuery) setTimeout(applySearchFilter, 200);
+        // 検索またはフィルタが有効なら再適用
+        if (currentSearchQuery || chozaiFilterActive) setTimeout(applySearchFilter, 200);
         // 全展開/全たたむコントロール表示
         document.getElementById('collapse-controls').style.display = 'flex';
       } else {
@@ -1223,6 +1223,11 @@
           setTimeout(() => { card.classList.add('visible'); }, idx * 40);
         });
       });
+
+      // フィルタが有効なら新しく描画されたカードにも適用
+      if (currentSearchQuery || chozaiFilterActive) {
+        setTimeout(applySearchFilter, 50);
+      }
 
       // 残りがあればrequestIdleCallbackで続きを描画
       if (actualEnd < listData.length) {
