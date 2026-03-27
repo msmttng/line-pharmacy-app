@@ -615,6 +615,29 @@
       background: #f3f4f6;
       color: #374151;
     }
+    .btn-filter-chozai {
+      background: none;
+      border: 2px solid #0066cc;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #0066cc;
+      cursor: pointer;
+      font-family: 'Noto Sans JP', sans-serif;
+      transition: all 0.25s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn-filter-chozai:hover {
+      background: rgba(0, 102, 204, 0.08);
+    }
+    .btn-filter-chozai.active {
+      background: #0066cc;
+      color: white;
+      box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
+    }
 
     /* 自動更新インジケーター */
     .auto-refresh-indicator {
@@ -713,6 +736,7 @@
 
         <!-- 全展開/全閉じるコントロール -->
         <div class="collapse-controls" id="collapse-controls" style="display:none;">
+          <button class="btn-filter-chozai" id="btn-filter-chozai" onclick="toggleChozaiFilter()">🔵 調剤くん未済のみ</button>
           <button onclick="expandAll()">▼ 全て展開</button>
           <button onclick="collapseAll()">▲ 全てたたむ</button>
         </div>
@@ -899,7 +923,11 @@
       monshinCards.forEach((card, i) => {
         if (i < listData.length) {
           const name = listData[i]['名前'] || '';
-          const show = matchesSearch(name);
+          let show = matchesSearch(name);
+          // 調剤くん未済フィルタ
+          if (show && chozaiFilterActive && listData[i]['調剤くん入力済'] === '済') {
+            show = false;
+          }
           card.style.display = show ? '' : 'none';
           if (show) monshinVisible++;
         }
@@ -935,6 +963,17 @@
     }
     function collapseAll() {
       document.querySelectorAll('#container .card:not(.collapsed)').forEach(c => c.classList.add('collapsed'));
+    }
+
+    // ===== 調剤くん未済フィルタ =====
+    let chozaiFilterActive = false;
+
+    function toggleChozaiFilter() {
+      chozaiFilterActive = !chozaiFilterActive;
+      const btn = document.getElementById('btn-filter-chozai');
+      btn.classList.toggle('active', chozaiFilterActive);
+      btn.textContent = chozaiFilterActive ? '✅ 調剤くん未済のみ' : '🔵 調剤くん未済のみ';
+      applySearchFilter();
     }
 
     // ===== 自動更新 =====
