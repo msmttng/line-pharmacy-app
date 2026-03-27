@@ -926,7 +926,6 @@
       // 問診カードのフィルタ
       const monshinCards = document.querySelectorAll('#container .card');
       let monshinVisible = 0;
-      const todayStr = getTodayString();
       monshinCards.forEach((card, i) => {
         if (i < listData.length) {
           const item = listData[i];
@@ -934,7 +933,7 @@
           let show = matchesSearch(name);
           if (show && filters.chozai && item['調剤くん入力済'] === '済') show = false;
           if (show && filters.medixs && item['MEDIXS入力済'] === '済') show = false;
-          if (show && filters.today && !isToday(item['日時'], todayStr)) show = false;
+          if (show && filters.today && !isToday(item['日時'])) show = false;
           card.style.display = show ? '' : 'none';
           if (show) monshinVisible++;
         }
@@ -964,13 +963,16 @@
     }
 
     // ===== 今日判定ヘルパー =====
-    function getTodayString() {
+    function getTodayParts() {
       const now = new Date();
-      return `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
+      return { y: now.getFullYear(), m: now.getMonth()+1, d: now.getDate() };
     }
-    function isToday(dateStr, todayStr) {
+    function isToday(dateStr) {
       if (!dateStr) return false;
-      return dateStr.includes(todayStr);
+      const t = getTodayParts();
+      const m = dateStr.match(/(\d{4})[\/\-年](\d{1,2})[\/\-月](\d{1,2})/);
+      if (!m) return false;
+      return parseInt(m[1]) === t.y && parseInt(m[2]) === t.m && parseInt(m[3]) === t.d;
     }
 
     // ===== カード折りたたみ =====
@@ -1004,12 +1006,11 @@
     // フィルタボタン件数バッジ更新
     function updateFilterCounts() {
       if (!listData.length) return;
-      const todayStr = getTodayString();
       let chozaiCount = 0, medixsCount = 0, todayCount = 0;
       listData.forEach(item => {
         if (item['調剤くん入力済'] !== '済') chozaiCount++;
         if (item['MEDIXS入力済'] !== '済') medixsCount++;
-        if (isToday(item['日時'], todayStr)) todayCount++;
+        if (isToday(item['日時'])) todayCount++;
       });
       document.getElementById('btn-filter-chozai').innerHTML = (filters.chozai ? '✅' : '🔵') + ` 調剤くん未済 <span class="filter-count">${chozaiCount}</span>`;
       document.getElementById('btn-filter-medixs').innerHTML = (filters.medixs ? '✅' : '🟠') + ` MEDIXS未済 <span class="filter-count">${medixsCount}</span>`;
