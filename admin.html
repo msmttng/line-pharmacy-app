@@ -615,14 +615,14 @@
       background: #f3f4f6;
       color: #374151;
     }
-    .btn-filter-chozai {
+    .btn-filter {
       background: none;
-      border: 2px solid #0066cc;
+      border: 2px solid #6b7280;
       border-radius: 8px;
       padding: 6px 14px;
       font-size: 0.8rem;
       font-weight: 600;
-      color: #0066cc;
+      color: #6b7280;
       cursor: pointer;
       font-family: 'Noto Sans JP', sans-serif;
       transition: all 0.25s;
@@ -630,14 +630,18 @@
       align-items: center;
       gap: 5px;
     }
-    .btn-filter-chozai:hover {
-      background: rgba(0, 102, 204, 0.08);
-    }
-    .btn-filter-chozai.active {
-      background: #0066cc;
-      color: white;
-      box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
-    }
+    .btn-filter:hover { background: rgba(107, 114, 128, 0.08); }
+    .btn-filter.active { color: white; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .btn-filter-chozai { border-color: #0066cc; color: #0066cc; }
+    .btn-filter-chozai:hover { background: rgba(0, 102, 204, 0.08); }
+    .btn-filter-chozai.active { background: #0066cc; border-color: #0066cc; box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3); }
+    .btn-filter-medixs { border-color: #F47B20; color: #F47B20; }
+    .btn-filter-medixs:hover { background: rgba(244, 123, 32, 0.08); }
+    .btn-filter-medixs.active { background: #F47B20; border-color: #F47B20; box-shadow: 0 2px 8px rgba(244, 123, 32, 0.3); }
+    .btn-filter-today { border-color: #059669; color: #059669; }
+    .btn-filter-today:hover { background: rgba(5, 150, 105, 0.08); }
+    .btn-filter-today.active { background: #059669; border-color: #059669; box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3); }
+    .filter-count { font-size: 0.7rem; background: rgba(255,255,255,0.3); padding: 1px 6px; border-radius: 999px; margin-left: 2px; }
 
     /* 自動更新インジケーター */
     .auto-refresh-indicator {
@@ -736,9 +740,11 @@
 
         <!-- 全展開/全閉じるコントロール -->
         <div class="collapse-controls" id="collapse-controls" style="display:none;">
-          <button class="btn-filter-chozai" id="btn-filter-chozai" onclick="toggleChozaiFilter()">🔵 調剤くん未済のみ</button>
-          <button onclick="expandAll()">▼ 全て展開</button>
-          <button onclick="collapseAll()">▲ 全てたたむ</button>
+          <button class="btn-filter btn-filter-chozai" id="btn-filter-chozai" onclick="toggleFilter('chozai')">🔵 調剤くん未済</button>
+          <button class="btn-filter btn-filter-medixs" id="btn-filter-medixs" onclick="toggleFilter('medixs')">🟠 MEDIXS未済</button>
+          <button class="btn-filter btn-filter-today" id="btn-filter-today" onclick="toggleFilter('today')">📅 今日のみ</button>
+          <button onclick="expandAll()">▼ 全展開</button>
+          <button onclick="collapseAll()">▲ 全たたむ</button>
         </div>
 
         <!-- スケルトンUI -->
@@ -920,14 +926,15 @@
       // 問診カードのフィルタ
       const monshinCards = document.querySelectorAll('#container .card');
       let monshinVisible = 0;
+      const todayStr = getTodayString();
       monshinCards.forEach((card, i) => {
         if (i < listData.length) {
-          const name = listData[i]['名前'] || '';
+          const item = listData[i];
+          const name = item['名前'] || '';
           let show = matchesSearch(name);
-          // 調剤くん未済フィルタ
-          if (show && chozaiFilterActive && listData[i]['調剤くん入力済'] === '済') {
-            show = false;
-          }
+          if (show && filters.chozai && item['調剤くん入力済'] === '済') show = false;
+          if (show && filters.medixs && item['MEDIXS入力済'] === '済') show = false;
+          if (show && filters.today && !isToday(item['日時'], todayStr)) show = false;
           card.style.display = show ? '' : 'none';
           if (show) monshinVisible++;
         }
@@ -951,6 +958,19 @@
       } else {
         infoEl.textContent = '';
       }
+
+      // フィルタボタンの件数バッジ更新
+      updateFilterCounts();
+    }
+
+    // ===== 今日判定ヘルパー =====
+    function getTodayString() {
+      const now = new Date();
+      return `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
+    }
+    function isToday(dateStr, todayStr) {
+      if (!dateStr) return false;
+      return dateStr.includes(todayStr);
     }
 
     // ===== カード折りたたみ =====
@@ -965,25 +985,80 @@
       document.querySelectorAll('#container .card:not(.collapsed)').forEach(c => c.classList.add('collapsed'));
     }
 
-    // ===== 調剤くん未済フィルタ =====
-    let chozaiFilterActive = false;
+    // ===== フィルタ管理 =====
+    const filters = {
+      chozai: sessionStorage.getItem('filter_chozai') === 'true',
+      medixs: sessionStorage.getItem('filter_medixs') === 'true',
+      today: sessionStorage.getItem('filter_today') === 'true'
+    };
 
-    function toggleChozaiFilter() {
-      chozaiFilterActive = !chozaiFilterActive;
-      const btn = document.getElementById('btn-filter-chozai');
-      btn.classList.toggle('active', chozaiFilterActive);
-      btn.textContent = chozaiFilterActive ? '✅ 調剤くん未済のみ' : '🔵 調剤くん未済のみ';
+    function toggleFilter(type) {
+      filters[type] = !filters[type];
+      sessionStorage.setItem('filter_' + type, filters[type]);
+      const btnId = type === 'chozai' ? 'btn-filter-chozai' : type === 'medixs' ? 'btn-filter-medixs' : 'btn-filter-today';
+      const btn = document.getElementById(btnId);
+      btn.classList.toggle('active', filters[type]);
       applySearchFilter();
+    }
+
+    // フィルタボタン件数バッジ更新
+    function updateFilterCounts() {
+      if (!listData.length) return;
+      const todayStr = getTodayString();
+      let chozaiCount = 0, medixsCount = 0, todayCount = 0;
+      listData.forEach(item => {
+        if (item['調剤くん入力済'] !== '済') chozaiCount++;
+        if (item['MEDIXS入力済'] !== '済') medixsCount++;
+        if (isToday(item['日時'], todayStr)) todayCount++;
+      });
+      document.getElementById('btn-filter-chozai').innerHTML = (filters.chozai ? '✅' : '🔵') + ` 調剤くん未済 <span class="filter-count">${chozaiCount}</span>`;
+      document.getElementById('btn-filter-medixs').innerHTML = (filters.medixs ? '✅' : '🟠') + ` MEDIXS未済 <span class="filter-count">${medixsCount}</span>`;
+      document.getElementById('btn-filter-today').innerHTML = (filters.today ? '✅' : '📅') + ` 今日のみ <span class="filter-count">${todayCount}</span>`;
+    }
+
+    // フィルタ初期状態復元
+    function restoreFilters() {
+      ['chozai', 'medixs', 'today'].forEach(type => {
+        if (filters[type]) {
+          const btnId = type === 'chozai' ? 'btn-filter-chozai' : type === 'medixs' ? 'btn-filter-medixs' : 'btn-filter-today';
+          document.getElementById(btnId).classList.add('active');
+        }
+      });
+    }
+
+    // anyFilterActive ヘルパー
+    function anyFilterActive() {
+      return filters.chozai || filters.medixs || filters.today;
+    }
+
+    // ===== 新着通知音 =====
+    function playNotificationSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
+        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.4);
+      } catch(e) { /* audio not supported */ }
     }
 
     // ===== 自動更新 =====
     let autoRefreshTimer = null;
+    let previousEntryCount = 0;
     const AUTO_REFRESH_MS = 180000; // 3分
 
     function startAutoRefresh() {
-      if (autoRefreshTimer) return; // 二重起動防止
+      if (autoRefreshTimer) return;
       autoRefreshTimer = setInterval(() => {
         console.log('[admin] 自動更新実行');
+        previousEntryCount = listData.length;
         refreshAll();
       }, AUTO_REFRESH_MS);
       const indicator = document.getElementById('auto-refresh-indicator');
@@ -1038,9 +1113,17 @@
         // 段階的レンダリング: 最初の5件を即時描画、残りはrAFで
         renderBatch(0, 5, true);
         // 検索またはフィルタが有効なら再適用
-        if (currentSearchQuery || chozaiFilterActive) setTimeout(applySearchFilter, 200);
+        if (currentSearchQuery || anyFilterActive()) setTimeout(applySearchFilter, 200);
         // 全展開/全たたむコントロール表示
         document.getElementById('collapse-controls').style.display = 'flex';
+        // フィルタ復元 & 件数更新
+        restoreFilters();
+        setTimeout(updateFilterCounts, 300);
+        // 新着通知音
+        if (previousEntryCount > 0 && count > previousEntryCount) {
+          playNotificationSound();
+          console.log(`[admin] 新着通知: ${count - previousEntryCount}件増加`);
+        }
       } else {
         showError('エラー: ' + (res ? res.error : '不明なエラー'));
       }
@@ -1225,7 +1308,7 @@
       });
 
       // フィルタが有効なら新しく描画されたカードにも適用
-      if (currentSearchQuery || chozaiFilterActive) {
+      if (currentSearchQuery || anyFilterActive()) {
         setTimeout(applySearchFilter, 50);
       }
 
