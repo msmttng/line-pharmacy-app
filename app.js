@@ -145,14 +145,18 @@ function generateConfirmation() {
         'patient-condition': t('conf_condition'),
         'weight': t('conf_weight'),
         'drug-allergy': t('conf_drug_allergy'),
+        'drug-allergy-detail': '', // Placeholder for dynamic translation if needed, we'll keep value empty text in label
         'food-allergy': t('conf_food_allergy'),
+        'food-allergy-detail': '',
         'env-allergy': t('conf_env_allergy'),
         'current-presc': t('conf_current_presc'),
+        'current-presc-detail': '',
         'otc-list': t('conf_otc'),
         'otc-suppl-detail': t('conf_otc_detail'),
         'food-drink': t('conf_food_drink'),
         'food-drink-detail': t('conf_food_drink_detail'),
         'history': t('conf_history'),
+        'history-other-detail': t('conf_history_detail'),
         'driving': t('conf_driving'),
         'height-work': t('conf_height_work'),
         'soft-contact': t('conf_soft_contact'),
@@ -274,8 +278,19 @@ async function handleSubmit(e) {
     // Prepare message for LINE if applicable
     const genericMapSubmit = { 'prefer': 'ジェネリックで大丈夫', 'ag': 'オーソライズド・ジェネリックでなら希望', 'avoid': '先発医薬品を希望する' };
     const genericText = genericMapSubmit[formData.generic] || formData.generic;
-    const condStr = (formData['patient-condition'] !== 'none') ? `\n状態: ${formData['patient-condition']} (体重: ${formData.weight || '-'}kg)` : '\n状態: 該当なし';
-    const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${condStr}\n薬アレルギー: ${formData['drug-allergy']}\n副作用: ${formData['side-effect'] || 'なし'}\n運転: ${formData.driving}\n高所作業: ${formData['height-work']}\nジェネリック: ${genericText}`;
+    
+    // translate patient-condition to Japanese for LINE
+    const pCondMap = { 'none': '該当なし', 'pregnant': '妊娠中', 'breastfeeding': '授乳中', 'pediatric': '小児' };
+    const condJp = pCondMap[formData['patient-condition']] || formData['patient-condition'];
+    const condStr = (formData['patient-condition'] !== 'none') ? `\n状態: ${condJp} (体重: ${formData.weight || '-'}kg)` : '\n状態: 該当なし';
+    
+    const yesNoMap = { 'yes': 'あり', 'no': 'なし' };
+    const yesNoDoMap = { 'yes': 'する', 'no': 'しない' };
+    const drugAllergyJp = yesNoMap[formData['drug-allergy']] || formData['drug-allergy'];
+    const drivingJp = yesNoDoMap[formData.driving] || formData.driving;
+    const heightWorkJp = yesNoMap[formData['height-work']] || formData['height-work'];
+
+    const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${condStr}\n薬アレルギー: ${drugAllergyJp}\n副作用: ${formData['side-effect'] || 'なし'}\n運転: ${drivingJp}\n高所作業: ${heightWorkJp}\nジェネリック: ${genericText}`;
 
     try {
         if (typeof liff !== 'undefined' && liff.isInClient()) {
@@ -290,6 +305,8 @@ async function handleSubmit(e) {
 
     // Submit to GAS backend (value keys are always English — Code.gs translates to Japanese)
     formData.source = 'webapp';
+    formData.lang = typeof currentLang !== 'undefined' ? currentLang : 'ja';
+
     fetch(API_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -306,16 +323,8 @@ async function handleSubmit(e) {
 }
 
 function showSuccess() {
-    document.querySelector('.form-container').innerHTML = `
-        <div class="success-view" style="text-align: center; padding: 40px 20px;">
-            <div class="success-icon" style="color: #06C755; font-size: 80px; margin-bottom: 20px;">✓</div>
-            <h2 style="font-size: 1.5rem; color: #333; margin-bottom: 15px;">${t('success_title')}</h2>
-            <p style="font-size: 1.1rem; color: #555; line-height: 1.6;">${t('success_message')}</p>
-            <button class="btn btn-primary" onclick="closeLiff()" style="margin-top:30px; padding: 12px 30px; font-size: 1.1rem; border-radius: 30px; border: none; cursor: pointer;">${t('btn_close')}</button>
-        </div>
-    `;
-    document.querySelector('.app-header').style.display = 'none';
-    document.querySelector('.form-nav').style.display = 'none';
+    // 完了後の画面（LINE友達追加誘導）へリダイレクト
+    window.location.href = 'line-friend-add.html';
 }
 
 function closeLiff() {
