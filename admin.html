@@ -1343,16 +1343,17 @@
         text += `■電話番号: ${formatTel(item['電話番号'])}\n`;
       }
 
+      const cleanStr = (str) => typeof str === 'string' ? str.replace(/[\r\n]+/g, ' ') : str;
       const formatVal = (val) => {
         if (!val || val === 'なし/しない' || val === 'なし/飲まない' || val === '飲まない' || val === 'false' || val === 'none' || val === 'no') return 'なし';
         if (val === 'yes') return 'あり';
-        return val;
+        return cleanStr(val);
       };
       
       const getDetail = (val, detail) => {
         let v = formatVal(val);
         if (v !== 'なし' && detail) {
-            return `${v} (${detail})`;
+            return `${v} (${cleanStr(detail)})`;
         }
         return v;
       };
@@ -1362,14 +1363,14 @@
         if (val === 'pregnant' || val === '妊娠中(可能性あり)') return '妊娠中(可能性あり)';
         if (val === 'breastfeeding' || val === '授乳中') return '授乳中';
         if (val === 'pediatric' || val === '小児(15歳未満)') return '小児(15歳未満)';
-        return val;
+        return cleanStr(val);
       };
       const formatGeneric = (val) => {
         if (!val) return 'なし';
         if (val === 'prefer') return 'ジェネリックで大丈夫';
         if (val === 'ag') return 'オーソライズド・ジェネリックでなら希望';
         if (val === 'avoid') return '先発医薬品を希望する';
-        return val;
+        return cleanStr(val);
       };
 
       text += `■患者様の状態: ${formatCondition(item['状態'])}\n`;
@@ -1388,7 +1389,7 @@
       text += `■飲食物の摂取状況等: 酒:${formatVal(item['酒'])} / 飲食物:${getDetail(item['飲食物'], item['飲食物詳細'])}\n`;
       text += `■薬学的管理に必要な患者の生活像: 妊娠・授乳・小児:${formatCondition(item['状態'])} / 運転:${formatVal(item['運転'])} / 高所作業:${formatVal(item['高所'])} / コンタクト:${formatVal(item['ソフトコンタクト'])} / 喫煙:${formatVal(item['煙草'])}\n`;
       if (item['備考']) {
-        text += `■特記事項: ${item['備考']}\n`;
+        text += `■特記事項: ${cleanStr(item['備考'])}\n`;
       }
 
       if (!isChozaiKun && MEDIXS_EXTENSION_ID !== '__EXTENSION_ID_HERE__' && typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
