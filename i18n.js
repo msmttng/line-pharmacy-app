@@ -7,6 +7,7 @@ const I18N = {
   // ===== 日本語 (デフォルト) =====
   ja: {
     // --- ヘッダー ---
+    page_title: '【薬局】初回問診票',
     title: '初回問診票',
     step_counter: '{current} / {total}',
 
@@ -151,9 +152,12 @@ const I18N = {
     conf_condition: '患者様の状態',
     conf_weight: '体重',
     conf_drug_allergy: '薬・副作用歴',
+    conf_drug_allergy_detail: '薬・副作用詳細',
     conf_food_allergy: '食物アレルギー',
+    conf_food_allergy_detail: '食物アレルギー詳細',
     conf_env_allergy: '環境アレルギー',
     conf_current_presc: '他での処方',
+    conf_current_presc_detail: '他院処方詳細',
     conf_otc: '使用中の市販薬・サプリ',
     conf_otc_detail: '市販薬詳細',
     conf_food_drink: '日常的な飲食物',
@@ -197,7 +201,9 @@ const I18N = {
 
   // ===== English =====
   en: {
+    page_title: '[Pharmacy] Initial Questionnaire',
     title: 'Initial Questionnaire',
+    step_counter: '{current} / {total}',
     step1_title: 'Basic Information',
     name_label: 'Your Name',
     name_placeholder: 'e.g. John Smith',
@@ -328,9 +334,12 @@ const I18N = {
     conf_condition: 'Patient Condition',
     conf_weight: 'Weight',
     conf_drug_allergy: 'Drug Allergy / Side Effects',
+    conf_drug_allergy_detail: 'Drug Allergy Details',
     conf_food_allergy: 'Food Allergy',
+    conf_food_allergy_detail: 'Food Allergy Details',
     conf_env_allergy: 'Environmental Allergy',
     conf_current_presc: 'Prescriptions from Other Hospitals',
+    conf_current_presc_detail: 'Other Prescriptions Details',
     conf_otc: 'OTC Medicines / Supplements',
     conf_otc_detail: 'OTC Details',
     conf_food_drink: 'Regular Food / Drinks',
@@ -372,7 +381,9 @@ const I18N = {
 
   // ===== 中文（简体） =====
   zh: {
+    page_title: '【药局】初诊问诊表',
     title: '初诊问诊表',
+    step_counter: '{current} / {total}',
     step1_title: '基本信息',
     name_label: '姓名',
     name_placeholder: '例：张三',
@@ -503,9 +514,12 @@ const I18N = {
     conf_condition: '患者状况',
     conf_weight: '体重',
     conf_drug_allergy: '药物过敏/副作用',
+    conf_drug_allergy_detail: '药物过敏详情',
     conf_food_allergy: '食物过敏',
+    conf_food_allergy_detail: '食物过敏详情',
     conf_env_allergy: '环境过敏',
     conf_current_presc: '其他医院处方',
+    conf_current_presc_detail: '其他医院处方详情',
     conf_otc: '非处方药/保健品',
     conf_otc_detail: '非处方药详情',
     conf_food_drink: '日常饮食',

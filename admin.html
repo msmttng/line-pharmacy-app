@@ -1151,6 +1151,43 @@
       box.style.display = 'block';
     }
 
+    // ===== 氏名フォーマットとコピー =====
+    function formatPatientName(name) {
+      if (!name) return '名前なし';
+      const n = name.trim();
+      // すでにスペースがあれば全角スペース1つに統一
+      if (n.includes(' ') || n.includes('　')) {
+        return n.replace(/[ 　]+/g, '　');
+      }
+      // スペースがなく4文字なら、2・2で分割する（簡易予測）
+      if (n.length === 4) {
+        return n.slice(0, 2) + '　' + n.slice(2);
+      }
+      return n;
+    }
+
+    window.copyPatientName = function(nameText, el) {
+      navigator.clipboard.writeText(nameText).then(() => {
+        const toast = document.createElement('span');
+        toast.textContent = 'コピーしました';
+        toast.style.position = 'absolute';
+        toast.style.top = '-28px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.background = '#111827';
+        toast.style.color = '#ffffff';
+        toast.style.padding = '4px 8px';
+        toast.style.borderRadius = '6px';
+        toast.style.fontSize = '0.75rem';
+        toast.style.pointerEvents = 'none';
+        toast.style.whiteSpace = 'nowrap';
+        toast.style.zIndex = '100';
+        toast.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+        el.appendChild(toast);
+        setTimeout(() => toast.remove(), 1200);
+      });
+    };
+
     // バッチレンダリング: start〜endを描画し、残りをrequestAnimationFrameで非同期処理
     function renderBatch(start, end, firstBatch) {
       const container = document.getElementById('container');
@@ -1203,8 +1240,11 @@
         div.innerHTML = `
           <div class="header">
             <div class="name">
-              ${item['名前'] || '名前なし'} <span style="font-size: 1rem; color: #6b7280; font-weight: normal;">様</span>
-              <span class="name-sub">TEL: ${formatTel(item['電話番号'])}</span>
+              <span style="cursor: pointer; position: relative; border-bottom: 1px dashed #9ca3af;" onclick="copyPatientName('${formatPatientName(item['名前'])}', this)" title="クリックで氏名をコピー">
+                ${formatPatientName(item['名前'])}
+              </span>
+              <span style="font-size: 1rem; color: #6b7280; font-weight: normal; margin-left: 4px;">様</span>
+              <span class="name-sub" style="margin-left: 8px;">TEL: ${formatTel(item['電話番号'])}</span>
             </div>
             <div class="actions">
               <button class="card-toggle" onclick="toggleCard(this)"><span class="toggle-icon">▼</span> 詳細</button>
