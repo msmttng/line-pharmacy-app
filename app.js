@@ -104,8 +104,29 @@ function validateStep(step) {
         }
     });
 
+    // Custom phone validation inside step 1
+    let phoneErrorMsg = '';
+    if (step === 1 && isValid) {
+        const phoneInput = activeSection.querySelector('#phone');
+        if (phoneInput && phoneInput.value.trim()) {
+            const digitsOnly = phoneInput.value.replace(/\D/g, '');
+            if (!/^0/.test(digitsOnly) || (digitsOnly.length !== 10 && digitsOnly.length !== 11)) {
+                isValid = false;
+                phoneInput.style.borderColor = 'var(--error-color)';
+                // We use a direct JP string here or ideally an i18n key if available, but Japanese is fine since it's the main usage
+                phoneErrorMsg = '電話番号は市外局番（0）から始まる10桁または11桁で入力してください。';
+            } else {
+                phoneInput.style.borderColor = 'var(--border-color)';
+            }
+        }
+    }
+
     if (!isValid) {
-        alert(t('validation_required'));
+        if (phoneErrorMsg) {
+            alert(phoneErrorMsg);
+        } else {
+            alert(t('validation_required'));
+        }
     }
     return isValid;
 }
@@ -346,6 +367,26 @@ function closeLiff() {
 }
 
 // --- Event Listeners ---
+const phoneInputEl = document.getElementById('phone');
+if (phoneInputEl) {
+    phoneInputEl.addEventListener('input', function(e) {
+        let val = e.target.value;
+        // Convert zenkaku numbers to hankaku
+        val = val.replace(/[０-９]/g, function(s) {
+            return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+        });
+        // Normalize various hyphens to a standard half-width hyphen
+        val = val.replace(/[ー−‐－]/g, '-');
+        
+        // Remove characters other than numbers and hyphens
+        val = val.replace(/[^\d-]/g, '');
+        
+        if (val !== e.target.value) {
+            e.target.value = val;
+        }
+    });
+}
+
 document.getElementById('next-btn').addEventListener('click', handleNext);
 document.getElementById('prev-btn').addEventListener('click', handlePrev);
 document.getElementById('submit-btn').addEventListener('click', handleSubmit);
