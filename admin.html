@@ -1090,7 +1090,7 @@
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-      return fetch(API_URL, { signal: controller.signal })
+      return fetch(API_URL + '&t=' + Date.now(), { signal: controller.signal })
         .then(r => { clearTimeout(timeoutId); return r.json(); });
     }
 
@@ -1650,7 +1650,7 @@
 
     function fetchNotebookData() {
       document.getElementById('notebook-loading').style.display = 'block';
-      return fetch(NOTEBOOK_API_URL)
+      return fetch(NOTEBOOK_API_URL + '&t=' + Date.now())
         .then(r => r.json())
         .then(res => {
           document.getElementById('notebook-loading').style.display = 'none';
