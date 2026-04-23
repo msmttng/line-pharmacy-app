@@ -1246,8 +1246,6 @@
         if (item['備考']) summaryTags.push('<span class="summary-tag tag-warning">📝 備考あり</span>');
         if (summaryTags.length === 0) summaryTags.push('<span class="summary-tag tag-ok">✓ 特記なし</span>');
         
-        if (item['MEDIXS入力済'] === '済') summaryTags.push('<span class="summary-tag tag-entered">✅ MEDIXS済</span>');
-        if (item['調剤くん入力済'] === '済') summaryTags.push('<span class="summary-tag tag-entered">✅ 調剤くん済</span>');
 
         // データ元タグを先頭に追加
         if (item['データ元'] === 'AI読取') summaryTags.unshift('<span class="summary-tag tag-source-ai">🤖 AI読取</span>');
@@ -1273,7 +1271,7 @@
                 <button class="btn btn-secondary" onclick="copyText(${i}, this, true)">調剤くん用</button>
                 ${item['調剤くん入力済'] === '済' ? '<span class="badge-done">済</span>' : ''}
               </div>
-              <button class="btn" style="background:#fee2e2; color:#ef4444;" onclick="deleteItem(${i}, this, ${item._rowIndex})">🗑️ 非表示</button>
+              <button class="btn" style="background:transparent; color:#9ca3af; border:none; padding:4px 8px; font-size:0.85rem;" onclick="deleteItem(${i}, this, ${item._rowIndex})" title="一覧から非表示">✕ 非表示</button>
             </div>
           </div>
           <div class="time">受信: ${item['日時'] || ''}</div>
@@ -1476,14 +1474,6 @@
           if (wrapper && !wrapper.querySelector('.badge-done')) {
              wrapper.insertAdjacentHTML('beforeend', '<span class="badge-done">済</span>');
           }
-          const cardSummary = btn.closest('.card').querySelector('.card-summary');
-          if (cardSummary) {
-            const badgeHtml = '<span class="summary-tag tag-entered">✅ ' + (isChozaiKun ? '調剤くん済' : 'MEDIXS済') + '</span>';
-            if (!cardSummary.innerHTML.includes(isChozaiKun ? '調剤くん済' : 'MEDIXS済')) {
-              cardSummary.insertAdjacentHTML('beforeend', badgeHtml);
-            }
-          }
-        }
       } catch(e) {
         console.error('Entry tracking failed:', e);
       }
