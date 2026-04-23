@@ -587,6 +587,7 @@
     .summary-tag.tag-source-web { background: #dcfce7; color: #059669; }
     .summary-tag.tag-source-handwritten { background: #f3e8ff; color: #7c3aed; }
     .summary-tag.tag-source-ai { background: #e0f2fe; color: #0284c7; }
+    .summary-tag.tag-entered { background: #fee2e2; color: #dc2626; border: 1px solid #f87171; }
 
     /* ボタン用バッジ */
     .btn-action-wrapper { position: relative; display: inline-block; }
@@ -1236,6 +1237,14 @@
         if (item['他院処方'] && item['他院処方'] !== 'なし' && item['他院処方'] !== '' && item['他院処方'] !== 'none' && item['他院処方'] !== 'no') summaryTags.push('<span class="summary-tag tag-info">🏥 他院処方あり</span>');
         if (item['備考']) summaryTags.push('<span class="summary-tag tag-warning">📝 備考あり</span>');
         if (summaryTags.length === 0) summaryTags.push('<span class="summary-tag tag-ok">✓ 特記なし</span>');
+        
+        if (item['MEDIXS入力済'] === '済') summaryTags.push('<span class="summary-tag tag-entered">✅ MEDIXS済</span>');
+        if (item['調剤くん入力済'] === '済') summaryTags.push('<span class="summary-tag tag-entered">✅ 調剤くん済</span>');
+
+        // データ元タグを先頭に追加
+        if (item['データ元'] === 'AI読取') summaryTags.unshift('<span class="summary-tag tag-source-ai">🤖 AI読取</span>');
+        else if (item['データ元'] === 'LINE問診' || item['データ元'] === 'web問診') summaryTags.unshift('<span class="summary-tag tag-source-web">💬 web問診</span>');
+        else summaryTags.unshift('<span class="summary-tag tag-source-handwritten">✍ 手書き問診</span>');
 
         div.innerHTML = `
           <div class="header">
@@ -1256,11 +1265,11 @@
                 <button class="btn btn-secondary" onclick="copyText(${i}, this, true)">調剤くん用</button>
                 ${item['調剤くん入力済'] === '済' ? '<span class="badge-done">済</span>' : ''}
               </div>
+              <button class="btn" style="background:#fee2e2; color:#ef4444;" onclick="deleteItem(${i}, this, ${item._rowIndex})">🗑️ 非表示</button>
             </div>
           </div>
           <div class="time">受信: ${item['日時'] || ''}</div>
           <div class="card-summary">
-            ${(item['データ元'] === 'web問診' || item['データ元'] === 'LINE問診') ? '<span class="summary-tag tag-source-web">💬 web問診</span>' : '<span class="summary-tag tag-source-handwritten">✍ 手書き問診</span>'}
             ${summaryTags.join('')}
           </div>
           <div class="card-body">
@@ -1459,6 +1468,13 @@
           if (wrapper && !wrapper.querySelector('.badge-done')) {
              wrapper.insertAdjacentHTML('beforeend', '<span class="badge-done">済</span>');
           }
+          const cardSummary = btn.closest('.card').querySelector('.card-summary');
+          if (cardSummary) {
+            const badgeHtml = '<span class="summary-tag tag-entered">✅ ' + (isChozaiKun ? '調剤くん済' : 'MEDIXS済') + '</span>';
+            if (!cardSummary.innerHTML.includes(isChozaiKun ? '調剤くん済' : 'MEDIXS済')) {
+              cardSummary.insertAdjacentHTML('beforeend', badgeHtml);
+            }
+          }
         }
       } catch(e) {
         console.error('Entry tracking failed:', e);
@@ -1474,6 +1490,37 @@
         }).catch(() => fallbackCopy(text, btn));
       } else {
         fallbackCopy(text, btn);
+      }
+    }
+
+    async function deleteItem(idx, btn, rowIndex) {
+      if (!confirm("テストデータとしてこの問診を論理削除（非表示）にしますか？\\n（一覧や自動印刷の対象外になります。復元したい場合はスプレッドシートから直接「削除フラグ」を消してください）")) return;
+      
+      const oldText = btn.innerText;
+      btn.innerText = '削除中...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(\`https://script.google.com/macros/s/AKfycbw3ohRCQ87GMgFqOG-TPKbVE6h5uvCQsuIRl1JChA7mpIFoFDs9S0S6xP6Rx9DH6aVTiQ/exec?action=deleteRow&rowIndex=\${rowIndex}\`);
+        const resData = await res.json();
+        if (resData.success) {
+          const card = btn.closest('.card');
+          card.style.opacity = '0';
+          card.style.transform = 'translateY(-10px)';
+          setTimeout(() => { card.style.display = 'none'; }, 250);
+          
+          const badge = document.getElementById('tab-monshin-badge');
+          let cnt = parseInt(badge.textContent, 10);
+          if(!isNaN(cnt) && cnt > 0) badge.textContent = cnt - 1;
+        } else {
+          alert('削除エラー: ' + (resData.error || '不明なエラー'));
+          btn.innerText = oldText;
+          btn.disabled = false;
+        }
+      } catch(err) {
+        alert('通信エラー: ' + (err.message || err));
+        btn.innerText = oldText;
+        btn.disabled = false;
       }
     }
 
