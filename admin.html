@@ -683,6 +683,10 @@
       0%, 100% { opacity: 0.4; }
       50% { opacity: 1; }
     }
+
+    .tag-source-ai { background: #f3e8ff; color: #7c3aed; }
+    .tag-source-line { background: #dcfce7; color: #059669; }
+    .tag-entered { background: #fee2e2; color: #dc2626; border: 1px solid #f87171; }
   </style>
 </head>
 <body>
@@ -1384,7 +1388,7 @@
     // Chrome拡張インストール後、chrome://extensions で表示されるIDに置き換えてください
     const MEDIXS_EXTENSION_ID = 'gekigkglmaeohlpnbmdleckcompealfj';
 
-    async function copyText(idx, btn, isChozaiKun = false) {
+    async async function copyText(idx, btn, isChozaiKun = false) {
       const item = listData[idx];
       const formatTel = (tel) => { if (!tel) return '不明'; let d = tel.replace(/[^0-9+]/g, ''); if (d.startsWith('+81')) d = '0' + d.slice(3); d = d.replace(/[^0-9]/g, ''); if (d.match(/^(090|080|070|050)/)) return d.replace(/^(\d{3})(\d{4})(\d{4})$/, '$1-$2-$3'); if (d.match(/^0\d/)) return d.replace(/^(\d{2,4})(\d{2,4})(\d{4})$/, '$1-$2-$3'); return tel; };
       let text = isChozaiKun ? "" : "【初回問診引用】\n";
@@ -1501,7 +1505,7 @@
       btn.disabled = true;
 
       try {
-        const res = await fetch(\`https://script.google.com/macros/s/AKfycbw3ohRCQ87GMgFqOG-TPKbVE6h5uvCQsuIRl1JChA7mpIFoFDs9S0S6xP6Rx9DH6aVTiQ/exec?action=deleteRow&rowIndex=\${rowIndex}\`);
+        const res = await fetch(`https://script.google.com/macros/s/AKfycbw3ohRCQ87GMgFqOG-TPKbVE6h5uvCQsuIRl1JChA7mpIFoFDs9S0S6xP6Rx9DH6aVTiQ/exec?action=deleteRow&rowIndex=${rowIndex}`);
         const resData = await res.json();
         if (resData.success) {
           const card = btn.closest('.card');
