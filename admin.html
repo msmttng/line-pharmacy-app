@@ -1392,7 +1392,7 @@
     // Chrome拡張インストール後、chrome://extensions で表示されるIDに置き換えてください
     const MEDIXS_EXTENSION_ID = 'gekigkglmaeohlpnbmdleckcompealfj';
 
-    async async function copyText(idx, btn, isChozaiKun = false) {
+    async function copyText(idx, btn, isChozaiKun = false) {
       const item = listData[idx];
       const formatTel = (tel) => { if (!tel) return '不明'; let d = tel.replace(/[^0-9+]/g, ''); if (d.startsWith('+81')) d = '0' + d.slice(3); d = d.replace(/[^0-9]/g, ''); if (d.match(/^(090|080|070|050)/)) return d.replace(/^(\d{3})(\d{4})(\d{4})$/, '$1-$2-$3'); if (d.match(/^0\d/)) return d.replace(/^(\d{2,4})(\d{2,4})(\d{4})$/, '$1-$2-$3'); return tel; };
       let text = isChozaiKun ? "" : "【初回問診引用】\n";
