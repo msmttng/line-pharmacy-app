@@ -17,6 +17,14 @@ function doGet(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
+  // 管理画面から調剤くん・MEDIXSの入力済をマーク
+  if (action === 'markEntered') {
+    const rowIndex = parseInt(e.parameter.rowIndex, 10);
+    const target = e.parameter.target;
+    return ContentService.createTextOutput(JSON.stringify(markEntered(rowIndex, target)))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   // 印刷済みマークを更新
   if (action === 'markPrinted') {
     const rowIndex = parseInt(e.parameter.rowIndex, 10);
@@ -210,7 +218,7 @@ function getSubmissions() {
     const sheet = ss.getSheets()[0];
     
     const lastRow = sheet.getLastRow();
-    const lastCol = Math.min(sheet.getLastColumn(), 35); // ヘッダー数(データ元等含む)
+    const lastCol = Math.min(sheet.getLastColumn(), 40); // ヘッダー数(データ元や入力済フラグ等を含むため40まで拡張)
     
     if (lastRow <= 1) return { success: true, list: [] };
     
@@ -225,8 +233,10 @@ function getSubmissions() {
     const data = sheet.getRange(startRow, 1, numRows, lastCol).getValues();
     
     // 逆順（最新が上）にしてオブジェクトにマッピング
-    const list = data.reverse().map(r => {
+    const list = data.reverse().map((r, index) => {
       let o = {};
+      o['_rowIndex'] = startRow + numRows - 1 - index; // オリジナルの行番号を付与
+
       headers.forEach((name, i) => { 
         if(name) {
           let val = r[i];
@@ -634,4 +644,36 @@ function backfillDataSource() {
   cache.remove('submissions_cache_v2');
   cache.remove('submissions_cache_v3');
   console.log('データ元を一括更新しました: ' + updated + '行を「web問診」に設定');
+}
+
+/**
+ * 管理画面からの「済」マーク処理
+ */
+function markEntered(rowIndex, target) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheets()[0];
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    
+    // 対象カラム名の決定
+    const colName = (target === 'chozai') ? '調剤くん入力済' : 'MEDIXS入力済';
+    let colIndex = headers.indexOf(colName) + 1;
+    
+    // カラムが存在しなければ追加
+    if (colIndex === 0) {
+      colIndex = headers.length + 1;
+      sheet.getRange(1, colIndex).setValue(colName).setBackground('#eeeeee').setFontWeight('bold');
+    }
+    
+    sheet.getRange(rowIndex, colIndex).setValue('済');
+    
+    // キャッシュをクリア
+    const scriptCache = CacheService.getScriptCache();
+    scriptCache.remove('submissions_cache_v3');
+    
+    return { success: true };
+  } catch (err) {
+    console.error(err.toString());
+    return { success: false, error: err.toString() };
+  }
 }

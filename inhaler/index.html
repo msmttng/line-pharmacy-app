@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>吸入指導ガイド｜丸山薬局</title>
+    <!-- Google Fonts のみ外部依存可の要件 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* 医療系の清潔感のある青 */
+            --primary-color: #0277bd;
+            --primary-dark: #01579b;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #2c3e50;
+            --text-sub: #546e7a;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            color: var(--text-main);
+            /* タップ時のハイライトを無効化（独自スタイルを適用するため） */
+            -webkit-tap-highlight-color: transparent; 
+            /* スワイプでのリロードなどを防止 */
+            overscroll-behavior-y: none; 
+        }
+
+        header {
+            background-color: var(--primary-dark);
+            color: white;
+            padding: 24px;
+            text-align: center;
+            font-size: 32px; /* 高齢者向けに大きく */
+            font-weight: 700;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .container {
+            padding: 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* パンくずリスト */
+        .breadcrumbs {
+            font-size: 22px;
+            margin-bottom: 32px;
+            color: var(--text-sub);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+        
+        .breadcrumbs span.clickable {
+            color: var(--primary-color);
+            cursor: pointer;
+            padding: 8px 0;
+        }
+        
+        .breadcrumbs span.clickable:active {
+            opacity: 0.6;
+        }
+
+        .breadcrumbs span.separator {
+            margin: 0 16px;
+            color: #95a5a6;
+        }
+
+        /* 画面セクション（フェードアニメーション） */
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* グリッドレイアウト */
+        .device-grid, .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 28px;
+        }
+
+        /* カードデザイン */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 36px 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            cursor: pointer;
+            min-height: 160px; /* タッチ領域 60px以上を大きくクリア */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border: 4px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .card:active {
+            transform: scale(0.96);
+            border-color: var(--primary-color);
+            background: #f8fdff;
+        }
+
+        .card-icon {
+            fill: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .device-image {
+            width: 140px;
+            height: 140px;
+            object-fit: contain;
+            margin-bottom: 16px;
+        }
+
+        .card h2 {
+            margin: 0 0 16px 0;
+            font-size: 28px;
+            color: var(--primary-dark);
+            line-height: 1.4;
+        }
+
+        .card p.drugs {
+            font-size: 18px;
+            color: var(--text-sub);
+            margin: 0;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        /* ボタンデザイン */
+        .btn-container {
+            margin-top: 48px;
+            text-align: center;
+        }
+
+        .btn {
+            background-color: white;
+            color: var(--primary-dark);
+            border: 3px solid var(--primary-dark);
+            border-radius: 12px;
+            padding: 20px 56px;
+            font-size: 26px;
+            font-weight: 700;
+            cursor: pointer;
+            min-height: 80px; /* タッチ領域 60px以上 */
+            min-width: 240px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.06);
+            transition: all 0.2s;
+        }
+        
+        .btn:active {
+            background-color: var(--primary-color);
+            color: white;
+            transform: scale(0.96);
+        }
+
+        .btn svg {
+            margin-right: 16px;
+            fill: currentColor;
+        }
+
+        /* 動画プレイヤー */
+        .video-wrapper {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 16px 32px rgba(0,0,0,0.2);
+            aspect-ratio: 16 / 9; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+        }
+
+        .error-message {
+            display: none;
+            background-color: #ffdde0;
+            color: #b71c1c;
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 24px;
+            border: 3px solid #e53935;
+        }
+
+        /* 動画選択用アイコン */
+        .video-card-icon {
+            font-size: 56px;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>吸入指導ガイド｜丸山薬局</header>
+
+<div class="container">
+    <div class="breadcrumbs" id="breadcrumbs"></div>
+
+    <!-- Step 1: デバイス選択画面 -->
+    <div id="step1" class="screen active">
+        <div class="device-grid" id="deviceList"></div>
+    </div>
+
+    <!-- Step 2: 動画選択画面 -->
+    <div id="step2" class="screen">
+        <div class="video-grid" id="videoList"></div>
+        <div class="btn-container">
+            <button class="btn" onclick="goBackToStep1()">
+                <svg viewBox="0 0 24 24" width="28" height="28"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                もどる
+            </button>
+        </div>
+    </div>
+
+    <!-- Step 3: 動画再生画面 -->
+    <div id="step3" class="screen">
+        <div id="errorMessage" class="error-message">動画ファイルが見つかりません。</div>
+        <div class="video-wrapper">
+            <!-- 該当の動画を自動再生し、ネイティブコントロールを表示 -->
+            <video id="videoPlayer" controls playsinline>
+                お使いのブラウザは動画の再生に対応していません。
+            </video>
+        </div>
+        <div class="btn-container">
+            <button class="btn" onclick="goBackToStep2()">
+                <svg viewBox="0 0 24 24" width="28" height="28"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                もどる
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ---------- データ定義（8デバイス） ----------
+// 出典：一般社団法人 日本喘息学会 公式MP4（https://jasweb.or.jp/video/）
+const inhalerData = [
+    {
+        id: "ellipta",
+        name: "エリプタ",
+        drugs: "テリルジー・レルベア・アニュイティ<br>エンクラッセ・アノーロ",
+        img: "images/ellipta.png",
+        videos: [
+            { title: "使い方の手順", path: "https://jasweb.or.jp/video/movie/5_Ellipta_ver2.mp4" }
+        ]
+    },
+    {
+        id: "respimat",
+        name: "レスピマット",
+        drugs: "スピリーバ・スピオルト",
+        img: "images/respimat.png",
+        videos: [
+            { title: "前準備あり", path: "https://jasweb.or.jp/video/movie/2_Respimat_ver2.mp4" },
+            { title: "毎日の吸入のみ", path: "https://jasweb.or.jp/video/movie/2_Respimat_Short_ver2.mp4" }
+        ]
+    },
+    {
+        id: "turbuhaler_symbicort",
+        name: "タービュヘイラー<br>（シムビコート）",
+        drugs: "シムビコート",
+        img: "images/turbuhaler_symbicort.png",
+        videos: [
+            { title: "前準備あり", path: "https://jasweb.or.jp/video/movie/6A_Symbicort_Turbuhaler_ver2.mp4" },
+            { title: "毎日の吸入のみ", path: "https://jasweb.or.jp/video/movie/6A_Symbicort_Turbuhaler_ver2_short.mp4" }
+        ]
+    },
+    {
+        id: "turbuhaler_pulmicort",
+        name: "タービュヘイラー<br>（パルミコート）",
+        drugs: "パルミコート",
+        img: "images/turbuhaler_pulmicort.png",
+        videos: [
+            { title: "前準備あり", path: "https://jasweb.or.jp/video/movie/6B_Pulmicort_Turbuhaler_ver2.mp4" },
+            { title: "毎日の吸入のみ", path: "https://jasweb.or.jp/video/movie/6B_Pulmicort_Turbuhaler_short.mp4" }
+        ]
+    },
+    {
+        id: "handihaler",
+        name: "ハンディヘラー",
+        drugs: "スピリーバ",
+        img: "images/handihaler.png",
+        videos: [
+            { title: "使い方の手順", path: "https://jasweb.or.jp/video/movie/10_Handihaler_ver2.mp4" }
+        ]
+    },
+    {
+        id: "diskus",
+        name: "ディスカス",
+        drugs: "フルタイド・セレベント・アドエア",
+        img: "images/diskus.png",
+        videos: [
+            { title: "使い方の手順", path: "https://jasweb.or.jp/video/movie/4_Diskus_ver2.mp4" }
+        ]
+    },
+    {
+        id: "breezhaler",
+        name: "ブリーズヘラー",
+        drugs: "シーブリ・ウルティブロ<br>エナジア 他",
+        img: "images/breezhaler.png",
+        videos: [
+            { title: "使い方の手順", path: "https://jasweb.or.jp/video/movie/7_Breezhaler_ver2.mp4" }
+        ]
+    },
+    {
+        id: "pmdi",
+        name: "pMDI（エアゾール）",
+        drugs: "フルティフォーム・ビレーズトリ<br>ビベスピ 他",
+        img: "images/pmdi.png",
+        videos: [
+            { title: "使い方の手順", path: "https://jasweb.or.jp/video/movie/1A_Aerosol_body_ver2.mp4" }
+        ]
+    }
+];
+
+// 医療系十字アイコン (インラインSVG)
+const deviceIconTemplate = `
+<svg class="card-icon" viewBox="0 0 24 24" width="64" height="64">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm4-9h-3V8h-2v3H8v2h3v3h2v-3h3v-2z"/>
+</svg>
+`;
+
+// ---------- 状態管理 ----------
+let currentDevice = null;
+let currentVideo = null;
+
+// ---------- UI要素の取得 ----------
+const step1 = document.getElementById('step1');
+const step2 = document.getElementById('step2');
+const step3 = document.getElementById('step3');
+const deviceList = document.getElementById('deviceList');
+const videoList = document.getElementById('videoList');
+const videoPlayer = document.getElementById('videoPlayer');
+const errorMessage = document.getElementById('errorMessage');
+const breadcrumbs = document.getElementById('breadcrumbs');
+
+// ---------- 初期化処理 ----------
+function init() {
+    renderDevices();
+    updateContext('top');
+}
+
+// ---------- Step 1: デバイス一覧の描画 ----------
+window.fallbackSVG = deviceIconTemplate;
+
+function renderDevices() {
+    deviceList.innerHTML = '';
+    
+    inhalerData.forEach(device => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => selectDevice(device);
+        
+        // 画像読み込みエラー時には window.fallbackSVG を利用して十字アイコンを表示する
+        card.innerHTML = `
+            <img src="${device.img}" class="device-image" alt="${device.name}" onerror="this.outerHTML=window.fallbackSVG" />
+            <h2>${device.name}</h2>
+            <p class="drugs">${device.drugs}</p>
+        `;
+        deviceList.appendChild(card);
+    });
+}
+
+// ---------- Step 2: 動画選択に進む ----------
+function selectDevice(device) {
+    currentDevice = device;
+    videoList.innerHTML = '';
+    
+    device.videos.forEach(video => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => selectVideo(video);
+        
+        card.innerHTML = `
+            <div class="video-card-icon">▶️</div>
+            <h2>${video.title}</h2>
+        `;
+        videoList.appendChild(card);
+    });
+    
+    transitionTo(step2);
+    updateContext('device');
+}
+
+// ---------- Step 3: 動画再生に進む ----------
+function selectVideo(video) {
+    currentVideo = video;
+    
+    // エラーメッセージをリセット
+    errorMessage.style.display = 'none';
+    
+    // 先に画面を表示状態にする（display:noneのままだと再生がブロックされる場合があるため）
+    transitionTo(step3);
+    updateContext('video');
+    
+    // 動画のセットと再生
+    videoPlayer.src = video.path;
+    videoPlayer.load();
+    
+    const playPromise = videoPlayer.play();
+    if (playPromise !== undefined) {
+        playPromise.catch(error => {
+            console.log("再生エラー・自動再生ブロック: ", error);
+        });
+    }
+}
+
+// ---------- ユーティリティ・画面遷移 ----------
+function transitionTo(targetStep) {
+    // 全て非表示
+    [step1, step2, step3].forEach(s => {
+        s.classList.remove('active');
+    });
+    
+    // アニメーションのリセットのためにリフロー強制
+    void targetStep.offsetWidth; 
+    
+    // 表示してアニメーション開始
+    targetStep.classList.add('active');
+    
+    // 各画面遷移時は先頭へスクロール
+    window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+function goBackToStep1() {
+    stopVideo();
+    currentDevice = null;
+    transitionTo(step1);
+    updateContext('top');
+}
+
+function goBackToStep2() {
+    stopVideo();
+    currentVideo = null;
+    transitionTo(step2);
+    updateContext('device');
+}
+
+function stopVideo() {
+    if (!videoPlayer.paused) {
+        videoPlayer.pause();
+    }
+    // 仕様通り、画面遷移時にsrcをクリアする
+    videoPlayer.removeAttribute('src'); 
+    videoPlayer.load();
+}
+
+// ---------- イベントリスナー ----------
+
+// 動画読み込みエラー時
+videoPlayer.addEventListener('error', function(e) {
+    console.error("Video Error: ", videoPlayer.error);
+    // ネットワークエラー等でファイルが見つからない・再生できない場合
+    errorMessage.innerHTML = `動画ファイルが見つかりません。<br><span style="font-size:16px;">（${currentVideo ? currentVideo.path : ''} が正しいフォルダに配置されているか確認してください）</span>`;
+    errorMessage.style.display = 'block';
+});
+
+// パンくずリスト更新
+function updateContext(state) {
+    let bcHTML = '';
+    
+    if (state === 'top') {
+        bcHTML = `<span>トップ (吸入器を選ぶ)</span>`;
+    } 
+    else if (state === 'device') {
+        bcHTML = `
+            <span class="clickable" onclick="goBackToStep1()">トップ</span>
+            <span class="separator">/</span>
+            <span>${currentDevice.name.replace('<br>', ' ')}</span>
+        `;
+    } 
+    else if (state === 'video') {
+        bcHTML = `
+            <span class="clickable" onclick="goBackToStep1()">トップ</span>
+            <span class="separator">/</span>
+            <span class="clickable" onclick="goBackToStep2()">${currentDevice.name.replace('<br>', ' ')}</span>
+            <span class="separator">/</span>
+            <span>動画再生</span>
+        `;
+    }
+    
+    breadcrumbs.innerHTML = bcHTML;
+}
+
+// Android / iPad等でダブルタップズームを防止
+document.addEventListener('dblclick', function(event) {
+    event.preventDefault();
+}, { passive: false });
+
+// DOM読み込み完了時に初期化
+document.addEventListener('DOMContentLoaded', init);
+
+</script>
+</body>
+</html>

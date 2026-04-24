@@ -1,6 +1,6 @@
-// --- Configuration ---
+﻿// --- Configuration ---
 const LIFF_ID = 'YOUR_LIFF_ID'; // Replace with your real LIFF ID
-const API_URL = 'https://script.google.com/macros/s/AKfycbw3ohRCQ87GMgFqOG-TPKbVE6h5uvCQsuIRl1JChA7mpIFoFDs9S0S6xP6Rx9DH6aVTiQ/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwzgWaaqg6HyDTh8Qxq2_TdTqwH0q_INm_kuArmq640Xqai0KXp_xWbGJhhIs00b41wpQ/exec';
 
 // --- State ---
 let currentStep = 1;
@@ -382,3 +382,5 @@ document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
 // Start
 initializeLiff();
 updateNavigation();
+
+
