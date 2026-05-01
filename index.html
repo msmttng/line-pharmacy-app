@@ -281,10 +281,10 @@
             <label class="checkbox-label"><input type="checkbox" name="history" value="epilepsy"><span data-i18n="epilepsy">てんかん</span></label>
             <label class="checkbox-label"><input type="checkbox" name="history" value="glaucoma"><span data-i18n="glaucoma">緑内障</span></label>
             <label class="checkbox-label"><input type="checkbox" name="history" value="prostate"><span data-i18n="prostate">前立腺肥大</span></label>
-            <label class="checkbox-label"><input type="checkbox" name="history" value="other" id="history-other-toggle" onchange="var w=document.getElementById('history-other-wrap'); if(w) w.style.display=this.checked?'block':'none';"><span data-i18n="other">その他</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="history" value="other" id="history-other-toggle"><span data-i18n="other">その他</span></label>
           </div>
           <!-- その他のサジェスト領域（JSで制御） -->
-          <div class="sub-input" id="history-other-wrap" style="display: none; margin-top: 12px;">
+          <div class="sub-input" id="history-other-wrap">
             <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom: 8px;">病名をひらがなで検索して追加できます（リストにない場合は入力して追加ボタンを押してください）</div>
             <div class="autocomplete-wrapper" style="display: flex; gap: 8px;">
               <input type="text" id="history-search" placeholder="例: うつびょう" autocomplete="off" style="flex: 1;">
@@ -494,6 +494,15 @@ document.addEventListener('DOMContentLoaded', function() {
     sg.classList.toggle('open', this.checked);
     if (!this.checked) sg.querySelectorAll('input').forEach(i => i.checked = false);
   });
+
+  // ===== その他の病歴→サジェスト表示 =====
+  const historyToggle = document.getElementById('history-other-toggle');
+  if (historyToggle) {
+    historyToggle.addEventListener('change', function() {
+      const sg = document.getElementById('history-other-wrap');
+      if (sg) sg.classList.toggle('open', this.checked);
+    });
+  }
 
   // ===== ツールチップ =====
   document.querySelectorAll('.tip-btn').forEach(btn => {
@@ -803,14 +812,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (typeof DISEASE_DB !== 'undefined') {
         setupAutocomplete('history-search', 'history-suggestions', 'history-chips', 'hidden-history-detail', false, DISEASE_DB, 'history-add-btn');
-    }
-
-    var historyOtherToggle = document.getElementById('history-other-toggle');
-    var historyOtherWrap = document.getElementById('history-other-wrap');
-    if (historyOtherToggle && historyOtherWrap) {
-        historyOtherToggle.addEventListener('change', function() {
-            historyOtherWrap.style.display = this.checked ? 'block' : 'none';
-        });
     }
 });
 </script>
