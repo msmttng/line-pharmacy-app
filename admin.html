@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
@@ -1268,6 +1268,9 @@
                 ${item['MEDIXS入力済'] === '済' ? '<span class="badge-done">済</span>' : ''}
               </div>
               <div class="btn-action-wrapper">
+                <button class="btn btn-primary" style="background:#059669; box-shadow: 0 2px 4px rgba(5,150,105,0.2);" onclick="sendMonshinDrugsToExtension(${i}, this)">MEDIXS併用薬</button>
+              </div>
+              <div class="btn-action-wrapper">
                 <button class="btn btn-secondary" onclick="copyText(${i}, this, true)">調剤くん用</button>
                 ${item['調剤くん入力済'] === '済' ? '<span class="badge-done">済</span>' : ''}
               </div>
@@ -1790,6 +1793,83 @@
           clearTimeout(timer);
           btn.disabled = false;
           clipboardCopy(text, btn);
+        }
+      }
+    }
+
+    // ===== Web問診→MEDIXS併用薬 自動入力 =====
+    function sendMonshinDrugsToExtension(idx, btn) {
+      const item = listData[idx];
+      let drugsText = "";
+      
+      // 他院処方・市販薬を結合
+      if (item['他院処方'] && item['他院処方'] !== 'なし' && item['他院処方'] !== 'none') {
+        drugsText += item['他院処方'] + "\n";
+      }
+      if (item['市販薬'] && item['市販薬'] !== 'なし' && item['市販薬'] !== 'none') {
+        drugsText += item['市販薬'] + "\n";
+      }
+      
+      // カンマ、読点、または改行で分割
+      const drugs = drugsText.split(/[,、\n]/).map(s => s.trim()).filter(s => s !== '');
+
+      if (drugs.length === 0) {
+        btn.innerText = '薬品なし';
+        setTimeout(() => { btn.innerText = 'MEDIXS併用薬'; }, 2000);
+        return;
+      }
+
+      if (MEDIXS_EXTENSION_ID === '__EXTENSION_ID_HERE__' || typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.sendMessage) {
+        clipboardCopy(drugs.join('\n'), btn);
+        return;
+      }
+
+      btn.innerText = `送信中... (${drugs.length}品目)`;
+      btn.disabled = true;
+
+      let settled = false;
+      const timer = setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          btn.disabled = false;
+          btn.innerText = 'タイムアウト';
+          setTimeout(() => { btn.innerText = 'MEDIXS併用薬'; }, 3000);
+        }
+      }, 60000); 
+
+      try {
+        chrome.runtime.sendMessage(MEDIXS_EXTENSION_ID, {
+          type: 'DRUG_PASTE',
+          drugs: drugs
+        }, (response) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          btn.disabled = false;
+
+          if (chrome.runtime.lastError || !response) {
+            const errMsg = chrome.runtime.lastError ? chrome.runtime.lastError.message : '応答なし';
+            console.warn('[admin] 併用薬送信エラー:', errMsg);
+            btn.innerText = 'エラー: ' + errMsg;
+            setTimeout(() => { btn.innerText = 'MEDIXS併用薬'; }, 3000);
+            return;
+          }
+
+          if (response.success) {
+            btn.innerText = `✅ ${response.successCount}/${response.total}品目完了`;
+            btn.style.background = '#047857';
+            setTimeout(() => { btn.innerText = 'MEDIXS併用薬'; btn.style.background = '#059669'; }, 4000);
+          } else {
+            btn.innerText = response.error || '失敗';
+            setTimeout(() => { btn.innerText = 'MEDIXS併用薬'; }, 3000);
+          }
+        });
+      } catch (e) {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          btn.disabled = false;
+          clipboardCopy(drugs.join('\n'), btn);
         }
       }
     }
