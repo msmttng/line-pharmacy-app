@@ -224,7 +224,7 @@ function generateConfirmation() {
         'other': t('other')
     };
 
-    let html = '';
+    view.innerHTML = '';
     for (let key in labels) {
         if (formData[key] !== undefined && formData[key] !== '') {
             let value = formData[key];
@@ -275,14 +275,23 @@ function generateConfirmation() {
             }
             
             if (value) {
-                html += `<div class="conf-item">
-                    <span class="conf-label">${labels[key]}</span>
-                    <span class="conf-value">${value}</span>
-                </div>`;
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'conf-item';
+                
+                const labelSpan = document.createElement('span');
+                labelSpan.className = 'conf-label';
+                labelSpan.textContent = labels[key];
+                
+                const valueSpan = document.createElement('span');
+                valueSpan.className = 'conf-value';
+                valueSpan.textContent = value;
+                
+                itemDiv.appendChild(labelSpan);
+                itemDiv.appendChild(valueSpan);
+                view.appendChild(itemDiv);
             }
         }
     }
-    view.innerHTML = html;
 }
 
 // --- Submission ---
