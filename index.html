@@ -281,9 +281,19 @@
             <label class="checkbox-label"><input type="checkbox" name="history" value="epilepsy"><span data-i18n="epilepsy">てんかん</span></label>
             <label class="checkbox-label"><input type="checkbox" name="history" value="glaucoma"><span data-i18n="glaucoma">緑内障</span></label>
             <label class="checkbox-label"><input type="checkbox" name="history" value="prostate"><span data-i18n="prostate">前立腺肥大</span></label>
-            <label class="checkbox-label"><input type="checkbox" name="history" value="other"><span data-i18n="other">その他</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="history" value="other" id="history-other-toggle"><span data-i18n="other">その他</span></label>
           </div>
-          <input type="text" name="history-other-detail" placeholder="その他の場合は病名をご記入ください" data-i18n-placeholder="history_other_placeholder" style="margin-top:12px">
+          <!-- その他のサジェスト領域（JSで制御） -->
+          <div class="sub-input" id="history-other-wrap" style="display: none; margin-top: 12px;">
+            <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom: 8px;">病名をひらがなで検索して追加できます（リストにない場合は入力して追加ボタンを押してください）</div>
+            <div class="autocomplete-wrapper" style="display: flex; gap: 8px;">
+              <input type="text" id="history-search" placeholder="例: うつびょう" autocomplete="off" style="flex: 1;">
+              <button type="button" id="history-add-btn" class="btn-primary" style="padding: 0 16px; white-space: nowrap;">追加</button>
+              <div id="history-suggestions" class="suggestions" style="top: 45px;"></div>
+            </div>
+            <div id="history-chips" class="chip-container"></div>
+            <input type="hidden" name="history-other-detail" id="hidden-history-detail" value="">
+          </div>
         </div>
       </section>
 
@@ -498,6 +508,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- app.js (既存ロジック: LIFF初期化・バリデーション・確認画面生成・GAS送信) -->
 <script src="dict_v2.js"></script>
+<script src="disease_dict.js"></script>
 <script>
 // --- Autocomplete Logic ---
 function hiraToKata(str) {
@@ -532,7 +543,8 @@ var REACTION_BADGE = {
     'none':        { label: '',                                                          cls: '' }
 };
 
-function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withSymptoms) {
+function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withSymptoms, dbArray, customAddBtnId) {
+    dbArray = dbArray || [];
     var inputEl = document.getElementById(inputId);
     var suggestionsEl = document.getElementById(suggestionsId);
     var chipContainer = document.getElementById(chipsId);
@@ -556,8 +568,8 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
 
         var query = normalizeString(val);
         var startsWith = [], includes = [];
-        for (var i = 0; i < MED_DB.length; i++) {
-            var med = MED_DB[i];
+        for (var i = 0; i < dbArray.length; i++) {
+            var med = dbArray[i];
             var normMed = normalizeString(med);
             if (normMed.startsWith(query)) {
                 if (startsWith.length < 15) startsWith.push(med);
@@ -598,6 +610,17 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
             suggestionsEl.style.display = 'none';
         }
     });
+
+    if (customAddBtnId) {
+        var addBtn = document.getElementById(customAddBtnId);
+        if (addBtn) {
+            addBtn.addEventListener('click', function(ev) {
+                ev.preventDefault();
+                var val = inputEl.value.trim();
+                if (val) addMed(val);
+            });
+        }
+    }
 
     function addMed(name) {
         if (!selectedMeds.find(function(m) { return m.name === name; })) {
@@ -768,8 +791,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (typeof MED_DB !== 'undefined') {
-        setupAutocomplete('allergy-search', 'allergy-suggestions', 'allergy-chips', 'hidden-allergy-detail', true);
-        setupAutocomplete('presc-search', 'presc-suggestions', 'presc-chips', 'hidden-presc-detail', false);
+        setupAutocomplete('allergy-search', 'allergy-suggestions', 'allergy-chips', 'hidden-allergy-detail', true, MED_DB);
+        setupAutocomplete('presc-search', 'presc-suggestions', 'presc-chips', 'hidden-presc-detail', false, MED_DB);
+    }
+    
+    if (typeof DISEASE_DB !== 'undefined') {
+        setupAutocomplete('history-search', 'history-suggestions', 'history-chips', 'hidden-history-detail', false, DISEASE_DB, 'history-add-btn');
+    }
+
+    var historyOtherToggle = document.getElementById('history-other-toggle');
+    var historyOtherWrap = document.getElementById('history-other-wrap');
+    if (historyOtherToggle && historyOtherWrap) {
+        historyOtherToggle.addEventListener('change', function() {
+            historyOtherWrap.style.display = this.checked ? 'block' : 'none';
+        });
     }
 });
 </script>
