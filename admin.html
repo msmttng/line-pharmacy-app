@@ -1268,9 +1268,6 @@
                 ${item['MEDIXS入力済'] === '済' ? '<span class="badge-done">済</span>' : ''}
               </div>
               <div class="btn-action-wrapper">
-                <button class="btn btn-primary" style="background:#059669; box-shadow: 0 2px 4px rgba(5,150,105,0.2);" onclick="sendMonshinDrugsToExtension(${i}, this)">MEDIXS併用薬</button>
-              </div>
-              <div class="btn-action-wrapper">
                 <button class="btn btn-secondary" onclick="copyText(${i}, this, true)">調剤くん用</button>
                 ${item['調剤くん入力済'] === '済' ? '<span class="badge-done">済</span>' : ''}
               </div>
@@ -1455,18 +1452,7 @@
         btn.innerText = '送信中...';
         btn.disabled = true;
 
-        sendToExtensionWithRetry(text, btn, 2).then(success => {
-          if (success) {
-            // 問診ペースト成功後、自動で「MEDIXS併用薬」ボタンをトリガーする
-            const card = btn.closest('.card');
-            if (card) {
-              const drugBtn = card.querySelector('button[onclick^="sendMonshinDrugsToExtension"]');
-              if (drugBtn) {
-                setTimeout(() => drugBtn.click(), 600); // UIの「完了！」表示が少し見えるように遅延
-              }
-            }
-          }
-        });
+        sendToExtensionWithRetry(text, btn, 2);
       } else {
         // 調剤くん用 or 拡張IDが未設定 → 従来のクリップボードコピー
         clipboardCopy(text, btn);
@@ -1702,7 +1688,6 @@
               <span class="notebook-time">${item['日時'] || ''}</span>
             </div>
             <div class="actions">
-              <button class="btn btn-primary" onclick="sendDrugsToExtension(${idx}, this)">MEDIXS併用薬</button>
               <button class="btn btn-notebook-copy" onclick="copyNotebook(${idx}, this)">コピー</button>
             </div>
           </div>
