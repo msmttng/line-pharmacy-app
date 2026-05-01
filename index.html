@@ -264,35 +264,63 @@
         </div>
       </section>
 
-      <!-- ========== STEP 4: 既往歴 ========== -->
+      <!-- ========== STEP 4: 既往歴・現病歴 ========== -->
       <section class="form-step" data-step="4">
-        <h2 class="step-title" data-i18n="step4_title">既往歴・現病歴</h2>
+        <h2 class="step-title" data-i18n="step4_title">現病歴・既往歴</h2>
 
         <div class="input-group">
-          <label class="q-label"><span data-i18n="history_label">現在治療中または過去に大きな病気はありますか？</span></label>
+          <label class="q-label"><span data-i18n="present_illness_label">現在治療中の病気はありますか？（現病歴）</span></label>
           <p class="hint" data-i18n="history_hint">※「特にない」場合はそのまま次へ進んでください（複数OK）</p>
           <div class="checkbox-grid">
-            <label class="checkbox-label"><input type="checkbox" name="history" value="hypertension"><span data-i18n="hypertension">高血圧</span></label>
-            <label class="checkbox-label"><input type="checkbox" name="history" value="diabetes"><span data-i18n="diabetes">糖尿病</span></label>
-            <label class="checkbox-label"><input type="checkbox" name="history" value="heart"><span data-i18n="heart_disease">心臓病</span></label>
-            <label class="checkbox-label"><input type="checkbox" name="history" value="kidney"><span data-i18n="kidney_disease">腎臓病</span></label>
-            <label class="checkbox-label"><input type="checkbox" name="history" value="liver"><span data-i18n="liver_disease">肝臓病</span></label>
-            <label class="checkbox-label"><input type="checkbox" name="history" value="asthma"><span data-i18n="asthma">喘息</span></label>
-            <label class="checkbox-label"><input type="checkbox" name="history" value="epilepsy"><span data-i18n="epilepsy">てんかん</span></label>
-            <label class="checkbox-label"><input type="checkbox" name="history" value="glaucoma"><span data-i18n="glaucoma">緑内障</span></label>
-            <label class="checkbox-label"><input type="checkbox" name="history" value="prostate"><span data-i18n="prostate">前立腺肥大</span></label>
-            <label class="checkbox-label"><input type="checkbox" name="history" value="other" id="history-other-toggle"><span data-i18n="other">その他</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="present-illness" value="hypertension"><span data-i18n="hypertension">高血圧</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="present-illness" value="diabetes"><span data-i18n="diabetes">糖尿病</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="present-illness" value="heart"><span data-i18n="heart_disease">心臓病</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="present-illness" value="kidney"><span data-i18n="kidney_disease">腎臓病</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="present-illness" value="liver"><span data-i18n="liver_disease">肝臓病</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="present-illness" value="asthma"><span data-i18n="asthma">喘息</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="present-illness" value="epilepsy"><span data-i18n="epilepsy">てんかん</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="present-illness" value="glaucoma"><span data-i18n="glaucoma">緑内障</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="present-illness" value="prostate"><span data-i18n="prostate">前立腺肥大</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="present-illness" value="other" id="present-illness-other-toggle"><span data-i18n="other">その他</span></label>
           </div>
           <!-- その他のサジェスト領域（JSで制御） -->
-          <div class="sub-input" id="history-other-wrap">
+          <div class="sub-input" id="present-illness-other-wrap">
             <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom: 8px;">病名をひらがなで検索して追加できます（リストにない場合は入力して追加ボタンを押してください）</div>
             <div class="autocomplete-wrapper" style="display: flex; gap: 8px;">
-              <input type="text" id="history-search" placeholder="例: うつびょう" autocomplete="off" style="flex: 1;">
-              <button type="button" id="history-add-btn" class="btn-primary" style="padding: 0 16px; white-space: nowrap;">追加</button>
-              <div id="history-suggestions" class="suggestions" style="top: 45px;"></div>
+              <input type="text" id="present-illness-search" placeholder="例: うつびょう" autocomplete="off" style="flex: 1;">
+              <button type="button" id="present-illness-add-btn" class="btn-primary" style="padding: 0 16px; white-space: nowrap;">追加</button>
+              <div id="present-illness-suggestions" class="suggestions" style="top: 45px;"></div>
             </div>
-            <div id="history-chips" class="chip-container"></div>
-            <input type="hidden" name="history-other-detail" id="hidden-history-detail" value="">
+            <div id="present-illness-chips" class="chip-container"></div>
+            <input type="hidden" name="present-illness-other-detail" id="hidden-present-illness-detail" value="">
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="q-label"><span data-i18n="past_history_label">過去にかかった大きな病気はありますか？（既往歴）</span></label>
+          <p class="hint" data-i18n="history_hint">※「特にない」場合はそのまま次へ進んでください（複数OK）</p>
+          <div class="checkbox-grid">
+            <label class="checkbox-label"><input type="checkbox" name="past-history" value="hypertension"><span data-i18n="hypertension">高血圧</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="past-history" value="diabetes"><span data-i18n="diabetes">糖尿病</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="past-history" value="heart"><span data-i18n="heart_disease">心臓病</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="past-history" value="kidney"><span data-i18n="kidney_disease">腎臓病</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="past-history" value="liver"><span data-i18n="liver_disease">肝臓病</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="past-history" value="asthma"><span data-i18n="asthma">喘息</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="past-history" value="epilepsy"><span data-i18n="epilepsy">てんかん</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="past-history" value="glaucoma"><span data-i18n="glaucoma">緑内障</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="past-history" value="prostate"><span data-i18n="prostate">前立腺肥大</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="past-history" value="other" id="past-history-other-toggle"><span data-i18n="other">その他</span></label>
+          </div>
+          <!-- その他のサジェスト領域（JSで制御） -->
+          <div class="sub-input" id="past-history-other-wrap">
+            <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom: 8px;">病名をひらがなで検索して追加できます（リストにない場合は入力して追加ボタンを押してください）</div>
+            <div class="autocomplete-wrapper" style="display: flex; gap: 8px;">
+              <input type="text" id="past-history-search" placeholder="例: うつびょう" autocomplete="off" style="flex: 1;">
+              <button type="button" id="past-history-add-btn" class="btn-primary" style="padding: 0 16px; white-space: nowrap;">追加</button>
+              <div id="past-history-suggestions" class="suggestions" style="top: 45px;"></div>
+            </div>
+            <div id="past-history-chips" class="chip-container"></div>
+            <input type="hidden" name="past-history-other-detail" id="hidden-past-history-detail" value="">
           </div>
         </div>
       </section>
@@ -496,10 +524,17 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // ===== その他の病歴→サジェスト表示 =====
-  const historyToggle = document.getElementById('history-other-toggle');
-  if (historyToggle) {
-    historyToggle.addEventListener('change', function() {
-      const sg = document.getElementById('history-other-wrap');
+  const presentToggle = document.getElementById('present-illness-other-toggle');
+  if (presentToggle) {
+    presentToggle.addEventListener('change', function() {
+      const sg = document.getElementById('present-illness-other-wrap');
+      if (sg) sg.classList.toggle('open', this.checked);
+    });
+  }
+  const pastToggle = document.getElementById('past-history-other-toggle');
+  if (pastToggle) {
+    pastToggle.addEventListener('change', function() {
+      const sg = document.getElementById('past-history-other-wrap');
       if (sg) sg.classList.toggle('open', this.checked);
     });
   }
@@ -578,12 +613,19 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
         var query = normalizeString(val);
         var startsWith = [], includes = [];
         for (var i = 0; i < dbArray.length; i++) {
-            var med = dbArray[i];
-            var normMed = normalizeString(med);
+            var medRaw = dbArray[i];
+            var dispName = medRaw;
+            var searchTarget = medRaw;
+            if (typeof medRaw === 'string' && medRaw.indexOf('|') !== -1) {
+                var parts = medRaw.split('|');
+                dispName = parts[0];
+                searchTarget = parts[0] + parts[1];
+            }
+            var normMed = normalizeString(searchTarget);
             if (normMed.startsWith(query)) {
-                if (startsWith.length < 15) startsWith.push(med);
+                if (startsWith.length < 15 && !startsWith.includes(dispName)) startsWith.push(dispName);
             } else if (normMed.includes(query)) {
-                if (includes.length < 10) includes.push(med);
+                if (includes.length < 10 && !includes.includes(dispName)) includes.push(dispName);
             }
             if (startsWith.length >= 15 && includes.length >= 10) break;
         }
@@ -811,7 +853,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (typeof DISEASE_DB !== 'undefined') {
-        setupAutocomplete('history-search', 'history-suggestions', 'history-chips', 'hidden-history-detail', false, DISEASE_DB, 'history-add-btn');
+        setupAutocomplete('present-illness-search', 'present-illness-suggestions', 'present-illness-chips', 'hidden-present-illness-detail', false, DISEASE_DB, 'present-illness-add-btn');
+        setupAutocomplete('past-history-search', 'past-history-suggestions', 'past-history-chips', 'hidden-past-history-detail', false, DISEASE_DB, 'past-history-add-btn');
     }
 });
 </script>

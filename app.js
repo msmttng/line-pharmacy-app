@@ -1,4 +1,4 @@
-﻿// --- Configuration ---
+// --- Configuration ---
 const LIFF_ID = 'YOUR_LIFF_ID'; // Replace with your real LIFF ID
 const API_URL = 'https://script.google.com/macros/s/AKfycbwzgWaaqg6HyDTh8Qxq2_TdTqwH0q_INm_kuArmq640Xqai0KXp_xWbGJhhIs00b41wpQ/exec';
 
@@ -176,8 +176,10 @@ function generateConfirmation() {
         'otc-suppl-detail': t('conf_otc_detail'),
         'food-drink': t('conf_food_drink'),
         'food-drink-detail': t('conf_food_drink_detail'),
-        'history': t('conf_history'),
-        'history-other-detail': t('conf_history_detail'),
+        'present-illness': '現病歴',
+        'present-illness-other-detail': '現病歴詳細',
+        'past-history': '既往歴',
+        'past-history-other-detail': '既往歴詳細',
         'driving': t('conf_driving'),
         'height-work': t('conf_height_work'),
         'soft-contact': t('conf_soft_contact'),
@@ -238,7 +240,7 @@ function generateConfirmation() {
                     value = allergies.join(', ');
                 } else if (key === 'food-drink') {
                     value = value.map(v => foodDrinkLabels[v] || v).join(', ');
-                } else if (key === 'history') {
+                } else if (key === 'history' || key === 'present-illness' || key === 'past-history') {
                     value = value.map(v => historyLabels[v] || v).join(', ');
                 } else {
                     value = value.join(', ');
@@ -295,6 +297,34 @@ async function handleSubmit(e) {
     const submitBtn = document.getElementById('submit-btn');
     submitBtn.disabled = true;
     submitBtn.innerText = t('btn_submitting');
+
+    // バックエンド(GAS)の後方互換性を保つため、現病歴と既往歴を history に結合
+    const historyMap = {
+        'hypertension': '高血圧', 'diabetes': '糖尿病', 'heart': '心臓病', 
+        'kidney': '腎臓病', 'liver': '肝臓病', 'asthma': '喘息', 
+        'epilepsy': 'てんかん', 'glaucoma': '緑内障', 'prostate': '前立腺肥大',
+        'other': 'その他'
+    };
+    
+    let combinedHistory = [];
+    const presentArr = formData['present-illness'] || [];
+    if (presentArr.length > 0) {
+        combinedHistory.push("【現病歴】" + presentArr.map(v => historyMap[v] || v).join('、'));
+    }
+    const pastArr = formData['past-history'] || [];
+    if (pastArr.length > 0) {
+        combinedHistory.push("【既往歴】" + pastArr.map(v => historyMap[v] || v).join('、'));
+    }
+    formData['history'] = combinedHistory.length > 0 ? combinedHistory.join('  ') : 'no'; // 'no' converts to 'なし' in Code.gs
+
+    let combinedDetail = [];
+    if (formData['present-illness-other-detail']) {
+        combinedDetail.push("【現病歴】" + formData['present-illness-other-detail']);
+    }
+    if (formData['past-history-other-detail']) {
+        combinedDetail.push("【既往歴】" + formData['past-history-other-detail']);
+    }
+    formData['history-other-detail'] = combinedDetail.join('  ');
 
     // Prepare message for LINE if applicable
     const genericMapSubmit = { 'prefer': 'ジェネリックで大丈夫', 'ag': 'オーソライズド・ジェネリックでなら希望', 'avoid': '先発医薬品を希望する' };
