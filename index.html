@@ -525,7 +525,8 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId) {
                 const div = document.createElement('div');
                 div.className = 'suggestion-item';
                 div.innerText = med;
-                div.onclick = function() {
+                div.onmousedown = function(e) {
+                    e.preventDefault();
                     if (!selectedMeds.includes(med)) {
                         selectedMeds.push(med);
                         renderChips();
