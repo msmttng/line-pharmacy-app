@@ -3,26 +3,7 @@ const PDF_FOLDER_NAME = '初回問診票_印刷用'; // Googleドライブに自
 
 function doGet(e) {
   const action = e.parameter.action;
-
-  // 問診票データ取得
-  if (action === 'get') {
-    const data = getSubmissions();
-    return ContentService.createTextOutput(JSON.stringify(data))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  // 入力完了マーク更新 API
-  if (action === 'markEntered') {
-    return ContentService.createTextOutput(JSON.stringify(markEntered(e)))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  // 手帳データ取得
-  if (action === 'getNotebook') {
-    const data = getNotebookData();
-    return ContentService.createTextOutput(JSON.stringify(data))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
+  const token = e.parameter.token;
 
   // 未印刷PDFキューを返す
   if (action === 'getPrintQueue') {
@@ -82,7 +63,7 @@ function submitToSpreadsheet(data) {
         '飲食物', '飲食物詳細',
         '既往歴', '既往歴詳細', 
         '運転', '高所', 'ソフトコンタクト', '酒', '煙草', 
-        'ジェネリック', '備考', 'お薬手帳', 'データ元', 'MEDIXS入力済', '調剤くん入力済'
+        'ジェネリック', '備考', 'お薬手帳'
       ];
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setBackground('#eeeeee').setFontWeight('bold');
       sheet.setFrozenRows(1);
@@ -175,10 +156,7 @@ function submitToSpreadsheet(data) {
       translate(data.smoking), 
       translate(data.generic), 
       data.memo || '',
-      bookletVal,
-      data.source === 'webapp' ? 'web問診' : '手書き問診',
-      '',
-      ''
+      bookletVal
     ];
     sheet.appendRow(row);
 
@@ -187,17 +165,17 @@ function submitToSpreadsheet(data) {
     const phoneCell = sheet.getRange(lastRow, 3);
     phoneCell.setNumberFormat('@');
     phoneCell.setValue(phoneStr);
+
+    // データ元カラム(AE列=31)に「web問診」を記録
+    sheet.getRange(lastRow, 31).setValue('web問診');
+
     // 書き込み後にキャッシュをクリアして直後の読み取りで即時反映されるようにする
     const scriptCache = CacheService.getScriptCache();
     scriptCache.remove('submissions_cache_v2'); // 旧キー
     scriptCache.remove('submissions_cache_v3'); // 現行キー
 
-    // Webアプリからのデータ（source === 'webapp'）の場合のみPDF自動生成（印刷）を実行する
-    if (data.source === 'webapp') {
-      createAndSavePdf(data);
-    } else {
-      console.log('Webアプリ以外（AI OCR等）からのデータのため、自動印刷をスキップします。');
-    }
+    // PDF自動生成
+    createAndSavePdf(data);
 
     return { success: true };
   } catch (e) {
@@ -207,44 +185,12 @@ function submitToSpreadsheet(data) {
 }
 
 /**
- * データの取得（キャッシュを利用した高速化版）
- * ※ キャッシュキーv3: 古いキャッシュ(v2)を無効化して最新データを確実に取得
- */
-function getSubmissions() {
-  const CACHE_KEY = 'submissions_cache_v3';
-  try {
-    const cache = CacheService.getScriptCache();
-    const cachedData = cache.get(CACHE_KEY);
-    
-    // キャッシュがあればGoogle APIを叩かずに即座に返す（超高速）
-    if (cachedData) {
-      return { success: true, list: JSON.parse(cachedData) };
-    }
-
-    // キャッシュがない場合のみスプレッドシートを取得
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheets()[0];
-    
-    const lastRow = sheet.getLastRow();
-    const lastCol = Math.min(sheet.getLastColumn(), 33); // ヘッダー数(33)に拡張
-    
-    if (lastRow <= 1) return { success: true, list: [] };
-    
-    // 必要最小限のデータを最後に取得 (上限100行)
-    const limit = 100;
-    const startRow = Math.max(2, lastRow - limit + 1); // 一番下の最新データから最大100件
-    let numRows = lastRow - startRow + 1;
-    
-    if (numRows < 1) return { success: true, list: [] };
-
-    const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
-    const data = sheet.getRange(startRow, 1, numRows, lastCol).getValues();
     
     // 逆順（最新が上）にしてオブジェクトにマッピング
-    const list = data.reverse().map((r, rowIdx) => {
-      let o = {
-        _rowIndex: startRow + numRows - 1 - rowIdx
-      };
+    const list = data.reverse().map((r, index) => {
+      let o = {};
+      o['_rowIndex'] = startRow + numRows - 1 - index; // オリジナルの行番号を付与
+
       headers.forEach((name, i) => { 
         if(name) {
           let val = r[i];
@@ -258,69 +204,6 @@ function getSubmissions() {
           o[name] = val;
         }
       });
-      return o;
-    });
-
-    // 空文字フィールドを除外してJSONサイズを削減
-    const compactList = list.map(item => {
-      const compact = {};
-      Object.keys(item).forEach(k => {
-        const v = item[k];
-        if (v !== '' && v !== null && v !== undefined) compact[k] = v;
-      });
-      return compact;
-    });
-
-    // 取得したデータを最大5分（300秒）キャッシュ
-    // ※ 新規投稿時はsubmitToSpreadsheetがキャッシュを即時削除するため安全
-    // ※ CacheServiceの上限512KBに収まるよう軽量化済み
-    const jsonStr = JSON.stringify(compactList);
-    if (jsonStr.length < 500000) { // 500KB以内のみキャッシュ
-      cache.put(CACHE_KEY, jsonStr, 300);
-    }
-
-    return { success: true, list: compactList };
-  } catch (e) {
-    console.error(e.toString());
-    return { success: false, error: e.toString() };
-  }
-}
-
-/**
- * 手帳データの取得（「手帳データ」シートから）
- */
-function getNotebookData() {
-  try {
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheetByName('手帳データ');
-    
-    if (!sheet) return { success: true, list: [] };
-    
-    const lastRow = sheet.getLastRow();
-    if (lastRow <= 1) return { success: true, list: [] };
-    
-    const limit = 100;
-    const startRow = Math.max(2, lastRow - limit + 1);
-    const numRows = lastRow - startRow + 1;
-    
-    const headers = sheet.getRange(1, 1, 1, 3).getValues()[0]; // 日時, 氏名, 医薬品名
-    const data = sheet.getRange(startRow, 1, numRows, 3).getValues();
-    
-    const list = data.reverse().map(r => {
-      return {
-        '日時': r[0] instanceof Date ? Utilities.formatDate(r[0], 'JST', 'MM/dd HH:mm') : String(r[0]),
-        '氏名': r[1] || '',
-        '医薬品名': r[2] || ''
-      };
-    }).filter(item => item['氏名'] || item['医薬品名']); // 空行を除外
-    
-    return { success: true, list: list };
-  } catch (e) {
-    console.error(e.toString());
-    return { success: false, error: e.toString() };
-  }
-}
-
 /**
  * PDF保存先フォルダを取得（なければ自動作成）
  */
@@ -400,123 +283,71 @@ function createAndSavePdf(data) {
     const patientName = data.name || '不明';
     const fileName = `${dateStr}_${patientName}.pdf`;
 
-    const highlight = (val, detail = '') => {
-      const noneWords = ['なし', '該当なし', '飲まない', '吸わない', 'しない', 'ない'];
-      if (!val || noneWords.includes(val)) {
-        return '<span class="none">' + (val || 'なし') + '</span>';
-      }
-      let html = '<span class="alert">' + val + '</span>';
-      if (detail && detail.trim() !== '') {
-        html += '<br><span class="alert-detail">' + detail + '</span>';
-      }
-      return html;
-    };
-
-    const bookletHtml = bookletStr === 'なし' ? '<span class="none">なし</span>' : '<span class="alert">' + bookletStr + '</span>';
-    const conditionHtml = conditionStr === '該当なし' ? '<span class="none">該当なし</span>' : '<span class="alert">' + conditionStr + '</span>';
-
-    // PDF用HTML本文 (Design Stable 1-page Layout)
+    // PDF用HTML本文
     const html = `<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <style>
-  @page { size: A4 portrait; margin: 10mm; }
-  body { font-family: 'Noto Sans JP', serif; font-size: 10.5pt; color: #333; margin: 0; padding: 0; box-sizing: border-box; max-height: 277mm; overflow: hidden; }
-  h1 { text-align: center; font-size: 15pt; border-bottom: 2px solid #333; padding-bottom: 4px; margin-bottom: 8px; margin-top: 0; }
-  .subtitle { text-align: center; font-size: 9.5pt; color: #666; margin-top: -6px; margin-bottom: 8px; }
-  
-  .alert { color: #d32f2f; font-weight: bold; background-color: #ffebee; padding: 2px 4px; border-radius: 3px; display: inline-block; line-height: 1.2; }
-  .alert-detail { color: #d32f2f; font-weight: bold; margin-left: 6px; font-size: 9.5pt; }
-  .none { color: #888; }
-  
-  .layout-table { width: 100%; border-collapse: collapse; border: none; table-layout: fixed; }
-  .layout-td { width: 50%; vertical-align: top; border: none; padding: 0 4px; }
-  .layout-td:first-child { padding-left: 0; padding-right: 6px; }
-  .layout-td:last-child { padding-right: 0; padding-left: 6px; }
-  
-  .content-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-  .content-table th { background: #f0f4f8; text-align: left; padding: 4px; font-size: 10pt; width: 33%; border: 1px solid #ccc; font-weight: bold; color: #444; }
-  .content-table td { padding: 4px; font-size: 10pt; border: 1px solid #ccc; line-height: 1.2; word-wrap: break-word; }
-  
-  .section-title { font-size: 10.5pt; font-weight: bold; border-left: 4px solid #4a90e2; padding-left: 6px; margin: 4px 0 3px; color: #222; }
-  
-  .memo-space { margin-top: 6px; border: 1px solid #aaa; background-color: #fafafa; border-radius: 4px; padding: 6px; flex-grow: 1; min-height: 40px; overflow: hidden; }
-  .memo-title { font-weight: bold; color: #666; font-size: 9.5pt; margin-bottom: 3px; }
-  .memo-content { font-size: 10pt; color: #333; white-space: pre-wrap; margin-top: 4px; border-bottom: 1px dashed #ccc; padding-bottom: 4px; line-height: 1.3; }
-  
-  .footer { text-align: right; font-size: 8pt; color: #888; margin-top: 4px; padding-top: 4px; border-top: 1px solid #eee; position: absolute; bottom: 0; width: 100%; }
-  .page-container { position: relative; height: 100%; display: flex; flex-direction: column; }
+  body { font-family: 'Noto Sans JP', serif; font-size: 13pt; color: #222; margin: 20mm 15mm; }
+  h1 { text-align: center; font-size: 17pt; border-bottom: 2px solid #333; padding-bottom: 6px; margin-bottom: 4px; }
+  .subtitle { text-align: center; font-size: 10pt; color: #555; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+  th { background: #eeeeee; text-align: left; padding: 5px 8px; font-size: 11pt; width: 38%; border: 1px solid #aaa; }
+  td { padding: 5px 8px; font-size: 11pt; border: 1px solid #aaa; }
+  .section-title { background: #333; color: #fff; padding: 4px 10px; font-size: 12pt; margin: 14px 0 4px; }
+  .memo { border: 1px solid #aaa; padding: 8px; min-height: 40px; font-size: 11pt; white-space: pre-wrap; }
+  .footer { text-align: right; font-size: 9pt; color: #888; margin-top: 20px; }
 </style>
 </head>
 <body>
-<div class="page-container">
-  <h1>初回問診票（サマリー表示）</h1>
-  <p class="subtitle">受付日時: ${displayDate}</p>
+<h1>初回問診票</h1>
+<p class="subtitle">受付日時: ${displayDate}</p>
 
-  <div class="section-title">■ 基本情報</div>
-  <table class="content-table" style="margin-bottom: 10px;">
-    <tr>
-      <th>氏名</th><td style="font-size: 13pt; font-weight: bold; width:65%;">${patientName} <span style="font-size: 9.5pt; font-weight: normal; margin-left:12px;">(${data.phone || ''})</span></td>
-      <th>お薬手帳</th><td>${bookletHtml}</td>
-    </tr>
-    <tr>
-      <th>状態</th><td colspan="3">${conditionHtml}</td>
-    </tr>
-  </table>
+<div class="section-title">■ 基本情報</div>
+<table>
+  <tr><th>氏名</th><td>${patientName}</td></tr>
+  <tr><th>電話番号</th><td>${data.phone || ''}</td></tr>
+  <tr><th>状態</th><td>${conditionStr}</td></tr>
+</table>
 
-  <!-- 2カラムレイアウト開始 -->
-  <table class="layout-table">
-    <tr>
-      <!-- 左カラム -->
-      <td class="layout-td">
-        <div class="section-title">■ アレルギー・副作用</div>
-        <table class="content-table">
-          <tr><th>薬アレルギー</th><td>${highlight(t(data['drug-allergy']), data['drug-allergy-detail'])}</td></tr>
-          <tr><th>食品アレルギー</th><td>${highlight(t(data['food-allergy']), data['food-allergy-detail'])}</td></tr>
-          <tr><th>環境アレルギー</th><td>${highlight(envAllergyStr)}</td></tr>
-          <tr><th>副作用歴</th><td>${highlight(t(data['side-effect']), data['side-effect-detail'])}</td></tr>
-        </table>
+<div class="section-title">■ アレルギー</div>
+<table>
+  <tr><th>薬アレルギー</th><td>${t(data['drug-allergy'])}${ data['drug-allergy'] === 'yes' && data['drug-allergy-detail'] ? '：' + data['drug-allergy-detail'] : ''}</td></tr>
+  <tr><th>食品アレルギー</th><td>${t(data['food-allergy'])}${ data['food-allergy'] === 'yes' && data['food-allergy-detail'] ? '：' + data['food-allergy-detail'] : ''}</td></tr>
+  <tr><th>環境アレルギー</th><td>${envAllergyStr}</td></tr>
+</table>
 
-        <div class="section-title">■ 現在の服用状況</div>
-        <table class="content-table">
-          <tr><th>他院処方</th><td>${highlight(t(data['current-presc']), data['current-presc-detail'])}</td></tr>
-          <tr><th>市販薬・サプリ</th><td>${highlight(t(data['otc-list']), data['otc-suppl-detail'])}</td></tr>
-          <tr><th>飲食物（注意）</th><td>${highlight(t(data['food-drink']), data['food-drink-detail'])}</td></tr>
-        </table>
-      </td>
+<div class="section-title">■ 薬・医療歴</div>
+<table>
+  <tr><th>副作用</th><td>${t(data['side-effect'])}${ data['side-effect'] === 'yes' && data['side-effect-detail'] ? '：' + data['side-effect-detail'] : ''}</td></tr>
+  <tr><th>他院処方</th><td>${t(data['current-presc'])}${ data['current-presc'] === 'yes' && data['current-presc-detail'] ? '：' + data['current-presc-detail'] : ''}</td></tr>
+  <tr><th>市販薬・サプリ</th><td>${t(data['otc-list'])}${ data['otc-list'] && data['otc-list'] !== 'no' && data['otc-suppl-detail'] ? '：' + data['otc-suppl-detail'] : ''}</td></tr>
+  <tr><th>既往歴</th><td>${t(data.history)}${ data.history && data.history !== 'no' && data['history-other-detail'] ? '：' + data['history-other-detail'] : ''}</td></tr>
+</table>
 
-      <!-- 右カラム -->
-      <td class="layout-td">
-        <div class="section-title">■ 既往歴・現病歴</div>
-        <table class="content-table">
-          <tr><th>既往歴</th><td>${highlight(t(data.history), data['history-other-detail'])}</td></tr>
-        </table>
+<div class="section-title">■ 生活習慣・確認事項</div>
+<table>
+  <tr><th>飲食物（注意）</th><td>${t(data['food-drink'])}${ data['food-drink'] && data['food-drink'] !== 'no' && data['food-drink-detail'] ? '：' + data['food-drink-detail'] : ''}</td></tr>
+  <tr><th>車の運転</th><td>${t(data.driving)}</td></tr>
+  <tr><th>高所作業</th><td>${t(data['height-work'])}</td></tr>
+  <tr><th>ソフトコンタクト</th><td>${t(data['soft-contact'])}</td></tr>
+  <tr><th>飲酒</th><td>${data.alcohol === 'none' ? '飲まない' : t(data.alcohol)}</td></tr>
+  <tr><th>喫煙</th><td>${t(data.smoking)}</td></tr>
+</table>
 
-        <div class="section-title">■ 生活習慣・その他</div>
-        <table class="content-table" style="margin-bottom: 0;">
-          <tr><th>車の運転</th><td>${highlight(t(data.driving))}</td></tr>
-          <tr><th>高所作業</th><td>${highlight(t(data['height-work']))}</td></tr>
-          <tr><th>コンタクト</th><td>${highlight(t(data['soft-contact']))}</td></tr>
-          <tr><th>飲酒</th><td>${highlight(data.alcohol === 'none' ? '飲まない' : t(data.alcohol))}</td></tr>
-          <tr><th>喫煙</th><td>${highlight(t(data.smoking))}</td></tr>
-          <tr><th>ジェネリック</th><td>${highlight(t(data.generic))}</td></tr>
-        </table>
-      </td>
-    </tr>
-  </table>
+<div class="section-title">■ ジェネリック・お薬手帳</div>
+<table>
+  <tr><th>ジェネリック</th><td>${t(data.generic)}</td></tr>
+  <tr><th>お薬手帳</th><td>${bookletStr}</td></tr>
+</table>
 
-  <!-- メモ欄（余ったスペースを活用） -->
-  <div class="memo-space">
-    <div class="memo-title">▼ 患者さまからの要望・メモ / 薬剤師 記入欄</div>
-    ${data.memo ? '<div class="memo-content">' + data.memo + '</div>' : ''}
-  </div>
+<div class="section-title">■ 備考</div>
+<div class="memo">${data.memo || '（なし）'}</div>
 
-  <div class="footer">このPDFはWebアプリから自動生成されました（${fileName}）</div>
-</div>
+<p class="footer">このPDFはシステムにより自動生成されました</p>
 </body>
 </html>`;
-;
 
     // HTMLからPDFへ変換
     const blob = HtmlService.createHtmlOutput(html)
@@ -705,34 +536,70 @@ function logError(source, message) {
   }
 }
 
-function markEntered(e) {
+/**
+ * 過去データの「データ元」を一括設定する（初回のみ実行）
+ * - 空欄 or 'LINE問診' の行 → 「web問診」
+ * - 「AI読取」が既にある行 → そのまま
+ * GASエディタでこの関数を選択して「実行」ボタンをクリックしてください
+ */
+function backfillDataSource() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheets()[0];
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) { console.log('データなし'); return; }
+
+  const DATA_COL = 31; // AE列
+  const range = sheet.getRange(2, DATA_COL, lastRow - 1, 1);
+  const values = range.getValues();
+  let updated = 0;
+
+  for (let i = 0; i < values.length; i++) {
+    const val = String(values[i][0]).trim();
+    if (val === '' || val === 'undefined' || val === 'null') {
+      values[i][0] = 'web問診';
+      updated++;
+    } else if (val === 'LINE問診') {
+      values[i][0] = 'web問診';
+      updated++;
+    }
+    // 'AI読取' はそのまま
+  }
+
+  range.setValues(values);
+  const cache = CacheService.getScriptCache();
+  cache.remove('submissions_cache_v2');
+  cache.remove('submissions_cache_v3');
+  console.log('データ元を一括更新しました: ' + updated + '行を「web問診」に設定');
+}
+
+/**
+ * 管理画面からの「済」マーク処理
+ */
+function markEntered(rowIndex, target) {
   try {
-    const rowIndex = parseInt(e.parameter.rowIndex, 10);
-    const target = e.parameter.target;
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheets()[0];
-    
     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    let targetColStr = target === 'chozai' ? '調剤くん入力済' : 'MEDIXS入力済';
-    let colIndex = headers.indexOf(targetColStr) + 1;
     
+    // 対象カラム名の決定
+    const colName = (target === 'chozai') ? '調剤くん入力済' : 'MEDIXS入力済';
+    let colIndex = headers.indexOf(colName) + 1;
+    
+    // カラムが存在しなければ追加
     if (colIndex === 0) {
-      colIndex = headers.indexOf('データ元') + 1;
-      if (colIndex === 0) colIndex = 31;
-      if (target === 'medixs') colIndex += 1;
-      if (target === 'chozai') colIndex += 2;
-      sheet.getRange(1, headers.length + 1).setValue(targetColStr);
       colIndex = headers.length + 1;
+      sheet.getRange(1, colIndex).setValue(colName).setBackground('#eeeeee').setFontWeight('bold');
     }
     
     sheet.getRange(rowIndex, colIndex).setValue('済');
     
-    const cache = CacheService.getScriptCache();
-    cache.remove('submissions_cache_v2');
-    cache.remove('submissions_cache_v3');
+    // キャッシュをクリア
+    const scriptCache = CacheService.getScriptCache();
+    scriptCache.remove('submissions_cache_v3');
     
     return { success: true };
   } catch (err) {
+    console.error(err.toString());
     return { success: false, error: err.toString() };
   }
 }
