@@ -474,3 +474,21 @@ textarea { resize: vertical; min-height: 88px; }
   .checkbox-grid { grid-template-columns: 1fr 1fr; }
   .radio-label span, .checkbox-label span { font-size: 14px; }
 }
+
+
+/* Auto-complete specific styles */
+.autocomplete-wrapper { position: relative; width: 100%; margin-top: 12px; }
+.suggestions { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow); max-height: 220px; overflow-y: auto; z-index: 100; display: none; text-align: left; }
+.suggestion-item { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; cursor: pointer; font-size: 15px; color: var(--text-main); }
+.suggestion-item:last-child { border-bottom: none; }
+.suggestion-item:hover { background: #e8f7ed; color: var(--line-green); font-weight: 700; }
+
+.chip-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; text-align: left; }
+.chip { background: #e8f7ed; color: var(--line-green-dark); border: 1px solid var(--line-green); padding: 8px 14px; border-radius: 20px; font-size: 14px; display: inline-flex; align-items: center; font-weight: 600; animation: popIn 0.2s ease-out;}
+.chip-close { margin-left: 8px; cursor: pointer; color: var(--line-green-dark); font-size: 16px; padding: 0 4px;}
+.chip-close:hover { color: var(--error-color); }
+
+@keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}

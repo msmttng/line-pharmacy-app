@@ -99,7 +99,13 @@
             </label>
           </div>
           <div class="sub-input" id="drug-allergy-detail-wrap">
-            <textarea name="drug-allergy-detail" placeholder="具体的な薬品名・症状をご記入ください" data-i18n-placeholder="drug_allergy_detail_placeholder"></textarea>
+            <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom: 8px;" data-i18n="drug_allergy_search_hint">アレルギーのある薬を検索して追加してください</div>
+            <div class="autocomplete-wrapper">
+              <input type="text" id="allergy-search" placeholder="ひらがなで検索 (例: ろきそ)" data-i18n-placeholder="allergy_search_placeholder" autocomplete="off">
+              <div id="allergy-suggestions" class="suggestions"></div>
+            </div>
+            <div id="allergy-chips" class="chip-container"></div>
+            <input type="hidden" name="drug-allergy-detail" id="hidden-allergy-detail" value="">
           </div>
         </div>
 
@@ -194,7 +200,13 @@
             </label>
           </div>
           <div class="sub-input" id="current-presc-detail-wrap">
-            <textarea name="current-presc-detail" placeholder="薬名をご記入ください（わからなければ「窓口でお伝えします」でもOK）" data-i18n-placeholder="current_presc_placeholder"></textarea>
+            <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom: 8px;" data-i18n="presc_search_hint">現在飲んでいる薬を検索して追加してください</div>
+            <div class="autocomplete-wrapper">
+              <input type="text" id="presc-search" placeholder="ひらがなで検索 (例: むこす)" data-i18n-placeholder="presc_search_placeholder" autocomplete="off">
+              <div id="presc-suggestions" class="suggestions"></div>
+            </div>
+            <div id="presc-chips" class="chip-container"></div>
+            <input type="hidden" name="current-presc-detail" id="hidden-presc-detail" value="">
           </div>
         </div>
 
@@ -469,6 +481,96 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <!-- app.js (既存ロジック: LIFF初期化・バリデーション・確認画面生成・GAS送信) -->
+<script src="dict.js"></script>
+<script>
+// --- Autocomplete Logic ---
+function hiraToKata(str) {
+    return str.replace(/[ぁ-ん]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60));
+}
+function zenToHan(str) {
+    return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+}
+function normalizeString(str) {
+    return zenToHan(hiraToKata(str)).toUpperCase();
+}
+
+function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId) {
+    const inputEl = document.getElementById(inputId);
+    const suggestionsEl = document.getElementById(suggestionsId);
+    const chipContainer = document.getElementById(chipsId);
+    const hiddenInput = document.getElementById(hiddenInputId);
+    let selectedMeds = [];
+
+    if (!inputEl) return;
+
+    inputEl.addEventListener('input', function(e) {
+        const val = e.target.value.trim();
+        suggestionsEl.innerHTML = '';
+        if (!val) { suggestionsEl.style.display = 'none'; return; }
+        
+        const query = normalizeString(val);
+        let startsWith = [];
+        let includes = [];
+        for (let i = 0; i < MED_DB.length; i++) {
+            const med = MED_DB[i];
+            const normMed = normalizeString(med);
+            if (normMed.startsWith(query)) startsWith.push(med);
+            else if (normMed.includes(query)) includes.push(med);
+            if (startsWith.length > 20) break;
+        }
+        
+        const results = [...startsWith, ...includes].slice(0, 20);
+        if (results.length > 0) {
+            results.forEach(med => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.innerText = med;
+                div.onclick = function() {
+                    if (!selectedMeds.includes(med)) {
+                        selectedMeds.push(med);
+                        renderChips();
+                    }
+                    inputEl.value = '';
+                    suggestionsEl.style.display = 'none';
+                    inputEl.focus();
+                };
+                suggestionsEl.appendChild(div);
+            });
+            suggestionsEl.style.display = 'block';
+        } else {
+            suggestionsEl.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target !== inputEl && e.target !== suggestionsEl) {
+            suggestionsEl.style.display = 'none';
+        }
+    });
+
+    function renderChips() {
+        chipContainer.innerHTML = '';
+        selectedMeds.forEach(med => {
+            const chip = document.createElement('div');
+            chip.className = 'chip';
+            chip.innerHTML = `<span>${med}</span><span class="chip-close">×</span>`;
+            chip.querySelector('.chip-close').onclick = function() {
+                selectedMeds = selectedMeds.filter(m => m !== med);
+                renderChips();
+            };
+            chipContainer.appendChild(chip);
+        });
+        hiddenInput.value = selectedMeds.join(', ');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof MED_DB !== 'undefined') {
+        setupAutocomplete('allergy-search', 'allergy-suggestions', 'allergy-chips', 'hidden-allergy-detail');
+        setupAutocomplete('presc-search', 'presc-suggestions', 'presc-chips', 'hidden-presc-detail');
+    }
+});
+</script>
 <script src="app.js?v=20260401"></script>
 </body>
 </html>
