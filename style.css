@@ -266,7 +266,7 @@ input:focus, select:focus, textarea:focus {
   border-color: var(--green);
   box-shadow: 0 0 0 3px rgba(6,199,85,.12);
 }
-textarea { resize: vertical; min-height: 88px; }
+textarea { resize: vertical; min-height: 88px; field-sizing: content; }
 
 /* weight row */
 .weight-row { display: flex; align-items: center; gap: 10px; }
