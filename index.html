@@ -274,6 +274,7 @@
           <p class="hint" data-i18n="present_illness_desc">現在病院に通院して治療を受けている病気や、最近かかった病気があれば教えてください。</p>
           <p class="hint" data-i18n="history_hint">※「特にない」場合はそのまま次へ進んでください（複数OK）</p>
           <div class="checkbox-grid">
+            <label class="checkbox-label"><input type="checkbox" name="present-illness" value="none" checked><span data-i18n="history_none">特になし</span></label>
             <label class="checkbox-label"><input type="checkbox" name="present-illness" value="hypertension"><span data-i18n="hypertension">高血圧</span></label>
             <label class="checkbox-label"><input type="checkbox" name="present-illness" value="diabetes"><span data-i18n="diabetes">糖尿病</span></label>
             <label class="checkbox-label"><input type="checkbox" name="present-illness" value="heart"><span data-i18n="heart_disease">心臓病</span></label>
@@ -303,6 +304,7 @@
           <p class="hint" data-i18n="past_history_desc">これまでに手術や入院をしたことがある病気や、過去に治療を受けたことがある大きな病気を教えてください。</p>
           <p class="hint" data-i18n="history_hint">※「特にない」場合はそのまま次へ進んでください（複数OK）</p>
           <div class="checkbox-grid">
+            <label class="checkbox-label"><input type="checkbox" name="past-history" value="none" checked><span data-i18n="history_none">特になし</span></label>
             <label class="checkbox-label"><input type="checkbox" name="past-history" value="hypertension"><span data-i18n="hypertension">高血圧</span></label>
             <label class="checkbox-label"><input type="checkbox" name="past-history" value="diabetes"><span data-i18n="diabetes">糖尿病</span></label>
             <label class="checkbox-label"><input type="checkbox" name="past-history" value="heart"><span data-i18n="heart_disease">心臓病</span></label>
@@ -541,6 +543,29 @@ document.addEventListener('DOMContentLoaded', function() {
       if (sg) sg.classList.toggle('open', this.checked);
     });
   }
+
+  // ===== 現病歴・既往歴の「特になし」排他制御 =====
+  function setupExclusiveNone(name) {
+    const checkboxes = document.querySelectorAll(`input[name="${name}"]`);
+    const noneCheckbox = document.querySelector(`input[name="${name}"][value="none"]`);
+    if (!noneCheckbox) return;
+    
+    checkboxes.forEach(cb => {
+      cb.addEventListener('change', function() {
+        if (this.value === 'none' && this.checked) {
+          checkboxes.forEach(other => {
+            if (other.value !== 'none') other.checked = false;
+          });
+          const wrap = document.getElementById(`${name}-other-wrap`);
+          if (wrap) wrap.classList.remove('open');
+        } else if (this.value !== 'none' && this.checked) {
+          noneCheckbox.checked = false;
+        }
+      });
+    });
+  }
+  setupExclusiveNone('present-illness');
+  setupExclusiveNone('past-history');
 
   // ===== ツールチップ =====
   document.querySelectorAll('.tip-btn').forEach(btn => {

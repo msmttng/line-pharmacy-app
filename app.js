@@ -218,6 +218,7 @@ function generateConfirmation() {
     };
     
     const historyLabels = {
+        'none': t('history_none'),
         'hypertension': t('hypertension'), 'diabetes': t('diabetes'), 'heart': t('heart_disease'), 
         'kidney': t('kidney_disease'), 'liver': t('liver_disease'), 'asthma': t('asthma'), 
         'epilepsy': t('epilepsy'), 'glaucoma': t('glaucoma'), 'prostate': t('prostate'),
@@ -309,6 +310,7 @@ async function handleSubmit(e) {
 
     // バックエンド(GAS)の後方互換性を保つため、現病歴と既往歴を history に結合
     const historyMap = {
+        'none': '特になし',
         'hypertension': '高血圧', 'diabetes': '糖尿病', 'heart': '心臓病', 
         'kidney': '腎臓病', 'liver': '肝臓病', 'asthma': '喘息', 
         'epilepsy': 'てんかん', 'glaucoma': '緑内障', 'prostate': '前立腺肥大',

@@ -1,4 +1,4 @@
-﻿/* ===== DESIGN TOKENS ===== */
+/* ===== DESIGN TOKENS ===== */
 :root {
   --line-green:   #06C755;
   --green:        #06C755;
@@ -147,6 +147,9 @@ body {
   font-weight: 700;
   line-height: 1.5;
   margin-bottom: 13px;
+  word-break: auto-phrase;
+  overflow-wrap: break-word;
+  line-break: strict;
 }
 
 /* ===== REQUIRED BADGE ===== */
