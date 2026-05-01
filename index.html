@@ -507,33 +507,43 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId) {
         const val = e.target.value.trim();
         suggestionsEl.innerHTML = '';
         if (!val) { suggestionsEl.style.display = 'none'; return; }
-        
+
         const query = normalizeString(val);
         let startsWith = [];
         let includes = [];
+        // Bug fix: collect startsWith and includes independently with separate limits
         for (let i = 0; i < MED_DB.length; i++) {
             const med = MED_DB[i];
             const normMed = normalizeString(med);
-            if (normMed.startsWith(query)) startsWith.push(med);
-            else if (normMed.includes(query)) includes.push(med);
-            if (startsWith.length > 20) break;
+            if (normMed.startsWith(query)) {
+                if (startsWith.length < 15) startsWith.push(med);
+            } else if (normMed.includes(query)) {
+                if (includes.length < 10) includes.push(med);
+            }
+            // Stop once we have enough of both
+            if (startsWith.length >= 15 && includes.length >= 10) break;
         }
-        
+
         const results = [...startsWith, ...includes].slice(0, 20);
         if (results.length > 0) {
             results.forEach(med => {
                 const div = document.createElement('div');
                 div.className = 'suggestion-item';
                 div.innerText = med;
-                div.onclick = function() {
+                // Bug fix: use mousedown + touchstart instead of onclick
+                // so the selection fires BEFORE input blur hides the suggestions
+                const selectMed = function(e) {
+                    e.preventDefault();
                     if (!selectedMeds.includes(med)) {
                         selectedMeds.push(med);
                         renderChips();
                     }
                     inputEl.value = '';
                     suggestionsEl.style.display = 'none';
-                    inputEl.focus();
+                    suggestionsEl.innerHTML = '';
                 };
+                div.addEventListener('mousedown', selectMed);
+                div.addEventListener('touchstart', selectMed, { passive: false });
                 suggestionsEl.appendChild(div);
             });
             suggestionsEl.style.display = 'block';
@@ -542,7 +552,8 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId) {
         }
     });
 
-    document.addEventListener('click', function(e) {
+    // Bug fix: use mousedown for external-click dismiss as well (consistent with above)
+    document.addEventListener('mousedown', function(e) {
         if (!inputEl.contains(e.target) && !suggestionsEl.contains(e.target)) {
             suggestionsEl.style.display = 'none';
         }
@@ -571,6 +582,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-<script src="app.js?v=20260401"></script>
+<script src="app.js?v=20260501_1"></script>
 </body>
 </html>

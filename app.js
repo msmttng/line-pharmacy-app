@@ -1,4 +1,4 @@
-﻿// --- Configuration ---
+// --- Configuration ---
 const LIFF_ID = 'YOUR_LIFF_ID'; // Replace with your real LIFF ID
 const API_URL = 'https://script.google.com/macros/s/AKfycbwzgWaaqg6HyDTh8Qxq2_TdTqwH0q_INm_kuArmq640Xqai0KXp_xWbGJhhIs00b41wpQ/exec';
 
@@ -166,12 +166,12 @@ function generateConfirmation() {
         'patient-condition': t('conf_condition'),
         'weight': t('conf_weight'),
         'drug-allergy': t('conf_drug_allergy'),
-        'drug-allergy-detail': '', // Placeholder for dynamic translation if needed, we'll keep value empty text in label
+        'drug-allergy-detail': '原因薬',
         'food-allergy': t('conf_food_allergy'),
-        'food-allergy-detail': '',
+        'food-allergy-detail': '食物名',
         'env-allergy': t('conf_env_allergy'),
         'current-presc': t('conf_current_presc'),
-        'current-presc-detail': '',
+        'current-presc-detail': '服用薬',
         'otc-list': t('conf_otc'),
         'otc-suppl-detail': t('conf_otc_detail'),
         'food-drink': t('conf_food_drink'),
@@ -307,11 +307,17 @@ async function handleSubmit(e) {
     
     const yesNoMap = { 'yes': 'あり', 'no': 'なし' };
     const yesNoDoMap = { 'yes': 'する', 'no': 'しない' };
-    const drugAllergyJp = yesNoMap[formData['drug-allergy']] || formData['drug-allergy'];
+    
+    const allergyDetail = formData['drug-allergy-detail'] ? ` (${formData['drug-allergy-detail']})` : '';
+    const drugAllergyJp = (yesNoMap[formData['drug-allergy']] || formData['drug-allergy']) + allergyDetail;
+    
+    const prescDetail = formData['current-presc-detail'] ? ` (${formData['current-presc-detail']})` : '';
+    const prescJp = (yesNoMap[formData['current-presc']] || formData['current-presc']) + prescDetail;
+
     const drivingJp = yesNoDoMap[formData.driving] || formData.driving;
     const heightWorkJp = yesNoMap[formData['height-work']] || formData['height-work'];
 
-    const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${condStr}\n薬アレルギー: ${drugAllergyJp}\n副作用: ${formData['side-effect'] || 'なし'}\n運転: ${drivingJp}\n高所作業: ${heightWorkJp}\nジェネリック: ${genericText}`;
+    const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${condStr}\n薬アレルギー・副作用: ${drugAllergyJp}\n他院処方薬: ${prescJp}\n運転: ${drivingJp}\n高所作業: ${heightWorkJp}\nジェネリック: ${genericText}`;
 
     try {
         if (typeof liff !== 'undefined' && liff.isInClient()) {
