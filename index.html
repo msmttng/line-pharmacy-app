@@ -614,11 +614,17 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
     if (customAddBtnId) {
         var addBtn = document.getElementById(customAddBtnId);
         if (addBtn) {
-            addBtn.addEventListener('click', function(ev) {
+            var doAdd = function(ev) {
                 ev.preventDefault();
                 var val = inputEl.value.trim();
                 if (val) addMed(val);
-            });
+            };
+            addBtn.addEventListener('mousedown', doAdd);
+            var btnY = 0;
+            addBtn.addEventListener('touchstart', function(ev) { btnY = ev.touches[0].clientY; }, { passive: true });
+            addBtn.addEventListener('touchend', function(ev) {
+                if (Math.abs(ev.changedTouches[0].clientY - btnY) < 10) doAdd(ev);
+            }, { passive: false });
         }
     }
 
