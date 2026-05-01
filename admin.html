@@ -1455,7 +1455,18 @@
         btn.innerText = '送信中...';
         btn.disabled = true;
 
-        sendToExtensionWithRetry(text, btn, 2); // 最大2回試行
+        sendToExtensionWithRetry(text, btn, 2).then(success => {
+          if (success) {
+            // 問診ペースト成功後、自動で「MEDIXS併用薬」ボタンをトリガーする
+            const card = btn.closest('.card');
+            if (card) {
+              const drugBtn = card.querySelector('button[onclick^="sendMonshinDrugsToExtension"]');
+              if (drugBtn) {
+                setTimeout(() => drugBtn.click(), 600); // UIの「完了！」表示が少し見えるように遅延
+              }
+            }
+          }
+        });
       } else {
         // 調剤くん用 or 拡張IDが未設定 → 従来のクリップボードコピー
         clipboardCopy(text, btn);
@@ -1574,10 +1585,10 @@
 
         if (result && result.success) {
           btn.disabled = false;
-          btn.innerText = `✅ ${result.count}箇所入力完了！`;
+          btn.innerText = `✅ ${result.count}箇所完了！`;
           btn.style.background = '#059669';
           setTimeout(() => { btn.innerText = 'MEDIXS用'; btn.style.background = ''; }, 3000);
-          return;
+          return true;
         }
 
         console.warn(`[admin] 試行${attempt}失敗:`, result?.error);
@@ -1592,6 +1603,7 @@
       console.warn('[admin] 全試行失敗、クリップボードにフォールバック');
       btn.disabled = false;
       clipboardCopy(text, btn);
+      return false;
     }
 
     function fallbackCopy(text, btn) {
