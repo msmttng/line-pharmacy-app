@@ -148,6 +148,10 @@
           <p class="hint" data-i18n="env_allergy_hint">※「特にない」場合はそのまま次へ進んでください</p>
           <div class="checkbox-grid">
             <label class="checkbox-label">
+              <input type="checkbox" name="env-allergy" value="no" checked id="env-allergy-none">
+              <span data-i18n="no">ない</span>
+            </label>
+            <label class="checkbox-label">
               <input type="checkbox" name="env-allergy" value="hayfever" id="hayfever-toggle">
               <span data-i18n="hayfever">花粉症</span>
             </label>
@@ -231,6 +235,7 @@
           <label class="q-label"><span data-i18n="otc_label">市販薬やサプリメントを飲んでいますか？</span></label>
           <p class="hint" data-i18n="otc_hint">※ 該当するものだけ選んでください（複数OK）</p>
           <div class="checkbox-grid">
+            <label class="checkbox-label"><input type="checkbox" name="otc-list" value="no" checked id="otc-list-none"><span data-i18n="no">ない</span></label>
             <label class="checkbox-label"><input type="checkbox" name="otc-list" value="cold"><span data-i18n="cold_med">風邪薬</span></label>
             <label class="checkbox-label"><input type="checkbox" name="otc-list" value="pain"><span data-i18n="painkiller">痛み止め</span></label>
             <label class="checkbox-label"><input type="checkbox" name="otc-list" value="stomach"><span data-i18n="stomach_med">胃腸薬</span></label>
@@ -256,6 +261,7 @@
           <div class="tooltip-text" id="food-tip" data-i18n="food_drink_tip">お薬と食べ物の飲み合わせ確認のためにお聞きしています。</div>
           <p class="hint" data-i18n="food_drink_hint">※ 該当するものだけ選んでください（複数OK）</p>
           <div class="checkbox-grid">
+            <label class="checkbox-label"><input type="checkbox" name="food-drink" value="no" checked id="food-drink-none"><span data-i18n="no">ない</span></label>
             <label class="checkbox-label"><input type="checkbox" name="food-drink" value="coffee-tea"><span data-i18n="coffee_tea">コーヒー・紅茶</span></label>
             <label class="checkbox-label"><input type="checkbox" name="food-drink" value="grapefruit"><span data-i18n="grapefruit">グレープフルーツ</span></label>
             <label class="checkbox-label"><input type="checkbox" name="food-drink" value="dairy"><span data-i18n="dairy">乳製品</span></label>
@@ -274,7 +280,7 @@
           <p class="hint" data-i18n="present_illness_desc">現在病院に通院して治療を受けている病気や、最近かかった病気があれば教えてください。</p>
           <p class="hint" data-i18n="history_hint">※「特にない」場合はそのまま次へ進んでください（複数OK）</p>
           <div class="checkbox-grid">
-            <label class="checkbox-label"><input type="checkbox" name="present-illness" value="none" checked><span data-i18n="history_none">特になし</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="present-illness" value="no" checked><span data-i18n="no">ない</span></label>
             <label class="checkbox-label"><input type="checkbox" name="present-illness" value="hypertension"><span data-i18n="hypertension">高血圧</span></label>
             <label class="checkbox-label"><input type="checkbox" name="present-illness" value="diabetes"><span data-i18n="diabetes">糖尿病</span></label>
             <label class="checkbox-label"><input type="checkbox" name="present-illness" value="heart"><span data-i18n="heart_disease">心臓病</span></label>
@@ -304,7 +310,7 @@
           <p class="hint" data-i18n="past_history_desc">これまでに手術や入院をしたことがある病気や、過去に治療を受けたことがある大きな病気を教えてください。</p>
           <p class="hint" data-i18n="history_hint">※「特にない」場合はそのまま次へ進んでください（複数OK）</p>
           <div class="checkbox-grid">
-            <label class="checkbox-label"><input type="checkbox" name="past-history" value="none" checked><span data-i18n="history_none">特になし</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="past-history" value="no" checked><span data-i18n="no">ない</span></label>
             <label class="checkbox-label"><input type="checkbox" name="past-history" value="hypertension"><span data-i18n="hypertension">高血圧</span></label>
             <label class="checkbox-label"><input type="checkbox" name="past-history" value="diabetes"><span data-i18n="diabetes">糖尿病</span></label>
             <label class="checkbox-label"><input type="checkbox" name="past-history" value="heart"><span data-i18n="heart_disease">心臓病</span></label>
@@ -547,18 +553,18 @@ document.addEventListener('DOMContentLoaded', function() {
   // ===== 現病歴・既往歴の「特になし」排他制御 =====
   function setupExclusiveNone(name) {
     const checkboxes = document.querySelectorAll(`input[name="${name}"]`);
-    const noneCheckbox = document.querySelector(`input[name="${name}"][value="none"]`);
+    const noneCheckbox = document.querySelector(`input[name="${name}"][value="no"]`);
     if (!noneCheckbox) return;
     
     checkboxes.forEach(cb => {
       cb.addEventListener('change', function() {
-        if (this.value === 'none' && this.checked) {
+        if (this.value === 'no' && this.checked) {
           checkboxes.forEach(other => {
-            if (other.value !== 'none') other.checked = false;
+            if (other.value !== 'no') other.checked = false;
           });
           const wrap = document.getElementById(`${name}-other-wrap`);
           if (wrap) wrap.classList.remove('open');
-        } else if (this.value !== 'none' && this.checked) {
+        } else if (this.value !== 'no' && this.checked) {
           noneCheckbox.checked = false;
         }
       });
@@ -566,6 +572,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   setupExclusiveNone('present-illness');
   setupExclusiveNone('past-history');
+  setupExclusiveNone('env-allergy');
+  setupExclusiveNone('otc-list');
+  setupExclusiveNone('food-drink');
 
   // ===== ツールチップ =====
   document.querySelectorAll('.tip-btn').forEach(btn => {

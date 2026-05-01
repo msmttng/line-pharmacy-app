@@ -192,6 +192,7 @@ function generateConfirmation() {
     const genericMap = { 'prefer': t('val_generic_prefer'), 'ag': t('val_generic_prefer'), 'avoid': t('val_generic_avoid') };
 
     const otcLabels = {
+        'no': t('val_none'),
         'cold': t('cold_med'), 'pain': t('painkiller'), 'stomach': t('stomach_med'), 'eye': t('eye_drops'),
         'vitamin': t('vitamins'), 'multi-mineral': t('multi_mineral'), 'iron': t('iron'), 'zinc': t('zinc'), 
         'calcium': t('calcium'), 'magnesium': t('magnesium'), 'dha-epa': t('dha_epa'),
@@ -199,11 +200,13 @@ function generateConfirmation() {
     };
     
     const foodDrinkLabels = {
+        'no': t('val_none'),
         'coffee-tea': t('coffee_tea'), 'grapefruit': t('grapefruit'), 
         'dairy': t('dairy'), 'other': t('other')
     };
     
     const envLabels = {
+        'no': t('val_none'),
         'hayfever': t('hayfever'), 'housedust': t('housedust'), 'mite': t('mite'),
         'dog-cat': t('dog_cat'), 'temp': t('temp_diff'), 'perennial': t('perennial'), 'testing': t('testing'), 'other': t('other')
     };
@@ -218,7 +221,7 @@ function generateConfirmation() {
     };
     
     const historyLabels = {
-        'none': t('history_none'),
+        'no': t('val_none'),
         'hypertension': t('hypertension'), 'diabetes': t('diabetes'), 'heart': t('heart_disease'), 
         'kidney': t('kidney_disease'), 'liver': t('liver_disease'), 'asthma': t('asthma'), 
         'epilepsy': t('epilepsy'), 'glaucoma': t('glaucoma'), 'prostate': t('prostate'),
@@ -310,7 +313,7 @@ async function handleSubmit(e) {
 
     // バックエンド(GAS)の後方互換性を保つため、現病歴と既往歴を history に結合
     const historyMap = {
-        'none': '特になし',
+        'no': 'ない',
         'hypertension': '高血圧', 'diabetes': '糖尿病', 'heart': '心臓病', 
         'kidney': '腎臓病', 'liver': '肝臓病', 'asthma': '喘息', 
         'epilepsy': 'てんかん', 'glaucoma': '緑内障', 'prostate': '前立腺肥大',
@@ -342,11 +345,11 @@ async function handleSubmit(e) {
     const genericText = genericMapSubmit[formData.generic] || formData.generic;
     
     // translate patient-condition to Japanese for LINE
-    const pCondMap = { 'none': '該当なし', 'pregnant': '妊娠中', 'breastfeeding': '授乳中', 'pediatric': '小児' };
+    const pCondMap = { 'none': 'ない', 'pregnant': '妊娠中', 'breastfeeding': '授乳中', 'pediatric': '小児' };
     const condJp = pCondMap[formData['patient-condition']] || formData['patient-condition'];
-    const condStr = (formData['patient-condition'] !== 'none') ? `\n状態: ${condJp} (体重: ${formData.weight || '-'}kg)` : '\n状態: 該当なし';
+    const condStr = (formData['patient-condition'] !== 'none') ? `\n状態: ${condJp} (体重: ${formData.weight || '-'}kg)` : '\n状態: ない';
     
-    const yesNoMap = { 'yes': 'あり', 'no': 'なし' };
+    const yesNoMap = { 'yes': 'ある', 'no': 'ない' };
     const yesNoDoMap = { 'yes': 'する', 'no': 'しない' };
     
     const allergyDetail = formData['drug-allergy-detail'] ? ` (${formData['drug-allergy-detail']})` : '';
