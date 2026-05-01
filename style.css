@@ -278,9 +278,11 @@ textarea { resize: vertical; min-height: 88px; }
   opacity: 0;
   transition: max-height .35s ease, opacity .3s;
 }
-.sub-input.open { max-height: 300px; opacity: 1; }
+/* max-height を十分大きくしてドロップダウンが切れないように。
+   overflow:visible にして position:absolute のサジェストが親にクリップされないようにする */
+.sub-input.open { max-height: 800px; opacity: 1; overflow: visible; }
 /* 旧スタイルとの互換性（hidden クラスも動作するように残す） */
-.sub-input.hidden { max-height: 0 !important; opacity: 0 !important; }
+.sub-input.hidden { max-height: 0 !important; opacity: 0 !important; overflow: hidden !important; }
 
 /* hidden weight group */
 #weight-input-group {

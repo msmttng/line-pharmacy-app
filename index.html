@@ -503,7 +503,18 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId) {
 
     if (!inputEl) return;
 
+    // IME対応: スマホの日本語入力で文字が確定されたタイミングでも検索を走らせる
+    let isComposing = false;
+    inputEl.addEventListener('compositionstart', function() { isComposing = true; });
+    inputEl.addEventListener('compositionend', function() {
+        isComposing = false;
+        // composition確定後にinputイベントを手動発火してサジェストを更新
+        inputEl.dispatchEvent(new Event('input'));
+    });
+
     inputEl.addEventListener('input', function(e) {
+        // IME変換中は途中検索しない（確定後に再発火される）
+        if (isComposing) return;
         const val = e.target.value.trim();
         suggestionsEl.innerHTML = '';
         if (!val) { suggestionsEl.style.display = 'none'; return; }
@@ -551,6 +562,7 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId) {
             suggestionsEl.style.display = 'none';
         }
     });
+
 
     // Bug fix: use mousedown for external-click dismiss as well (consistent with above)
     document.addEventListener('mousedown', function(e) {
