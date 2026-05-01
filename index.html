@@ -288,7 +288,7 @@
           <div class="sub-input" id="present-illness-other-wrap">
             <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom: 8px;">病名をひらがなで検索して追加できます（リストにない場合は入力して追加ボタンを押してください）</div>
             <div class="autocomplete-wrapper" style="display: flex; gap: 8px;">
-              <input type="text" id="present-illness-search" placeholder="例: うつびょう" autocomplete="off" style="flex: 1;">
+              <input type="text" id="present-illness-search" placeholder="例: いかいよう" autocomplete="off" style="flex: 1;">
               <button type="button" id="present-illness-add-btn" class="btn-primary" style="padding: 0 16px; white-space: nowrap;">追加</button>
               <div id="present-illness-suggestions" class="suggestions" style="top: 45px;"></div>
             </div>
@@ -317,7 +317,7 @@
           <div class="sub-input" id="past-history-other-wrap">
             <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom: 8px;">病名をひらがなで検索して追加できます（リストにない場合は入力して追加ボタンを押してください）</div>
             <div class="autocomplete-wrapper" style="display: flex; gap: 8px;">
-              <input type="text" id="past-history-search" placeholder="例: うつびょう" autocomplete="off" style="flex: 1;">
+              <input type="text" id="past-history-search" placeholder="例: いかいよう" autocomplete="off" style="flex: 1;">
               <button type="button" id="past-history-add-btn" class="btn-primary" style="padding: 0 16px; white-space: nowrap;">追加</button>
               <div id="past-history-suggestions" class="suggestions" style="top: 45px;"></div>
             </div>
@@ -554,7 +554,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- app.js (既存ロジック: LIFF初期化・バリデーション・確認画面生成・GAS送信) -->
 <script src="dict_v2.js"></script>
-<script src="disease_dict.js"></script>
+<script src="disease_dict.js?v=20260501e"></script>
 <script>
 // --- Autocomplete Logic ---
 function hiraToKata(str) {
@@ -860,6 +860,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-<script src="app.js?v=20260501d"></script>
+<script src="app.js?v=20260501e"></script>
 </body>
 </html>
