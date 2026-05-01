@@ -571,7 +571,7 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
 
     function addMed(name) {
         if (!selectedMeds.find(function(m) { return m.name === name; })) {
-            selectedMeds.push({ name: name, symptoms: new Set(), note: '' });
+            selectedMeds.unshift({ name: name, symptoms: new Set(), note: '' }); // 新着を先頭に追加
             renderCards();
         }
         inputEl.value = '';
@@ -639,6 +639,21 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
             }
         });
         updateHidden();
+
+        // カード追加時に親.sub-inputのmax-height制約を解除（下の項目と重ならないようにする）
+        var parentSubInput = chipContainer.parentElement;
+        while (parentSubInput && !parentSubInput.classList.contains('sub-input')) {
+            parentSubInput = parentSubInput.parentElement;
+        }
+        if (parentSubInput) {
+            if (selectedMeds.length > 0) {
+                parentSubInput.style.maxHeight = 'none';
+                parentSubInput.style.overflow = 'visible';
+            } else {
+                parentSubInput.style.maxHeight = '';
+                parentSubInput.style.overflow = '';
+            }
+        }
     }
 
     function updateHidden() {
