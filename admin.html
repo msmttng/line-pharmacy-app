@@ -1836,7 +1836,9 @@
         return;
       }
 
-      btn.innerText = `送信中... (${drugs.length}品目)`;
+      btn.innerText = `MEDIXSで「併用薬」を開いてください (${drugs.length}品目)`;
+      btn.style.background = '#eab308'; // yellow
+      btn.style.color = '#fff';
       btn.disabled = true;
 
       let settled = false;
@@ -1863,6 +1865,8 @@
             const errMsg = chrome.runtime.lastError ? chrome.runtime.lastError.message : '応答なし';
             console.warn('[admin] 併用薬送信エラー:', errMsg);
             btn.innerText = 'エラー: ' + errMsg;
+            btn.style.background = '';
+            btn.style.color = '';
             setTimeout(() => { btn.innerText = 'MEDIXS併用薬'; }, 3000);
             return;
           }
@@ -1870,9 +1874,12 @@
           if (response.success) {
             btn.innerText = `✅ ${response.successCount}/${response.total}品目完了`;
             btn.style.background = '#047857';
+            btn.style.color = '#fff';
             setTimeout(() => { btn.innerText = 'MEDIXS併用薬'; btn.style.background = '#059669'; }, 4000);
           } else {
             btn.innerText = response.error || '失敗';
+            btn.style.background = '';
+            btn.style.color = '';
             setTimeout(() => { btn.innerText = 'MEDIXS併用薬'; }, 3000);
           }
         });
