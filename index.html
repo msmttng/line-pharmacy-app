@@ -481,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <!-- app.js (既存ロジック: LIFF初期化・バリデーション・確認画面生成・GAS送信) -->
-<script src="dict.js?v=20260501_2"></script>
+<script src="dict.js?v=20260501_3"></script>
 <script>
 // --- Autocomplete Logic ---
 function hiraToKata(str) {
@@ -525,8 +525,7 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId) {
                 const div = document.createElement('div');
                 div.className = 'suggestion-item';
                 div.innerText = med;
-                div.onmousedown = function(e) {
-                    e.preventDefault();
+                div.onclick = function() {
                     if (!selectedMeds.includes(med)) {
                         selectedMeds.push(med);
                         renderChips();
@@ -544,7 +543,7 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId) {
     });
 
     document.addEventListener('click', function(e) {
-        if (e.target !== inputEl && e.target !== suggestionsEl) {
+        if (!inputEl.contains(e.target) && !suggestionsEl.contains(e.target)) {
             suggestionsEl.style.display = 'none';
         }
     });
