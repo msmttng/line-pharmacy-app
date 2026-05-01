@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -510,11 +510,11 @@ function normalizeString(str) {
     return zenToHan(hiraToKata(str)).toUpperCase();
 }
 
-var ALLERGY_SYMPTOMS = ['\u767a\u75b9','\u3058\u3093\u307e\u3057\u3093','\u547c\u5438\u56f0\u96e3','\u30a2\u30ca\u30d5\u30a3\u30e9\u30ad\u30b7\u30fc','\u80f8\u75db\u30fb\u5410\u304d\u6c17','\u3080\u304f\u307f','\u5c49\u606f\u69d8\u75c7\u72b6','\u305d\u306e\u4ed6'];
+var ALLERGY_SYMPTOMS = ['\u767a\u75b9','\u3058\u3093\u307e\u3057\u3093','\u547c\u5438\u56f0\u96e3','\u30a2\u30ca\u30d5\u30a3\u30e9\u30ad\u30b7\u30fc','\u80f8\u75db\u30fb\u5410\u304d\u6c17','\u3080\u304f\u307f','\u5598\u606f\u69d8\u75c7\u72b6','\u305d\u306e\u4ed6'];
 
 // アレルギー系症状 / 副作用系症状 — 自動判定用
 var SYMP_ALLERGY_SET     = ['\u767a\u75b9','\u3058\u3093\u307e\u3057\u3093','\u547c\u5438\u56f0\u96e3','\u30a2\u30ca\u30d5\u30a3\u30e9\u30ad\u30b7\u30fc'];
-var SYMP_SIDE_EFFECT_SET = ['\u80f8\u75db\u30fb\u5410\u304d\u6c17','\u3080\u304f\u307f','\u5c49\u606f\u69d8\u75c7\u72b6'];
+var SYMP_SIDE_EFFECT_SET = ['\u80f8\u75db\u30fb\u5410\u304d\u6c17','\u3080\u304f\u307f','\u5598\u606f\u69d8\u75c7\u72b6'];
 
 function detectReactionType(symptomsSet) {
     var hasA = SYMP_ALLERGY_SET.some(function(s) { return symptomsSet.has(s); });
