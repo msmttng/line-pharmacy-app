@@ -83,6 +83,10 @@ const I18N = {
 
     // --- Step 4: 既往歴 ---
     step4_title: '既往歴・現病歴',
+    present_illness_label: '現在治療中の病気はありますか？（現病歴）',
+    present_illness_desc: '現在病院に通院して治療を受けている病気や、最近かかった病気があれば教えてください。',
+    past_history_label: '過去にかかった大きな病気はありますか？（既往歴）',
+    past_history_desc: 'これまでに手術や入院をしたことがある病気や、過去に治療を受けたことがある大きな病気を教えてください。',
     history_label: '現在治療中または過去に大きな病気はありますか？',
     history_hint: '※「特にない」場合はそのまま次へ進んでください（複数OK）',
     hypertension: '高血圧',
@@ -276,6 +280,10 @@ const I18N = {
     food_drink_detail_placeholder: 'If "Other", please specify',
 
     step4_title: 'Medical History',
+    present_illness_label: 'Are you currently being treated for any diseases? (Present Illness)',
+    present_illness_desc: 'Please tell us about any diseases you are currently receiving treatment for at a hospital, or recent illnesses.',
+    past_history_label: 'Have you had any major illnesses in the past? (Past History)',
+    past_history_desc: 'Please tell us about any diseases for which you have had surgery, been hospitalized, or received treatment in the past.',
     history_label: 'Are you currently being treated for, or have you previously had, any of the following?',
     history_hint: '* If none, please proceed to the next step (select all that apply)',
     hypertension: 'Hypertension',
@@ -460,6 +468,10 @@ const I18N = {
     food_drink_detail_placeholder: '如选"其他"，请填写具体名称',
 
     step4_title: '既往病史',
+    present_illness_label: '您目前是否在接受任何疾病的治疗？（现病史）',
+    present_illness_desc: '请告诉我们您目前是否在医院接受治疗，或最近是否患有任何疾病。',
+    past_history_label: '您过去是否患有任何重大疾病？（既往病史）',
+    past_history_desc: '请告诉我们您过去是否做过手术、住过院或接受过任何重大疾病的治疗。',
     history_label: '您目前是否在治疗或过去是否患有以下疾病？',
     history_hint: '※ 如果没有，请直接进入下一步（可多选）',
     hypertension: '高血压',
