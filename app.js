@@ -1,4 +1,4 @@
-// --- Configuration ---
+﻿// --- Configuration ---
 const LIFF_ID = 'YOUR_LIFF_ID'; // Replace with your real LIFF ID
 const API_URL = 'https://script.google.com/macros/s/AKfycbwzgWaaqg6HyDTh8Qxq2_TdTqwH0q_INm_kuArmq640Xqai0KXp_xWbGJhhIs00b41wpQ/exec';
 
@@ -166,9 +166,9 @@ function generateConfirmation() {
         'patient-condition': t('conf_condition'),
         'weight': t('conf_weight'),
         'drug-allergy': t('conf_drug_allergy'),
-        'drug-allergy-detail': '原因薬',
+        'drug-allergy-detail': '原因薬（症状）',
         'food-allergy': t('conf_food_allergy'),
-        'food-allergy-detail': '食物名',
+        'food-allergy-detail': '食物アレルギー',
         'env-allergy': t('conf_env_allergy'),
         'current-presc': t('conf_current_presc'),
         'current-presc-detail': '服用薬',

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title data-i18n="page_title">【薬局】初回問診票</title>
-  <link rel="stylesheet" href="style.css?v=20260501b">
+  <link rel="stylesheet" href="style.css?v=20260501c">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -88,6 +88,7 @@
 
         <div class="input-group">
           <label class="q-label"><span data-i18n="drug_allergy_label">薬でアレルギーや副作用が出たことはありますか？</span><span class="required" data-i18n="required">必須</span></label>
+          <p class="hint" style="margin-top:-6px">※ 発疹・じんましん（アレルギー反応）や、胃痛・眠気（副作用）なども含みます</p>
           <div class="radio-group">
             <label class="radio-label">
               <input type="radio" name="drug-allergy" value="no" checked required>
@@ -122,7 +123,22 @@
             </label>
           </div>
           <div class="sub-input" id="food-allergy-detail-wrap">
-            <textarea name="food-allergy-detail" placeholder="具体的な食物名をご記入ください" data-i18n-placeholder="food_allergy_detail_placeholder"></textarea>
+            <div class="food-allergy-grid" id="food-allergy-btn-group">
+              <button type="button" class="food-btn" data-food="卵">🥚 卵</button>
+              <button type="button" class="food-btn" data-food="乳製品">🥛 乳製品</button>
+              <button type="button" class="food-btn" data-food="小麦">🌾 小麦</button>
+              <button type="button" class="food-btn" data-food="えび・かに">🦐 えび・かに</button>
+              <button type="button" class="food-btn" data-food="そば">🍜 そば</button>
+              <button type="button" class="food-btn" data-food="落花生">🥜 落花生</button>
+              <button type="button" class="food-btn" data-food="くるみ">🌰 くるみ</button>
+              <button type="button" class="food-btn" data-food="大豆">🫘 大豆</button>
+              <button type="button" class="food-btn" data-food="果物">🍎 果物</button>
+              <button type="button" class="food-btn" data-food="魚介類">🐟 魚介類</button>
+              <button type="button" class="food-btn" data-food="ごま">🌿 ごま</button>
+              <button type="button" class="food-btn" data-food="その他">＋ その他</button>
+            </div>
+            <input type="text" id="food-allergy-other-text" placeholder="その他・詳細（任意）" style="display:none; margin-top:8px">
+            <input type="hidden" name="food-allergy-detail" id="food-allergy-detail-hidden" value="">
           </div>
         </div>
 
@@ -494,13 +510,15 @@ function normalizeString(str) {
     return zenToHan(hiraToKata(str)).toUpperCase();
 }
 
-var ALLERGY_SYMPTOMS = ['\u767a\u75b9', '\u3058\u3093\u307e\u3057\u3093', '\u80f8\u75db\u30fb\u5410\u304d\u6c17', '\u547c\u5438\u56f0\u96e3', '\u3080\u304f\u307f', '\u5c49\u606f\u69d8\u75c7\u72b6', '\u30a2\u30ca\u30d5\u30a3\u30e9\u30ad\u30b7\u30fc', '\u305d\u306e\u4ed6'];
+var ALLERGY_SYMPTOMS = ['\u767a\u75b9','\u3058\u3093\u307e\u3057\u3093','\u80f8\u75db\u30fb\u5410\u304d\u6c17','\u547c\u5438\u56f0\u96e3','\u3080\u304f\u307f','\u5c49\u606f\u69d8\u75c7\u72b6','\u30a2\u30ca\u30d5\u30a3\u30e9\u30ad\u30b7\u30fc','\u305d\u306e\u4ed6'];
 
+// withSymptoms=true: アレルギー欄（反応種別+症状カード付き）  false: 服用中の薬欄（チップのみ）
 function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withSymptoms) {
     var inputEl = document.getElementById(inputId);
     var suggestionsEl = document.getElementById(suggestionsId);
     var chipContainer = document.getElementById(chipsId);
     var hiddenInput = document.getElementById(hiddenInputId);
+    // selectedMeds: [{name, reactionType: null|'allergy'|'side_effect', symptoms: Set, note}]
     var selectedMeds = [];
 
     if (!inputEl) return;
@@ -537,24 +555,18 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
                 var div = document.createElement('div');
                 div.className = 'suggestion-item';
                 div.innerText = med;
-
                 div.addEventListener('mousedown', function(ev) {
                     ev.preventDefault();
                     addMed(med);
                 });
-
                 var touchStartY = 0;
                 div.addEventListener('touchstart', function(ev) {
                     touchStartY = ev.touches[0].clientY;
                 }, { passive: true });
                 div.addEventListener('touchend', function(ev) {
                     var moved = Math.abs(ev.changedTouches[0].clientY - touchStartY);
-                    if (moved < 10) {
-                        ev.preventDefault();
-                        addMed(med);
-                    }
+                    if (moved < 10) { ev.preventDefault(); addMed(med); }
                 }, { passive: false });
-
                 suggestionsEl.appendChild(div);
             });
             suggestionsEl.style.display = 'block';
@@ -571,7 +583,7 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
 
     function addMed(name) {
         if (!selectedMeds.find(function(m) { return m.name === name; })) {
-            selectedMeds.unshift({ name: name, symptoms: new Set(), note: '' }); // 新着を先頭に追加
+            selectedMeds.unshift({ name: name, reactionType: null, symptoms: new Set(), note: '' });
             renderCards();
         }
         inputEl.value = '';
@@ -585,25 +597,55 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
             if (withSymptoms) {
                 var card = document.createElement('div');
                 card.className = 'allergy-card';
+
+                // 反応種別ボタン
+                var rtAllergy = item.reactionType === 'allergy' ? ' active' : '';
+                var rtSide    = item.reactionType === 'side_effect' ? ' active' : '';
+
                 var sympBtns = ALLERGY_SYMPTOMS.map(function(s) {
                     var active = item.symptoms.has(s) ? ' active' : '';
                     return '<button type="button" class="symptom-btn' + active + '" data-symptom="' + s + '">' + s + '</button>';
                 }).join('');
+
                 card.innerHTML =
                     '<div class="allergy-card-header">' +
                     '<span class="allergy-med-name">\uD83D\uDC8A ' + item.name + '</span>' +
                     '<button type="button" class="chip-remove" aria-label="\u524a\u9664">&times;</button>' +
                     '</div>' +
+                    '<div class="reaction-type-label">\u53cd\u5fdc\u306e\u7a2e\u985e\uff08\u5fc5\u305a\u9078\u3093\u3067\u304f\u3060\u3055\u3044\uff09</div>' +
+                    '<div class="reaction-type-row">' +
+                    '<button type="button" class="reaction-type-btn allergy' + rtAllergy + '" data-type="allergy">\uD83D\uDEA8 \u30a2\u30ec\u30eb\u30ae\u30fc\u53cd\u5fdc</button>' +
+                    '<button type="button" class="reaction-type-btn side_effect' + rtSide + '" data-type="side_effect">\u26a0\uFE0F \u526f\u4f5c\u7528</button>' +
+                    '</div>' +
                     '<div class="symptom-label">\u51fa\u305f\u75c7\u72b6\uff08\u8907\u6570\u9078\u629eOK\uff09</div>' +
                     '<div class="symptom-buttons">' + sympBtns + '</div>' +
                     '<input type="text" class="symptom-note" placeholder="\u305d\u306e\u4ed6\u30fb\u8a73\u7d30\uff08\u4efb\u610f\uff09" value="' + (item.note || '') + '">';
 
+                // 削除
                 card.querySelector('.chip-remove').addEventListener('mousedown', function(ev) {
                     ev.preventDefault();
                     selectedMeds.splice(idx, 1);
                     renderCards();
                 });
 
+                // 反応種別ボタン（排他選択）
+                card.querySelectorAll('.reaction-type-btn').forEach(function(btn) {
+                    var selectType = function(ev) {
+                        ev.preventDefault();
+                        item.reactionType = btn.dataset.type;
+                        card.querySelectorAll('.reaction-type-btn').forEach(function(b) { b.classList.remove('active'); });
+                        btn.classList.add('active');
+                        updateHidden();
+                    };
+                    btn.addEventListener('mousedown', selectType);
+                    var btnY = 0;
+                    btn.addEventListener('touchstart', function(ev) { btnY = ev.touches[0].clientY; }, { passive: true });
+                    btn.addEventListener('touchend', function(ev) {
+                        if (Math.abs(ev.changedTouches[0].clientY - btnY) < 10) selectType(ev);
+                    }, { passive: false });
+                });
+
+                // 症状ボタン
                 card.querySelectorAll('.symptom-btn').forEach(function(btn) {
                     var toggle = function(ev) {
                         ev.preventDefault();
@@ -620,6 +662,7 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
                     }, { passive: false });
                 });
 
+                // 自由記入
                 card.querySelector('.symptom-note').addEventListener('input', function(ev) {
                     item.note = ev.target.value;
                     updateHidden();
@@ -640,7 +683,7 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
         });
         updateHidden();
 
-        // カード追加時に親.sub-inputのmax-height制約を解除（下の項目と重ならないようにする）
+        // カード追加時に親.sub-inputのmax-height制約を解除
         var parentSubInput = chipContainer.parentElement;
         while (parentSubInput && !parentSubInput.classList.contains('sub-input')) {
             parentSubInput = parentSubInput.parentElement;
@@ -659,22 +702,76 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
     function updateHidden() {
         hiddenInput.value = selectedMeds.map(function(item) {
             if (withSymptoms) {
+                // 反応種別タグ
+                var typeTag = '';
+                if (item.reactionType === 'allergy') typeTag = '\u300a\u30a2\u30ec\u30eb\u30ae\u30fc\u300b';
+                else if (item.reactionType === 'side_effect') typeTag = '\u300a\u526f\u4f5c\u7528\u300b';
                 var parts = Array.from(item.symptoms);
                 if (item.note) parts.push(item.note);
-                return parts.length ? item.name + '\uff08' + parts.join('\u30fb') + '\uff09' : item.name;
+                return parts.length
+                    ? item.name + typeTag + '\uff08' + parts.join('\u30fb') + '\uff09'
+                    : item.name + typeTag;
             }
             return item.name;
         }).join(', ');
     }
 }
 
+// --- 食物アレルギー ボタン選択ロジック ---
 document.addEventListener('DOMContentLoaded', function() {
+    var foodBtnGroup = document.getElementById('food-allergy-btn-group');
+    var foodHidden   = document.getElementById('food-allergy-detail-hidden');
+    var foodOther    = document.getElementById('food-allergy-other-text');
+
+    if (foodBtnGroup && foodHidden) {
+        var selectedFoods = new Set();
+
+        foodBtnGroup.querySelectorAll('.food-btn').forEach(function(btn) {
+            var select = function(ev) {
+                ev.preventDefault();
+                var food = btn.dataset.food;
+                if (selectedFoods.has(food)) {
+                    selectedFoods.delete(food);
+                    btn.classList.remove('active');
+                } else {
+                    selectedFoods.add(food);
+                    btn.classList.add('active');
+                }
+                // その他 を選択したら詳細テキスト入力を表示
+                if (food === '\u305d\u306e\u4ed6') {
+                    foodOther.style.display = selectedFoods.has('\u305d\u306e\u4ed6') ? 'block' : 'none';
+                }
+                updateFoodHidden();
+            };
+            btn.addEventListener('mousedown', select);
+            var btnY = 0;
+            btn.addEventListener('touchstart', function(ev) { btnY = ev.touches[0].clientY; }, { passive: true });
+            btn.addEventListener('touchend', function(ev) {
+                if (Math.abs(ev.changedTouches[0].clientY - btnY) < 10) select(ev);
+            }, { passive: false });
+        });
+
+        if (foodOther) {
+            foodOther.addEventListener('input', updateFoodHidden);
+        }
+
+        function updateFoodHidden() {
+            var items = Array.from(selectedFoods);
+            if (selectedFoods.has('\u305d\u306e\u4ed6') && foodOther && foodOther.value) {
+                items = items.filter(function(f) { return f !== '\u305d\u306e\u4ed6'; });
+                items.push('\u305d\u306e\u4ed6\uff08' + foodOther.value + '\uff09');
+            }
+            foodHidden.value = items.join('\u30fb');
+        }
+    }
+
+    // Autocomplete 初期化
     if (typeof MED_DB !== 'undefined') {
         setupAutocomplete('allergy-search', 'allergy-suggestions', 'allergy-chips', 'hidden-allergy-detail', true);
         setupAutocomplete('presc-search', 'presc-suggestions', 'presc-chips', 'hidden-presc-detail', false);
     }
 });
 </script>
-<script src="app.js?v=20260501b"></script>
+<script src="app.js?v=20260501c"></script>
 </body>
 </html>
