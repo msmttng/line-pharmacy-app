@@ -281,7 +281,7 @@
             <label class="checkbox-label"><input type="checkbox" name="history" value="epilepsy"><span data-i18n="epilepsy">てんかん</span></label>
             <label class="checkbox-label"><input type="checkbox" name="history" value="glaucoma"><span data-i18n="glaucoma">緑内障</span></label>
             <label class="checkbox-label"><input type="checkbox" name="history" value="prostate"><span data-i18n="prostate">前立腺肥大</span></label>
-            <label class="checkbox-label"><input type="checkbox" name="history" value="other" id="history-other-toggle"><span data-i18n="other">その他</span></label>
+            <label class="checkbox-label"><input type="checkbox" name="history" value="other" id="history-other-toggle" onchange="var w=document.getElementById('history-other-wrap'); if(w) w.style.display=this.checked?'block':'none';"><span data-i18n="other">その他</span></label>
           </div>
           <!-- その他のサジェスト領域（JSで制御） -->
           <div class="sub-input" id="history-other-wrap" style="display: none; margin-top: 12px;">
