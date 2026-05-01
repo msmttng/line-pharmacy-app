@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title data-i18n="page_title">【薬局】初回問診票</title>
-  <link rel="stylesheet" href="style.css?v=20260501c">
+  <link rel="stylesheet" href="style.css?v=20260501d">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -510,15 +510,33 @@ function normalizeString(str) {
     return zenToHan(hiraToKata(str)).toUpperCase();
 }
 
-var ALLERGY_SYMPTOMS = ['\u767a\u75b9','\u3058\u3093\u307e\u3057\u3093','\u80f8\u75db\u30fb\u5410\u304d\u6c17','\u547c\u5438\u56f0\u96e3','\u3080\u304f\u307f','\u5c49\u606f\u69d8\u75c7\u72b6','\u30a2\u30ca\u30d5\u30a3\u30e9\u30ad\u30b7\u30fc','\u305d\u306e\u4ed6'];
+var ALLERGY_SYMPTOMS = ['\u767a\u75b9','\u3058\u3093\u307e\u3057\u3093','\u547c\u5438\u56f0\u96e3','\u30a2\u30ca\u30d5\u30a3\u30e9\u30ad\u30b7\u30fc','\u80f8\u75db\u30fb\u5410\u304d\u6c17','\u3080\u304f\u307f','\u5c49\u606f\u69d8\u75c7\u72b6','\u305d\u306e\u4ed6'];
 
-// withSymptoms=true: アレルギー欄（反応種別+症状カード付き）  false: 服用中の薬欄（チップのみ）
+// アレルギー系症状 / 副作用系症状 — 自動判定用
+var SYMP_ALLERGY_SET     = ['\u767a\u75b9','\u3058\u3093\u307e\u3057\u3093','\u547c\u5438\u56f0\u96e3','\u30a2\u30ca\u30d5\u30a3\u30e9\u30ad\u30b7\u30fc'];
+var SYMP_SIDE_EFFECT_SET = ['\u80f8\u75db\u30fb\u5410\u304d\u6c17','\u3080\u304f\u307f','\u5c49\u606f\u69d8\u75c7\u72b6'];
+
+function detectReactionType(symptomsSet) {
+    var hasA = SYMP_ALLERGY_SET.some(function(s) { return symptomsSet.has(s); });
+    var hasS = SYMP_SIDE_EFFECT_SET.some(function(s) { return symptomsSet.has(s); });
+    if (hasA && hasS) return 'both';
+    if (hasA) return 'allergy';
+    if (hasS) return 'side_effect';
+    return null;
+}
+
+var REACTION_BADGE = {
+    'allergy':     { label: '\uD83D\uDEA8 \u30a2\u30ec\u30eb\u30ae\u30fc\u53cd\u5fdc', cls: 'badge-allergy' },
+    'side_effect': { label: '\u26A0\uFE0F \u526f\u4f5c\u7528',                          cls: 'badge-side-effect' },
+    'both':        { label: '\uD83D\uDEA8\u26A0\uFE0F \u4e21\u65b9',                    cls: 'badge-both' },
+    'none':        { label: '',                                                          cls: '' }
+};
+
 function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withSymptoms) {
     var inputEl = document.getElementById(inputId);
     var suggestionsEl = document.getElementById(suggestionsId);
     var chipContainer = document.getElementById(chipsId);
     var hiddenInput = document.getElementById(hiddenInputId);
-    // selectedMeds: [{name, reactionType: null|'allergy'|'side_effect', symptoms: Set, note}]
     var selectedMeds = [];
 
     if (!inputEl) return;
@@ -556,16 +574,16 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
                 div.className = 'suggestion-item';
                 div.innerText = med;
                 div.addEventListener('mousedown', function(ev) {
-                    ev.preventDefault();
-                    addMed(med);
+                    ev.preventDefault(); addMed(med);
                 });
                 var touchStartY = 0;
                 div.addEventListener('touchstart', function(ev) {
                     touchStartY = ev.touches[0].clientY;
                 }, { passive: true });
                 div.addEventListener('touchend', function(ev) {
-                    var moved = Math.abs(ev.changedTouches[0].clientY - touchStartY);
-                    if (moved < 10) { ev.preventDefault(); addMed(med); }
+                    if (Math.abs(ev.changedTouches[0].clientY - touchStartY) < 10) {
+                        ev.preventDefault(); addMed(med);
+                    }
                 }, { passive: false });
                 suggestionsEl.appendChild(div);
             });
@@ -583,7 +601,7 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
 
     function addMed(name) {
         if (!selectedMeds.find(function(m) { return m.name === name; })) {
-            selectedMeds.unshift({ name: name, reactionType: null, symptoms: new Set(), note: '' });
+            selectedMeds.unshift({ name: name, symptoms: new Set(), note: '' });
             renderCards();
         }
         inputEl.value = '';
@@ -595,29 +613,29 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
         chipContainer.innerHTML = '';
         selectedMeds.forEach(function(item, idx) {
             if (withSymptoms) {
-                var card = document.createElement('div');
-                card.className = 'allergy-card';
-
-                // 反応種別ボタン
-                var rtAllergy = item.reactionType === 'allergy' ? ' active' : '';
-                var rtSide    = item.reactionType === 'side_effect' ? ' active' : '';
+                var rtype = detectReactionType(item.symptoms);
+                var badge = REACTION_BADGE[rtype || 'none'];
 
                 var sympBtns = ALLERGY_SYMPTOMS.map(function(s) {
                     var active = item.symptoms.has(s) ? ' active' : '';
                     return '<button type="button" class="symptom-btn' + active + '" data-symptom="' + s + '">' + s + '</button>';
                 }).join('');
 
+                var badgeHtml = badge.label
+                    ? '<span class="reaction-badge ' + badge.cls + '">' + badge.label + '</span>'
+                    : '<span class="reaction-badge badge-none">\u672a\u5224\u5b9a</span>';
+
+                var card = document.createElement('div');
+                card.className = 'allergy-card';
                 card.innerHTML =
                     '<div class="allergy-card-header">' +
+                    '<div class="allergy-card-title">' +
                     '<span class="allergy-med-name">\uD83D\uDC8A ' + item.name + '</span>' +
+                    badgeHtml +
+                    '</div>' +
                     '<button type="button" class="chip-remove" aria-label="\u524a\u9664">&times;</button>' +
                     '</div>' +
-                    '<div class="reaction-type-label">\u53cd\u5fdc\u306e\u7a2e\u985e\uff08\u5fc5\u305a\u9078\u3093\u3067\u304f\u3060\u3055\u3044\uff09</div>' +
-                    '<div class="reaction-type-row">' +
-                    '<button type="button" class="reaction-type-btn allergy' + rtAllergy + '" data-type="allergy">\uD83D\uDEA8 \u30a2\u30ec\u30eb\u30ae\u30fc\u53cd\u5fdc</button>' +
-                    '<button type="button" class="reaction-type-btn side_effect' + rtSide + '" data-type="side_effect">\u26a0\uFE0F \u526f\u4f5c\u7528</button>' +
-                    '</div>' +
-                    '<div class="symptom-label">\u51fa\u305f\u75c7\u72b6\uff08\u8907\u6570\u9078\u629eOK\uff09</div>' +
+                    '<div class="symptom-label">\u51fa\u305f\u75c7\u72b6\uff08\u8907\u6570\u9078\u629eOK\uff09\u2014\u7a2e\u5225\u306f\u81ea\u52d5\u5224\u5b9a</div>' +
                     '<div class="symptom-buttons">' + sympBtns + '</div>' +
                     '<input type="text" class="symptom-note" placeholder="\u305d\u306e\u4ed6\u30fb\u8a73\u7d30\uff08\u4efb\u610f\uff09" value="' + (item.note || '') + '">';
 
@@ -628,30 +646,21 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
                     renderCards();
                 });
 
-                // 反応種別ボタン（排他選択）
-                card.querySelectorAll('.reaction-type-btn').forEach(function(btn) {
-                    var selectType = function(ev) {
-                        ev.preventDefault();
-                        item.reactionType = btn.dataset.type;
-                        card.querySelectorAll('.reaction-type-btn').forEach(function(b) { b.classList.remove('active'); });
-                        btn.classList.add('active');
-                        updateHidden();
-                    };
-                    btn.addEventListener('mousedown', selectType);
-                    var btnY = 0;
-                    btn.addEventListener('touchstart', function(ev) { btnY = ev.touches[0].clientY; }, { passive: true });
-                    btn.addEventListener('touchend', function(ev) {
-                        if (Math.abs(ev.changedTouches[0].clientY - btnY) < 10) selectType(ev);
-                    }, { passive: false });
-                });
-
-                // 症状ボタン
+                // 症状ボタン → 選択後にバッジを自動更新
                 card.querySelectorAll('.symptom-btn').forEach(function(btn) {
                     var toggle = function(ev) {
                         ev.preventDefault();
                         var s = btn.dataset.symptom;
                         if (item.symptoms.has(s)) { item.symptoms.delete(s); btn.classList.remove('active'); }
                         else { item.symptoms.add(s); btn.classList.add('active'); }
+                        // バッジを動的に更新
+                        var rt = detectReactionType(item.symptoms);
+                        var b  = REACTION_BADGE[rt || 'none'];
+                        var bdEl = card.querySelector('.reaction-badge');
+                        if (bdEl) {
+                            bdEl.className = 'reaction-badge ' + (b.cls || 'badge-none');
+                            bdEl.textContent = b.label || '\u672a\u5224\u5b9a';
+                        }
                         updateHidden();
                     };
                     btn.addEventListener('mousedown', toggle);
@@ -683,7 +692,7 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
         });
         updateHidden();
 
-        // カード追加時に親.sub-inputのmax-height制約を解除
+        // 親 .sub-input の max-height 制約解除
         var parentSubInput = chipContainer.parentElement;
         while (parentSubInput && !parentSubInput.classList.contains('sub-input')) {
             parentSubInput = parentSubInput.parentElement;
@@ -702,10 +711,13 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withS
     function updateHidden() {
         hiddenInput.value = selectedMeds.map(function(item) {
             if (withSymptoms) {
-                // 反応種別タグ
-                var typeTag = '';
-                if (item.reactionType === 'allergy') typeTag = '\u300a\u30a2\u30ec\u30eb\u30ae\u30fc\u300b';
-                else if (item.reactionType === 'side_effect') typeTag = '\u300a\u526f\u4f5c\u7528\u300b';
+                var rt = detectReactionType(item.symptoms);
+                var tagMap = {
+                    'allergy':     '\u300a\u30a2\u30ec\u30eb\u30ae\u30fc\u53cd\u5fdc\u300b',
+                    'side_effect': '\u300a\u526f\u4f5c\u7528\u300b',
+                    'both':        '\u300a\u30a2\u30ec\u30eb\u30ae\u30fc\u30fb\u526f\u4f5c\u7528\u300b'
+                };
+                var typeTag = tagMap[rt] || '';
                 var parts = Array.from(item.symptoms);
                 if (item.note) parts.push(item.note);
                 return parts.length
@@ -725,20 +737,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (foodBtnGroup && foodHidden) {
         var selectedFoods = new Set();
-
         foodBtnGroup.querySelectorAll('.food-btn').forEach(function(btn) {
             var select = function(ev) {
                 ev.preventDefault();
                 var food = btn.dataset.food;
-                if (selectedFoods.has(food)) {
-                    selectedFoods.delete(food);
-                    btn.classList.remove('active');
-                } else {
-                    selectedFoods.add(food);
-                    btn.classList.add('active');
-                }
-                // その他 を選択したら詳細テキスト入力を表示
-                if (food === '\u305d\u306e\u4ed6') {
+                if (selectedFoods.has(food)) { selectedFoods.delete(food); btn.classList.remove('active'); }
+                else { selectedFoods.add(food); btn.classList.add('active'); }
+                if (food === '\u305d\u306e\u4ed6' && foodOther) {
                     foodOther.style.display = selectedFoods.has('\u305d\u306e\u4ed6') ? 'block' : 'none';
                 }
                 updateFoodHidden();
@@ -750,10 +755,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (Math.abs(ev.changedTouches[0].clientY - btnY) < 10) select(ev);
             }, { passive: false });
         });
-
-        if (foodOther) {
-            foodOther.addEventListener('input', updateFoodHidden);
-        }
+        if (foodOther) { foodOther.addEventListener('input', updateFoodHidden); }
 
         function updateFoodHidden() {
             var items = Array.from(selectedFoods);
@@ -765,13 +767,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Autocomplete 初期化
     if (typeof MED_DB !== 'undefined') {
         setupAutocomplete('allergy-search', 'allergy-suggestions', 'allergy-chips', 'hidden-allergy-detail', true);
         setupAutocomplete('presc-search', 'presc-suggestions', 'presc-chips', 'hidden-presc-detail', false);
     }
 });
 </script>
-<script src="app.js?v=20260501c"></script>
+<script src="app.js?v=20260501d"></script>
 </body>
 </html>

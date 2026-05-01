@@ -593,45 +593,42 @@ textarea { resize: vertical; min-height: 88px; }
   box-shadow: 0 0 0 3px rgba(6,199,85,.12);
   outline: none;
 }
-/* ===== REACTION TYPE (アレルギー/副作用 種別ボタン) ===== */
-.reaction-type-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--sub);
-  margin-bottom: 7px;
-}
-.reaction-type-row {
+/* ===== REACTION BADGE（症状から自動判定バッジ） ===== */
+.allergy-card-title {
   display: flex;
-  gap: 8px;
-  margin-bottom: 13px;
-}
-.reaction-type-btn {
+  flex-direction: column;
+  gap: 5px;
   flex: 1;
-  padding: 11px 8px;
-  border-radius: 10px;
-  border: 2px solid var(--border);
-  background: #f6f8f7;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  color: var(--sub);
-  text-align: center;
-  transition: all 0.15s;
-  min-height: 46px;
-  -webkit-appearance: none;
 }
-.reaction-type-btn.allergy.active {
+.reaction-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  width: fit-content;
+}
+.badge-allergy {
   background: #fff0f0;
-  border-color: #d72020;
   color: #d72020;
+  border: 1px solid #d72020;
 }
-.reaction-type-btn.side_effect.active {
+.badge-side-effect {
   background: #fff8e0;
-  border-color: #c8860a;
   color: #8a6000;
+  border: 1px solid #c8860a;
 }
-.reaction-type-btn:active { transform: scale(0.97); }
+.badge-both {
+  background: #fff4f0;
+  color: #b03000;
+  border: 1px solid #b03000;
+}
+.badge-none {
+  background: #f0f0f0;
+  color: #999;
+  border: 1px solid #ccc;
+  font-weight: 400;
+}
 
 /* ===== FOOD ALLERGY BUTTONS ===== */
 .food-allergy-grid {
