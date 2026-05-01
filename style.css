@@ -1,4 +1,4 @@
-/* ===== DESIGN TOKENS ===== */
+﻿/* ===== DESIGN TOKENS ===== */
 :root {
   --line-green:   #06C755;
   --green:        #06C755;
@@ -509,4 +509,87 @@ textarea { resize: vertical; min-height: 88px; }
 @keyframes popIn {
     0% { transform: scale(0.8); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
+}
+
+/* ===== ALLERGY CARD (症状B+Cハイブリッド) ===== */
+.allergy-card {
+  background: #fff;
+  border: 1.5px solid var(--green);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+  width: 100%;
+  animation: popIn 0.2s ease-out;
+}
+.allergy-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.allergy-med-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--green-dark);
+  flex: 1;
+  line-height: 1.4;
+}
+.chip-remove {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  -webkit-appearance: none;
+}
+.chip-remove:hover, .chip-remove:active { color: var(--error-color); }
+.symptom-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sub);
+  margin-bottom: 8px;
+}
+.symptom-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.symptom-btn {
+  padding: 7px 13px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: #f6f8f7;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text);
+  transition: all 0.15s;
+  min-height: 36px;
+  -webkit-appearance: none;
+}
+.symptom-btn.active {
+  background: var(--green-light);
+  border-color: var(--green);
+  color: var(--green-dark);
+  font-weight: 700;
+}
+.symptom-btn:active { transform: scale(0.95); }
+.symptom-note {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  box-sizing: border-box;
+}
+.symptom-note:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(6,199,85,.12);
+  outline: none;
 }

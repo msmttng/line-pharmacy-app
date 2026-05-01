@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -485,76 +485,76 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 // --- Autocomplete Logic ---
 function hiraToKata(str) {
-    return str.replace(/[ぁ-ん]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60));
+    return str.replace(/[\u3041-\u3096]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) + 0x60); });
 }
 function zenToHan(str) {
-    return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+    return str.replace(/[\uFF21-\uFF3A\uFF41-\uFF5A\uFF10-\uFF19]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); });
 }
 function normalizeString(str) {
     return zenToHan(hiraToKata(str)).toUpperCase();
 }
 
-function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId) {
-    const inputEl = document.getElementById(inputId);
-    const suggestionsEl = document.getElementById(suggestionsId);
-    const chipContainer = document.getElementById(chipsId);
-    const hiddenInput = document.getElementById(hiddenInputId);
-    let selectedMeds = [];
+var ALLERGY_SYMPTOMS = ['\u767a\u75b9', '\u3058\u3093\u307e\u3057\u3093', '\u80f8\u75db\u30fb\u5410\u304d\u6c17', '\u547c\u5438\u56f0\u96e3', '\u3080\u304f\u307f', '\u5c49\u606f\u69d8\u75c7\u72b6', '\u30a2\u30ca\u30d5\u30a3\u30e9\u30ad\u30b7\u30fc', '\u305d\u306e\u4ed6'];
+
+function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId, withSymptoms) {
+    var inputEl = document.getElementById(inputId);
+    var suggestionsEl = document.getElementById(suggestionsId);
+    var chipContainer = document.getElementById(chipsId);
+    var hiddenInput = document.getElementById(hiddenInputId);
+    var selectedMeds = [];
 
     if (!inputEl) return;
 
-    // IME対応: スマホの日本語入力で文字が確定されたタイミングでも検索を走らせる
-    let isComposing = false;
+    var isComposing = false;
     inputEl.addEventListener('compositionstart', function() { isComposing = true; });
     inputEl.addEventListener('compositionend', function() {
         isComposing = false;
-        // composition確定後にinputイベントを手動発火してサジェストを更新
         inputEl.dispatchEvent(new Event('input'));
     });
 
     inputEl.addEventListener('input', function(e) {
-        // IME変換中は途中検索しない（確定後に再発火される）
         if (isComposing) return;
-        const val = e.target.value.trim();
+        var val = e.target.value.trim();
         suggestionsEl.innerHTML = '';
         if (!val) { suggestionsEl.style.display = 'none'; return; }
 
-        const query = normalizeString(val);
-        let startsWith = [];
-        let includes = [];
-        // Bug fix: collect startsWith and includes independently with separate limits
-        for (let i = 0; i < MED_DB.length; i++) {
-            const med = MED_DB[i];
-            const normMed = normalizeString(med);
+        var query = normalizeString(val);
+        var startsWith = [], includes = [];
+        for (var i = 0; i < MED_DB.length; i++) {
+            var med = MED_DB[i];
+            var normMed = normalizeString(med);
             if (normMed.startsWith(query)) {
                 if (startsWith.length < 15) startsWith.push(med);
             } else if (normMed.includes(query)) {
                 if (includes.length < 10) includes.push(med);
             }
-            // Stop once we have enough of both
             if (startsWith.length >= 15 && includes.length >= 10) break;
         }
 
-        const results = [...startsWith, ...includes].slice(0, 20);
+        var results = startsWith.concat(includes).slice(0, 20);
         if (results.length > 0) {
-            results.forEach(med => {
-                const div = document.createElement('div');
+            results.forEach(function(med) {
+                var div = document.createElement('div');
                 div.className = 'suggestion-item';
                 div.innerText = med;
-                // Bug fix: use mousedown + touchstart instead of onclick
-                // so the selection fires BEFORE input blur hides the suggestions
-                const selectMed = function(e) {
-                    e.preventDefault();
-                    if (!selectedMeds.includes(med)) {
-                        selectedMeds.push(med);
-                        renderChips();
+
+                div.addEventListener('mousedown', function(ev) {
+                    ev.preventDefault();
+                    addMed(med);
+                });
+
+                var touchStartY = 0;
+                div.addEventListener('touchstart', function(ev) {
+                    touchStartY = ev.touches[0].clientY;
+                }, { passive: true });
+                div.addEventListener('touchend', function(ev) {
+                    var moved = Math.abs(ev.changedTouches[0].clientY - touchStartY);
+                    if (moved < 10) {
+                        ev.preventDefault();
+                        addMed(med);
                     }
-                    inputEl.value = '';
-                    suggestionsEl.style.display = 'none';
-                    suggestionsEl.innerHTML = '';
-                };
-                div.addEventListener('mousedown', selectMed);
-                div.addEventListener('touchstart', selectMed, { passive: false });
+                }, { passive: false });
+
                 suggestionsEl.appendChild(div);
             });
             suggestionsEl.style.display = 'block';
@@ -563,34 +563,100 @@ function setupAutocomplete(inputId, suggestionsId, chipsId, hiddenInputId) {
         }
     });
 
-
-    // Bug fix: use mousedown for external-click dismiss as well (consistent with above)
     document.addEventListener('mousedown', function(e) {
         if (!inputEl.contains(e.target) && !suggestionsEl.contains(e.target)) {
             suggestionsEl.style.display = 'none';
         }
     });
 
-    function renderChips() {
+    function addMed(name) {
+        if (!selectedMeds.find(function(m) { return m.name === name; })) {
+            selectedMeds.push({ name: name, symptoms: new Set(), note: '' });
+            renderCards();
+        }
+        inputEl.value = '';
+        suggestionsEl.style.display = 'none';
+        suggestionsEl.innerHTML = '';
+    }
+
+    function renderCards() {
         chipContainer.innerHTML = '';
-        selectedMeds.forEach(med => {
-            const chip = document.createElement('div');
-            chip.className = 'chip';
-            chip.innerHTML = `<span>${med}</span><span class="chip-close">×</span>`;
-            chip.querySelector('.chip-close').onclick = function() {
-                selectedMeds = selectedMeds.filter(m => m !== med);
-                renderChips();
-            };
-            chipContainer.appendChild(chip);
+        selectedMeds.forEach(function(item, idx) {
+            if (withSymptoms) {
+                var card = document.createElement('div');
+                card.className = 'allergy-card';
+                var sympBtns = ALLERGY_SYMPTOMS.map(function(s) {
+                    var active = item.symptoms.has(s) ? ' active' : '';
+                    return '<button type="button" class="symptom-btn' + active + '" data-symptom="' + s + '">' + s + '</button>';
+                }).join('');
+                card.innerHTML =
+                    '<div class="allergy-card-header">' +
+                    '<span class="allergy-med-name">\uD83D\uDC8A ' + item.name + '</span>' +
+                    '<button type="button" class="chip-remove" aria-label="\u524a\u9664">&times;</button>' +
+                    '</div>' +
+                    '<div class="symptom-label">\u51fa\u305f\u75c7\u72b6\uff08\u8907\u6570\u9078\u629eOK\uff09</div>' +
+                    '<div class="symptom-buttons">' + sympBtns + '</div>' +
+                    '<input type="text" class="symptom-note" placeholder="\u305d\u306e\u4ed6\u30fb\u8a73\u7d30\uff08\u4efb\u610f\uff09" value="' + (item.note || '') + '">';
+
+                card.querySelector('.chip-remove').addEventListener('mousedown', function(ev) {
+                    ev.preventDefault();
+                    selectedMeds.splice(idx, 1);
+                    renderCards();
+                });
+
+                card.querySelectorAll('.symptom-btn').forEach(function(btn) {
+                    var toggle = function(ev) {
+                        ev.preventDefault();
+                        var s = btn.dataset.symptom;
+                        if (item.symptoms.has(s)) { item.symptoms.delete(s); btn.classList.remove('active'); }
+                        else { item.symptoms.add(s); btn.classList.add('active'); }
+                        updateHidden();
+                    };
+                    btn.addEventListener('mousedown', toggle);
+                    var btnY = 0;
+                    btn.addEventListener('touchstart', function(ev) { btnY = ev.touches[0].clientY; }, { passive: true });
+                    btn.addEventListener('touchend', function(ev) {
+                        if (Math.abs(ev.changedTouches[0].clientY - btnY) < 10) toggle(ev);
+                    }, { passive: false });
+                });
+
+                card.querySelector('.symptom-note').addEventListener('input', function(ev) {
+                    item.note = ev.target.value;
+                    updateHidden();
+                });
+
+                chipContainer.appendChild(card);
+            } else {
+                var chip = document.createElement('div');
+                chip.className = 'chip';
+                chip.innerHTML = '<span>' + item.name + '</span><span class="chip-close">&times;</span>';
+                chip.querySelector('.chip-close').addEventListener('mousedown', function(ev) {
+                    ev.preventDefault();
+                    selectedMeds.splice(idx, 1);
+                    renderCards();
+                });
+                chipContainer.appendChild(chip);
+            }
         });
-        hiddenInput.value = selectedMeds.join(', ');
+        updateHidden();
+    }
+
+    function updateHidden() {
+        hiddenInput.value = selectedMeds.map(function(item) {
+            if (withSymptoms) {
+                var parts = Array.from(item.symptoms);
+                if (item.note) parts.push(item.note);
+                return parts.length ? item.name + '\uff08' + parts.join('\u30fb') + '\uff09' : item.name;
+            }
+            return item.name;
+        }).join(', ');
     }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     if (typeof MED_DB !== 'undefined') {
-        setupAutocomplete('allergy-search', 'allergy-suggestions', 'allergy-chips', 'hidden-allergy-detail');
-        setupAutocomplete('presc-search', 'presc-suggestions', 'presc-chips', 'hidden-presc-detail');
+        setupAutocomplete('allergy-search', 'allergy-suggestions', 'allergy-chips', 'hidden-allergy-detail', true);
+        setupAutocomplete('presc-search', 'presc-suggestions', 'presc-chips', 'hidden-presc-detail', false);
     }
 });
 </script>
