@@ -310,6 +310,10 @@ async function handleSubmit(e) {
     const submitBtn = document.getElementById('submit-btn');
     submitBtn.disabled = true;
     submitBtn.innerText = t('btn_submitting');
+    
+    // 全画面オーバーレイ表示
+    const overlay = document.getElementById('submit-overlay');
+    if (overlay) overlay.classList.add('active');
 
     // バックエンド(GAS)の後方互換性を保つため、現病歴と既往歴を history に結合
     const historyMap = {
