@@ -1,6 +1,6 @@
 // --- Configuration ---
 const LIFF_ID = 'YOUR_LIFF_ID'; // Replace with your real LIFF ID
-const API_URL = 'https://script.google.com/macros/s/AKfycbwzgWaaqg6HyDTh8Qxq2_TdTqwH0q_INm_kuArmq640Xqai0KXp_xWbGJhhIs00b41wpQ/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyr_FWmEZm1QOIu6VXTnvtZf2BHxcAe0YtZYyZ0mytZ-3Ya0IQ0LtzRR25diTXwYIBh/exec';
 
 // --- State ---
 let currentStep = 1;
