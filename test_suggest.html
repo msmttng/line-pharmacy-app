@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>サジェスト動作テスト</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 700px; margin: 0 auto; }
+    .ok { color: green; font-weight: bold; }
+    .ng { color: red; font-weight: bold; }
+    .result-box { background: #f5f5f5; border: 1px solid #ccc; padding: 12px; margin: 10px 0; border-radius: 6px; font-size: 13px; }
+    h2 { margin-top: 24px; }
+    #live-test input { padding: 8px; width: 100%; box-sizing: border-box; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+    #suggestions-live { border: 1px solid #aaa; background: white; max-height: 200px; overflow-y: auto; display: none; }
+    .sug-item { padding: 8px 12px; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sug-item:hover { background: #e8f7ed; }
+    .chip { display: inline-block; background: #e8f7ed; border: 1px solid #06C755; padding: 4px 10px; border-radius: 20px; margin: 4px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>🧪 サジェスト機能 動作テスト</h1>
+  <p>このページはローカルで <code>dict_v2.js</code> を読み込み、サジェストロジックを自動テストします。</p>
+
+  <h2>① 自動テスト結果</h2>
+  <div id="auto-results">読み込み中...</div>
+
+  <h2>② インタラクティブテスト</h2>
+  <p>以下のフィールドに「ろきそ」「むこそ」「あむろ」などを入力してください：</p>
+  <div style="position:relative">
+    <input type="text" id="live-input" placeholder="ひらがなで検索 (例: ろきそ)" autocomplete="off">
+    <div id="suggestions-live"></div>
+  </div>
+  <div id="chips-live" style="margin-top:8px"></div>
+
+  <script src="dict_v2.js"></script>
+  <script>
+    // ===== ユーティリティ =====
+    function hiraToKata(str) {
+      return str.replace(/[ぁ-ん]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60));
+    }
+    function zenToHan(str) {
+      return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+    }
+    function normalizeString(str) {
+      return zenToHan(hiraToKata(str)).toUpperCase();
+    }
+
+    // ===== 検索ロジック（修正後） =====
+    function search(query) {
+      const normQ = normalizeString(query);
+      let startsWith = [];
+      let includes = [];
+      for (let i = 0; i < MED_DB.length; i++) {
+        const med = MED_DB[i];
+        const normMed = normalizeString(med);
+        if (normMed.startsWith(normQ)) {
+          if (startsWith.length < 15) startsWith.push(med);
+        } else if (normMed.includes(normQ)) {
+          if (includes.length < 10) includes.push(med);
+        }
+        if (startsWith.length >= 15 && includes.length >= 10) break;
+      }
+      return [...startsWith, ...includes].slice(0, 20);
+    }
+
+    // ===== 自動テスト =====
+    window.addEventListener('DOMContentLoaded', () => {
+      const el = document.getElementById('auto-results');
+      let html = '';
+
+      // Test 1: MED_DB ロード確認
+      const loaded = typeof MED_DB !== 'undefined';
+      html += `<div class="result-box">`;
+      html += `<b>テスト1: MED_DB 読み込み</b><br>`;
+      html += loaded
+        ? `<span class="ok">✅ OK — MED_DB.length = ${MED_DB.length.toLocaleString()} 件</span>`
+        : `<span class="ng">❌ FAIL — MED_DB が undefined</span>`;
+      html += `</div>`;
+
+      if (!loaded) { el.innerHTML = html; return; }
+
+      // Test 2: normalizeString
+      const norm = normalizeString('ろきそ');
+      html += `<div class="result-box">`;
+      html += `<b>テスト2: normalizeString('ろきそ')</b><br>`;
+      html += norm === 'ロキソ'
+        ? `<span class="ok">✅ OK → "${norm}"</span>`
+        : `<span class="ng">❌ FAIL → "${norm}" (期待値: ロキソ)</span>`;
+      html += `</div>`;
+
+      // Test 3: 検索結果 - ろきそ
+      const r1 = search('ろきそ');
+      html += `<div class="result-box">`;
+      html += `<b>テスト3: search('ろきそ') → ${r1.length}件</b><br>`;
+      if (r1.length > 0) {
+        html += `<span class="ok">✅ OK — 候補あり</span><br>`;
+        html += `<small>先頭5件: ${r1.slice(0,5).join(' / ')}</small>`;
+      } else {
+        html += `<span class="ng">❌ FAIL — 候補0件</span>`;
+      }
+      html += `</div>`;
+
+      // Test 4: 検索結果 - むこそ
+      const r2 = search('むこそ');
+      html += `<div class="result-box">`;
+      html += `<b>テスト4: search('むこそ') → ${r2.length}件</b><br>`;
+      if (r2.length > 0) {
+        html += `<span class="ok">✅ OK</span><br>`;
+        html += `<small>先頭3件: ${r2.slice(0,3).join(' / ')}</small>`;
+      } else {
+        html += `<span class="ng">❌ FAIL — 候補0件</span>`;
+      }
+      html += `</div>`;
+
+      // Test 5: includes側が取れるか（breakバグの検証）
+      // 「アムロ」は前方一致15件超える可能性があるが includes も出るべき
+      const r3 = search('あむろ');
+      html += `<div class="result-box">`;
+      html += `<b>テスト5: search('あむろ') — includes側も取れるか → ${r3.length}件</b><br>`;
+      html += r3.length > 0
+        ? `<span class="ok">✅ OK</span><br><small>先頭3件: ${r3.slice(0,3).join(' / ')}</small>`
+        : `<span class="ng">❌ FAIL</span>`;
+      html += `</div>`;
+
+      el.innerHTML = html;
+
+      // ===== インタラクティブテスト =====
+      const input = document.getElementById('live-input');
+      const sugg = document.getElementById('suggestions-live');
+      const chips = document.getElementById('chips-live');
+      let selected = [];
+
+      input.addEventListener('input', () => {
+        const val = input.value.trim();
+        sugg.innerHTML = '';
+        if (!val) { sugg.style.display = 'none'; return; }
+        const results = search(val);
+        if (results.length > 0) {
+          results.forEach(med => {
+            const div = document.createElement('div');
+            div.className = 'sug-item';
+            div.textContent = med;
+            div.addEventListener('mousedown', (e) => {
+              e.preventDefault();
+              if (!selected.includes(med)) {
+                selected.push(med);
+                renderChips();
+              }
+              input.value = '';
+              sugg.style.display = 'none';
+              sugg.innerHTML = '';
+            });
+            sugg.appendChild(div);
+          });
+          sugg.style.display = 'block';
+        } else {
+          sugg.style.display = 'none';
+        }
+      });
+
+      document.addEventListener('mousedown', (e) => {
+        if (!input.contains(e.target) && !sugg.contains(e.target)) {
+          sugg.style.display = 'none';
+        }
+      });
+
+      function renderChips() {
+        chips.innerHTML = selected.map(m =>
+          `<span class="chip">${m} <span style="cursor:pointer;color:#c00" onclick="removeChip('${m.replace(/'/g, "\\'")}')">×</span></span>`
+        ).join('');
+      }
+      window.removeChip = (med) => {
+        selected = selected.filter(m => m !== med);
+        renderChips();
+      };
+    });
+  </script>
+</body>
+</html>

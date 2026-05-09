@@ -1,4 +1,4 @@
-const SPREADSHEET_ID = '1Xe52ARdmONGVAoaPn7EIslLAYioXk77GRSQ39cRhr_k';
+const SPREADSHEET_ID = '1VKnnNhdN4e5gqjYRdhLNAsklcZR6KJ5hlYkwS7vF4Iw';
 const PDF_FOLDER_NAME = '初回問診票_印刷用'; // Googleドライブに自動作成されるフォルダ名
 
 function doGet(e) {

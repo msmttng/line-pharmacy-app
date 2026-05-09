@@ -149,6 +149,24 @@ function saveStepData(step) {
             formData[input.name] = input.value;
         }
     });
+
+    if (step === 4) {
+        if (formData['has-present-illness'] === 'no') {
+            formData['present-illness'] = ['no'];
+        } else if (!formData['present-illness'] || formData['present-illness'].length === 0) {
+            if (!formData['present-illness-other-detail']) {
+                 formData['present-illness'] = ['no'];
+            }
+        }
+        
+        if (formData['has-past-history'] === 'no') {
+            formData['past-history'] = ['no'];
+        } else if (!formData['past-history'] || formData['past-history'].length === 0) {
+            if (!formData['past-history-other-detail']) {
+                 formData['past-history'] = ['no'];
+            }
+        }
+    }
 }
 
 function getStepOfInput(input) {
