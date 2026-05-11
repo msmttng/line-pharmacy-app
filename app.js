@@ -426,14 +426,22 @@ async function handleSubmit(e) {
         formData.timestamp = new Date().toLocaleString('ja-JP');
 
         console.log('handleSubmit: Fetching API...', API_URL);
-        // await を追加して確実に送信完了を待つ（no-cors なのでレスポンス内容は読めないが、完了は待てる）
-        await fetch(API_URL, {
+        // no-cors を外し、レスポンスの成功を厳密に判定する
+        const response = await fetch(API_URL, {
             method: 'POST',
-            mode: 'no-cors',
             keepalive: true,
             headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify(formData)
         });
+
+        if (!response.ok) {
+            throw new Error(`サーバーエラーが発生しました (HTTP ${response.status})`);
+        }
+        
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.error || 'スプレッドシートへの保存に失敗しました');
+        }
 
         console.log('handleSubmit: Success, redirecting...');
         showSuccess();
