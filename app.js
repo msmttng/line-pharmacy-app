@@ -319,6 +319,11 @@ function generateConfirmation() {
 // --- Submission ---
 async function handleSubmit(e) {
     e.preventDefault();
+      // Network check
+        if (!navigator.onLine) {
+                    alert(t('offline_error') || 'Network error. Please check your internet connection.');
+                    return;
+        }
     
     if (!document.getElementById('agree').checked) {
         alert(t('validation_agree'));
