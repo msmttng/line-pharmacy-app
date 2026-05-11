@@ -22,6 +22,16 @@ async function initializeLiff() {
 }
 
 // --- Navigation Logic ---
+function showOverlay() {
+    const overlay = document.getElementById('submit-overlay');
+    if (overlay) overlay.classList.add('active');
+}
+
+function hideOverlay() {
+    const overlay = document.getElementById('submit-overlay');
+    if (overlay) overlay.classList.remove('active');
+}
+
 function updateNavigation() {
     // Update progress bar
     const progress = (currentStep / totalSteps) * 100;
@@ -318,101 +328,125 @@ function generateConfirmation() {
 
 // --- Submission ---
 async function handleSubmit(e) {
-    e.preventDefault();
-      // Network check
-        if (!navigator.onLine) {
-                    alert(t('offline_error') || 'Network error. Please check your internet connection.');
-                    return;
-        }
-    
-    if (!document.getElementById('agree').checked) {
-        alert(t('validation_agree'));
-        return;
-    }
-
-    const submitBtn = document.getElementById('submit-btn');
-    submitBtn.disabled = true;
-    submitBtn.innerText = t('btn_submitting');
-    
-    // 全画面オーバーレイ表示
-    const overlay = document.getElementById('submit-overlay');
-    if (overlay) overlay.classList.add('active');
-
-    // バックエンド(GAS)の後方互換性を保つため、現病歴と既往歴を history に結合
-    const historyMap = {
-        'no': 'ない',
-        'hypertension': '高血圧', 'diabetes': '糖尿病', 'heart': '心臓病', 
-        'kidney': '腎臓病', 'liver': '肝臓病', 'asthma': '喘息', 
-        'epilepsy': 'てんかん', 'glaucoma': '緑内障', 'prostate': '前立腺肥大',
-        'other': 'その他'
-    };
-    
-    let combinedHistory = [];
-    const presentArr = formData['present-illness'] || [];
-    if (presentArr.length > 0) {
-        combinedHistory.push("【現病歴】" + presentArr.map(v => historyMap[v] || v).join('、'));
-    }
-    const pastArr = formData['past-history'] || [];
-    if (pastArr.length > 0) {
-        combinedHistory.push("【既往歴】" + pastArr.map(v => historyMap[v] || v).join('、'));
-    }
-    formData['history'] = combinedHistory.length > 0 ? combinedHistory.join('  ') : 'no'; // 'no' converts to 'なし' in Code.gs
-
-    let combinedDetail = [];
-    if (formData['present-illness-other-detail']) {
-        combinedDetail.push("【現病歴】" + formData['present-illness-other-detail']);
-    }
-    if (formData['past-history-other-detail']) {
-        combinedDetail.push("【既往歴】" + formData['past-history-other-detail']);
-    }
-    formData['history-other-detail'] = combinedDetail.join('  ');
-
-    // Prepare message for LINE if applicable
-    const genericMapSubmit = { 'prefer': 'ジェネリックで大丈夫', 'ag': 'オーソライズド・ジェネリックでなら希望', 'avoid': '先発医薬品を希望する' };
-    const genericText = genericMapSubmit[formData.generic] || formData.generic;
-    
-    // translate patient-condition to Japanese for LINE
-    const pCondMap = { 'none': 'ない', 'pregnant': '妊娠中', 'breastfeeding': '授乳中', 'pediatric': '小児' };
-    const condJp = pCondMap[formData['patient-condition']] || formData['patient-condition'];
-    const condStr = (formData['patient-condition'] !== 'none') ? `\n状態: ${condJp} (体重: ${formData.weight || '-'}kg)` : '\n状態: ない';
-    
-    const yesNoMap = { 'yes': 'ある', 'no': 'ない' };
-    const yesNoDoMap = { 'yes': 'する', 'no': 'しない' };
-    
-    const allergyDetail = formData['drug-allergy-detail'] ? ` (${formData['drug-allergy-detail']})` : '';
-    const drugAllergyJp = (yesNoMap[formData['drug-allergy']] || formData['drug-allergy']) + allergyDetail;
-    
-    const prescDetail = formData['current-presc-detail'] ? ` (${formData['current-presc-detail']})` : '';
-    const prescJp = (yesNoMap[formData['current-presc']] || formData['current-presc']) + prescDetail;
-
-    const drivingJp = yesNoDoMap[formData.driving] || formData.driving;
-    const heightWorkJp = yesNoMap[formData['height-work']] || formData['height-work'];
-
-    const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${condStr}\n薬アレルギー・副作用: ${drugAllergyJp}\n他院処方薬: ${prescJp}\n運転: ${drivingJp}\n高所作業: ${heightWorkJp}\nジェネリック: ${genericText}`;
+    if (e) e.preventDefault();
+    console.log('handleSubmit: Triggered');
 
     try {
-        if (typeof liff !== 'undefined' && liff.isInClient()) {
-            await liff.sendMessages([{
-                type: 'text',
-                text: message
-            }]);
+        // Network check
+        if (!navigator.onLine) {
+            console.warn('handleSubmit: Offline');
+            alert(t('offline_error') || 'インターネット接続がありません。');
+            return;
         }
-    } catch (err) {
-        console.error('LIFF Message failed', err);
-    }
 
-    // Submit to GAS backend (value keys are always English — Code.gs translates to Japanese)
-    formData.source = 'webapp';
-    formData.lang = typeof currentLang !== 'undefined' ? currentLang : 'ja';
+        // 送信中表示
+        showOverlay();
+        console.log('handleSubmit: Overlay shown');
 
-        fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    keepalive: true,
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify(formData)
+        // 個人情報同意チェック
+        const agreeCheckbox = document.getElementById('agree') || document.getElementById('agree-check');
+        if (!agreeCheckbox || !agreeCheckbox.checked) {
+            console.warn('handleSubmit: Agreement not checked');
+            alert(t('validation_agree') || '個人情報の取り扱いに同意してください。');
+            hideOverlay();
+            return;
+        }
+
+        const submitBtn = document.getElementById('submit-btn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerText = t('btn_submitting') || '送信中...';
+        }
+
+        // バックエンド(GAS)の後方互換性を保つため、現病歴と既往歴を history に結合
+        console.log('handleSubmit: Preparing data...');
+        const historyMap = {
+            'no': 'ない',
+            'hypertension': '高血圧', 'diabetes': '糖尿病', 'heart': '心臓病', 
+            'kidney': '腎臓病', 'liver': '肝臓病', 'asthma': '喘息', 
+            'epilepsy': 'てんかん', 'glaucoma': '緑内障', 'prostate': '前立腺肥大',
+            'other': 'その他'
+        };
+        
+        let combinedHistory = [];
+        const presentArr = formData['present-illness'] || [];
+        if (presentArr.length > 0) {
+            combinedHistory.push("【現病歴】" + presentArr.map(v => historyMap[v] || v).join('、'));
+        }
+        const pastArr = formData['past-history'] || [];
+        if (pastArr.length > 0) {
+            combinedHistory.push("【既往歴】" + pastArr.map(v => historyMap[v] || v).join('、'));
+        }
+        formData['history'] = combinedHistory.length > 0 ? combinedHistory.join('  ') : 'no';
+
+        let combinedDetail = [];
+        if (formData['present-illness-other-detail']) {
+            combinedDetail.push("【現病歴】" + formData['present-illness-other-detail']);
+        }
+        if (formData['past-history-other-detail']) {
+            combinedDetail.push("【既往歴】" + formData['past-history-other-detail']);
+        }
+        formData['history-other-detail'] = combinedDetail.join('  ');
+
+        // LINE用メッセージの作成
+        const genericMapSubmit = { 'prefer': 'ジェネリックで大丈夫', 'ag': 'オーソライズド・ジェネリックでなら希望', 'avoid': '先発医薬品を希望する' };
+        const genericText = genericMapSubmit[formData.generic] || formData.generic;
+        
+        const pCondMap = { 'none': 'ない', 'pregnant': '妊娠中', 'breastfeeding': '授乳中', 'pediatric': '小児' };
+        const condJp = pCondMap[formData['patient-condition']] || formData['patient-condition'];
+        const condStr = (formData['patient-condition'] !== 'none') ? `\n状態: ${condJp} (体重: ${formData.weight || '-'}kg)` : '\n状態: ない';
+        
+        const yesNoMap = { 'yes': 'ある', 'no': 'ない' };
+        const yesNoDoMap = { 'yes': 'する', 'no': 'しない' };
+        
+        const allergyDetail = formData['drug-allergy-detail'] ? ` (${formData['drug-allergy-detail']})` : '';
+        const drugAllergyJp = (yesNoMap[formData['drug-allergy']] || formData['drug-allergy']) + allergyDetail;
+        
+        const prescDetail = formData['current-presc-detail'] ? ` (${formData['current-presc-detail']})` : '';
+        const prescJp = (yesNoMap[formData['current-presc']] || formData['current-presc']) + prescDetail;
+
+        const drivingJp = yesNoDoMap[formData.driving] || formData.driving;
+        const heightWorkJp = yesNoMap[formData['height-work']] || formData['height-work'];
+
+        const message = `【初回問診票回答】\n氏名: ${formData.name}\n電話: ${formData.phone}${condStr}\n薬アレルギー・副作用: ${drugAllergyJp}\n他院処方薬: ${prescJp}\n運転: ${drivingJp}\n高所作業: ${heightWorkJp}\nジェネリック: ${genericText}`;
+
+        // LIFFメッセージ送信
+        try {
+            if (typeof liff !== 'undefined' && liff.isInClient()) {
+                console.log('handleSubmit: Sending LIFF message...');
+                await liff.sendMessages([{ type: 'text', text: message }]);
+            }
+        } catch (err) {
+            console.error('handleSubmit: LIFF Message failed', err);
+        }
+
+        // GASへ送信
+        formData.source = 'webapp';
+        formData.lang = typeof currentLang !== 'undefined' ? currentLang : 'ja';
+        formData.timestamp = new Date().toLocaleString('ja-JP');
+
+        console.log('handleSubmit: Fetching API...', API_URL);
+        // await を追加して確実に送信完了を待つ（no-cors なのでレスポンス内容は読めないが、完了は待てる）
+        await fetch(API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            keepalive: true,
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify(formData)
         });
+
+        console.log('handleSubmit: Success, redirecting...');
         showSuccess();
+    } catch (error) {
+        console.error('handleSubmit: Critical error', error);
+        hideOverlay();
+        const submitBtn = document.getElementById('submit-btn');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = t('btn_submit') || '送信する';
+        }
+        alert('送信中にエラーが発生しました。もう一度お試しください。\n' + error.message);
+    }
 }
 
 function showSuccess() {

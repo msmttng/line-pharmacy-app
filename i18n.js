@@ -145,7 +145,7 @@ const I18N = {
     btn_submit: '送信する',
     btn_submitting: '送信中...',
         
-    offline_error: 'No internet connection. Please check your connection and try again.',
+    offline_error: 'インターネット接続がありません。接続を確認してもう一度お試しください。',
     validation_required: '必須項目を入力してください。',
     validation_agree: '個人情報の取り扱いに同意してください。',
     required: '必須',
@@ -339,7 +339,6 @@ const I18N = {
     btn_next: 'Next →',
     btn_submit: 'Submit',
     btn_submitting: 'Submitting...',
-        offline_error: 'No internet connection. Please check your connection and try again.',
     offline_error: 'No internet connection. Please check your connection and try again.',
     validation_required: 'Please fill in all required fields.',
     validation_agree: 'Please agree to the privacy policy.',
@@ -530,7 +529,7 @@ const I18N = {
     btn_next: '下一步 →',
     btn_submit: '提交',
     btn_submitting: '提交中...',
-    No internet connection. Please check your connection and try again.
+    offline_error: '没有网络连接。请检查您的网络并重试。',
     validation_required: '请填写所有必填项。',
     validation_agree: '请同意个人信息处理方针。',
     required: '必填',
