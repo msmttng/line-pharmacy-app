@@ -408,6 +408,7 @@ async function handleSubmit(e) {
                     body: JSON.stringify(formData)
         });
         showSuccess();
+}
 
 function showSuccess() {
     // 完了後の画面（LINE友達追加誘導）へリダイレクト
