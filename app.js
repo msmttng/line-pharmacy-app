@@ -400,20 +400,14 @@ async function handleSubmit(e) {
     formData.source = 'webapp';
     formData.lang = typeof currentLang !== 'undefined' ? currentLang : 'ja';
 
-    fetch(API_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(formData)
-    })
-    .then(() => {
+        fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    keepalive: true,
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify(formData)
+        });
         showSuccess();
-    })
-    .catch(err => {
-        console.error(err);
-        showSuccess(); // fallback to success view even on CORS errors
-    });
-}
 
 function showSuccess() {
     // 完了後の画面（LINE友達追加誘導）へリダイレクト
