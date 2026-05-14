@@ -589,7 +589,7 @@ const I18N = {
 
     footer: '&copy; 2025 丸山药局'
   }
-},
+,
   // ===== 한국어 (Korean) =====
   ko: {
     page_title: '【약국】 초진 문진표',
