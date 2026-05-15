@@ -2,93 +2,12 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>新しい問診票へ移動します</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f5f6f6;
-            color: #333;
-            text-align: center;
-            padding: 20px;
-        }
-        .container {
-            background: white;
-            padding: 40px 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            max-width: 400px;
-            width: 100%;
-        }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #00c300; /* LINE Green */
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        h2 {
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-        p {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-        .btn {
-            display: inline-block;
-            background-color: #00c300;
-            color: white;
-            text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 15px;
-            transition: background-color 0.2s;
-        }
-        .btn:hover {
-            background-color: #00a000;
-        }
-    </style>
+    <meta http-equiv="refresh" content="0;url=https://saas-app-33f02.web.app/form/akQxFNS8JnSF0SkmLLTRt47OvLW2">
+    <title>Redirecting...</title>
+    <script>
+        window.location.replace("https://saas-app-33f02.web.app/form/akQxFNS8JnSF0SkmLLTRt47OvLW2");
+    </script>
 </head>
 <body>
-
-    <div class="container">
-        <div class="loader"></div>
-        <h2>新しい問診票へ移動します</h2>
-        <p>システムが新しくなりました。<br>自動的に新しいページへ移動しますので、少々お待ちください。</p>
-        
-        <p style="font-size: 12px; margin-top: 30px;">
-            ※画面が切り替わらない場合は下のボタンを押してください。
-        </p>
-        <!-- ここにSaaSのURLを設定します -->
-        <a href="https://saas-app-33f02.web.app/form/akQxFNS8JnSF0SkmLLTRt47OvLW2" id="redirect-btn" class="btn">新しい問診票を開く</a>
-    </div>
-
-    <script>
-        // 飛び先のSaaS URL (正しいURLに書き換えてください)
-        const SAAS_URL = "https://saas-app-33f02.web.app/form/akQxFNS8JnSF0SkmLLTRt47OvLW2";
-        
-        document.getElementById('redirect-btn').href = SAAS_URL;
-
-        // 1.5秒後に自動リダイレクト (LIFF環境でも確実に遷移させるためreplaceを使用)
-        setTimeout(function() {
-            window.location.replace(SAAS_URL);
-        }, 1500);
-    </script>
 </body>
 </html>
